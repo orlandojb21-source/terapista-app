@@ -770,14 +770,19 @@ function navTo(screen) {
   });
   currentScreen = screen;
   updateHeader(screen);
-  if (screen==='hoy') { recargarDatos().then(renderHoy); }
-  else if (screen==='mes') { recargarDatos().then(renderMes); }
-  else if (screen==='ninos') { recargarDatos().then(renderNinos); }
-  else if (screen==='pacientes') { recargarDatos().then(renderPacientes); }
-  else if (screen==='reportes') { recargarDatos().then(renderReportes); }
+  // Renderizar primero con datos actuales, luego recargar del servidor
+  if (screen==='hoy') renderHoy();
+  else if (screen==='mes') renderMes();
+  else if (screen==='ninos') renderNinos();
+  else if (screen==='pacientes') renderPacientes();
+  else if (screen==='reportes') renderReportes();
+  // Recargar datos del servidor en background
+  recargarDatos();
 }
 
 function updateHeader(screen) {
+  const header = document.getElementById('main-header');
+  if (!header) return; // Seguridad: si no existe el elemento, salir
   const now = new Date();
   const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   if (screen==='hoy') {
