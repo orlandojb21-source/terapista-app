@@ -595,7 +595,7 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
 // ============================================================
 // CONFIG
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzzBSGTsKckNMmNFUAuiHV1uzaAsIrV-pUELXsO68RBAGmuHqCn9acZuXeM0_Re3XdvVQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwR6Tne3OrwG803VJaiwBMfJ5Sf4XeJ_yBxzK2ZxIGWyh0NeV0cDgGc2qjX_Wa8q1ER7A/exec';
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6'];
 
 // ============================================================
@@ -623,29 +623,44 @@ let searchPacs  = '';
 // ============================================================
 // API — Google Apps Script directo via script tag (GET) y form (POST)
 // ============================================================
-function apiGet(params) {
+async function apiGet(params) {
+  // Google Apps Script redirige a googleusercontent.com — usar no-cors + iframe trick
+  // En su lugar usamos un iframe oculto que puede leer cross-origin via postMessage
   return new Promise((resolve, reject) => {
     const cbName = 'gcb_' + Math.random().toString(36).slice(2);
-    const allParams = Object.assign({}, params, { callback: cbName });
+    const allParams = {...params, callback: cbName};
     const url = API_URL + '?' + new URLSearchParams(allParams);
+    
+    // JSONP via script tag — la URL final de googleusercontent SÍ permite esto
     const script = document.createElement('script');
+    let done = false;
+    
     const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error('Timeout al conectar con el servidor'));
-    }, 20000);
-    function cleanup() {
+      if (done) return;
+      done = true;
+      try { document.head.removeChild(script); } catch(e) {}
       if (window[cbName]) delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      clearTimeout(timer);
-    }
+      reject(new Error('Timeout'));
+    }, 25000);
+    
     window[cbName] = function(data) {
-      cleanup();
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { document.head.removeChild(script); } catch(e) {}
+      delete window[cbName];
       resolve(data);
     };
+    
     script.src = url;
-    script.onerror = function() {
-      cleanup();
-      reject(new Error('Error al cargar script'));
+    script.async = true;
+    script.onerror = function(e) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { document.head.removeChild(script); } catch(e) {}
+      if (window[cbName]) delete window[cbName];
+      reject(new Error('Script error'));
     };
     document.head.appendChild(script);
   });
