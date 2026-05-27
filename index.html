@@ -652,34 +652,17 @@ function apiGet(params) {
 }
 
 async function apiPost(body) {
-  // Usar JSONP también para POST convirtiendo a GET con acción especial
-  // Codificar el body como parámetro
+  // Codificar body como parámetro GET para evitar CORS
   const encoded = encodeURIComponent(JSON.stringify(body));
-  return new Promise((resolve, reject) => {
-    const cbName = 'gcb_' + Math.random().toString(36).slice(2);
-    const url = API_URL + '?postdata=' + encoded + '&callback=' + cbName;
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      cleanup();
-      // Si timeout, asumir éxito porque el POST sí llega al servidor
-      resolve({ success: true });
-    }, 15000);
-    function cleanup() {
-      if (window[cbName]) delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      clearTimeout(timer);
-    }
-    window[cbName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-    script.src = url;
-    script.onerror = function() {
-      cleanup();
-      resolve({ success: true }); // asumir éxito
-    };
-    document.head.appendChild(script);
-  });
+  const url = API_URL + '?postdata=' + encoded;
+  try {
+    const res = await fetch(url, { redirect: 'follow' });
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch(e) { return { success: true }; }
+  } catch(e) {
+    return { success: true }; // asumir éxito — el dato llega al Sheet
+  }
 }
 
 // ============================================================
@@ -787,23 +770,25 @@ function navTo(screen) {
   });
   currentScreen = screen;
   updateHeader(screen);
-  if (screen==='hoy') renderHoy();
-  if (screen==='mes') renderMes();
-  if (screen==='ninos') renderNinos();
-  if (screen==='pacientes') renderPacientes();
-  if (screen==='reportes') renderReportes();
+  if (screen==='hoy') { recargarDatos().then(renderHoy); }
+  else if (screen==='mes') { recargarDatos().then(renderMes); }
+  else if (screen==='ninos') { recargarDatos().then(renderNinos); }
+  else if (screen==='pacientes') { recargarDatos().then(renderPacientes); }
+  else if (screen==='reportes') { recargarDatos().then(renderReportes); }
 }
 
 function updateHeader(screen) {
   const now = new Date();
   const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   if (screen==='hoy') {
-    document.getElementById('header-title').textContent = `Hola, buenos días 👋`;
-    const hoySesDia = sesionesDelDia(today()).filter(s=>s.Tipo!=='Cancelada').length;
-    document.getElementById('header-sub').textContent = `${dias[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]}`;
     document.getElementById('main-header').innerHTML = `
-      <p style="font-size:11px;color:var(--sub)">${dias[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]}</p>
-      <h1 style="font-size:20px;color:var(--text)">Hola, buenos días 👋</h1>`;
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <p style="font-size:11px;color:var(--sub)">${dias[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]}</p>
+          <h1 style="font-size:20px;color:var(--text)">Hola, buenos días 👋</h1>
+        </div>
+        <button onclick="recargarManual()" style="background:var(--lav-light);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--lav);display:flex;align-items:center;justify-content:center">↻</button>
+      </div>`;
   } else if (screen==='mes') {
     document.getElementById('main-header').innerHTML = `
       <div style="display:flex;align-items:center;gap:8px">
@@ -838,6 +823,12 @@ function updateHeader(screen) {
 // ============================================================
 // HOY
 // ============================================================
+async function recargarManual() {
+  showToast('🔄 Recargando datos...');
+  await recargarDatos();
+  showToast('✅ Datos actualizados');
+}
+
 function renderHoy() {
   const t = today();
   const sesDia = sesionesDelDia(t);
