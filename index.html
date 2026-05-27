@@ -684,6 +684,7 @@ async function apiPost(body) {
 // INIT
 // ============================================================
 async function init() {
+  // Mostrar spinner inicial
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   try {
     const [rPac, rSes] = await Promise.all([
@@ -701,6 +702,8 @@ async function init() {
     sesiones  = [];
     populateSelects();
   }
+  // Actualizar header y renderizar DESPUÉS de tener datos
+  updateHeader('hoy');
   renderHoy();
 }
 
@@ -1492,7 +1495,8 @@ async function recargarDatos() {
     if (rPac.success) pacientes = rPac.data || [];
     if (rSes.success) sesiones  = rSes.data || [];
     populateSelects();
-    // Refrescar pantalla actual
+    // Actualizar header y refrescar pantalla actual
+    updateHeader(currentScreen);
     if (currentScreen === 'hoy') renderHoy();
     else if (currentScreen === 'mes') renderMes();
     else if (currentScreen === 'ninos') renderNinos();
