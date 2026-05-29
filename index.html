@@ -477,6 +477,19 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
     </div>
   </div>
 
+  <!-- PLANIFICACION -->
+  <div class="screen" id="screen-plan">
+    <div class="section-lbl" style="margin-top:4px">Semana de trabajo</div>
+    <p style="font-size:11px;color:var(--sub);margin-bottom:12px">Borrador de organización — no registra sesiones reales</p>
+    <div id="plan-dias"></div>
+    <button class="btn-green" onclick="guardarPlan()" style="margin-top:8px">
+      <i class="fas fa-save"></i> Guardar planificación
+    </button>
+    <button class="btn-outline" onclick="limpiarPlan()" style="margin-top:0">
+      <i class="fas fa-trash"></i> Limpiar semana
+    </button>
+  </div>
+
   <!-- MES -->
   <div class="screen" id="screen-mes"></div>
 
@@ -646,6 +659,9 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
     </button>
     <button class="nav-item active" onclick="navTo('hoy')">
       <i class="fas fa-calendar-day"></i><span>Hoy</span>
+    </button>
+    <button class="nav-item" onclick="navTo('plan')">
+      <i class="fas fa-tasks"></i><span>Semana</span>
     </button>
     <button class="nav-item" onclick="navTo('mes')">
       <i class="fas fa-calendar-alt"></i><span>Mes</span>
@@ -846,20 +862,21 @@ function populateSelects() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const SCREENS = { hoy:'screen-hoy', registro:'screen-registro', mes:'screen-mes', ninos:'screen-ninos', pacientes:'screen-pacientes', reportes:'screen-reportes' };
-const NAV_LABELS = { hoy:'Agenda de hoy', registro:'Registrar sesión', mes:'Calendario', ninos:'Niños activos', pacientes:'Pacientes', reportes:'Reportes' };
-const NAV_SUBS = { hoy:'', registro:'', mes:'', ninos:'', pacientes:'', reportes:'' };
+const SCREENS = { hoy:'screen-hoy', registro:'screen-registro', plan:'screen-plan', mes:'screen-mes', ninos:'screen-ninos', pacientes:'screen-pacientes', reportes:'screen-reportes' };
+const NAV_LABELS = { hoy:'Agenda de hoy', registro:'Registrar sesión', plan:'Planificación semanal', mes:'Calendario', ninos:'Niños activos', pacientes:'Pacientes', reportes:'Reportes' };
+const NAV_SUBS = { hoy:'', registro:'', plan:'', mes:'', ninos:'', pacientes:'', reportes:'' };
 
 function navTo(screen) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(SCREENS[screen]).classList.add('active');
   document.querySelectorAll('.nav-item').forEach((b,i)=>{
-    b.classList.toggle('active', ['registro','hoy','mes','ninos','pacientes','reportes'][i]===screen);
+    b.classList.toggle('active', ['registro','hoy','plan','mes','ninos','pacientes','reportes'][i]===screen);
   });
   currentScreen = screen;
   updateHeader(screen);
   // Renderizar primero con datos actuales, luego recargar del servidor
   if (screen==='hoy') renderHoy();
+  else if (screen==='plan') renderPlan();
   else if (screen==='mes') renderMes();
   else if (screen==='ninos') renderNinos();
   else if (screen==='pacientes') renderPacientes();
@@ -1964,6 +1981,121 @@ ${htmlReporte}
 <script>setTimeout(()=>window.print(), 500)<\/script>
 </body></html>`);
   ventana.document.close();
+}
+
+
+// ============================================================
+// PLANIFICACIÓN SEMANAL (borrador local)
+// ============================================================
+const DIAS_PLAN = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_SHORT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function getPlan() {
+  try { return JSON.parse(localStorage.getItem('terapista_plan') || '{}'); } catch(e) { return {}; }
+}
+
+function savePlan(plan) {
+  localStorage.setItem('terapista_plan', JSON.stringify(plan));
+}
+
+function renderPlan() {
+  const plan = getPlan();
+  const activos = pacientes.filter(p => p.Estado !== 'inactivo');
+  const pacOpts = activos.map(p => `<option value="${p.ID}">${p.Nombre}</option>`).join('');
+
+  const diasHTML = DIAS_PLAN.map((dia, idx) => {
+    const entradas = plan[idx] || [];
+    const entradasHTML = entradas.length ? entradas.map((e, ei) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--lav-light)">
+        <div class="s-dot" style="background:${colorFor(e.pacId)};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500;color:var(--text)">${e.nombre}</div>
+          <div style="font-size:11px;color:var(--sub)">${e.hora || 'Sin hora'} · ${e.lugar || ''}</div>
+        </div>
+        <button onclick="eliminarEntradaPlan(${idx},${ei})"
+          style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:11px">✕</button>
+      </div>`).join('') : `<div style="font-size:11px;color:var(--lav-pale);padding:6px 0">Sin atenciones planificadas</div>`;
+
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:500;color:var(--text)">${dia}</div>
+        <button onclick="abrirAddPlan(${idx})"
+          style="background:var(--lav);color:white;border:none;border-radius:12px;padding:4px 10px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px">
+          <i class="fas fa-plus"></i> Agregar
+        </button>
+      </div>
+      ${entradasHTML}
+    </div>`;
+  }).join('');
+
+  document.getElementById('plan-dias').innerHTML = diasHTML;
+}
+
+function abrirAddPlan(diaIdx) {
+  const activos = pacientes.filter(p => p.Estado !== 'inactivo');
+  const pacOpts = activos.map(p => `<option value="${p.ID}" data-lugar="${p.LugarAtencion}">${p.Nombre}</option>`).join('');
+
+  // Usar overlay temporal
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
+  ov.innerHTML = `
+    <div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px;animation:slideUp .2s ease">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:15px;color:var(--text);margin-bottom:14px">Agregar a ${DIAS_PLAN[diaIdx]}</div>
+      <div class="field-lbl">Niño</div>
+      <select id="plan-pac-sel" style="width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;color:var(--text);margin-bottom:10px">
+        <option value="">— Selecciona —</option>
+        ${pacOpts}
+      </select>
+      <div class="field-lbl">Hora</div>
+      <input type="time" id="plan-hora-inp" value="08:00"
+        style="width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;margin-bottom:16px">
+      <button onclick="confirmarAddPlan(${diaIdx}, this.closest('[style*=fixed]'))"
+        style="width:100%;padding:12px;background:var(--lav);color:white;border:none;border-radius:12px;font-family:Georgia,serif;font-size:14px;cursor:pointer">
+        Agregar
+      </button>
+      <button onclick="this.closest('[style*=fixed]').remove()"
+        style="width:100%;padding:10px;background:none;border:none;color:var(--sub);font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:6px">
+        Cancelar
+      </button>
+    </div>`;
+  document.getElementById('app').appendChild(ov);
+}
+
+function confirmarAddPlan(diaIdx, overlay) {
+  const sel = document.getElementById('plan-pac-sel');
+  const hora = document.getElementById('plan-hora-inp').value;
+  if (!sel.value) { showToast('⚠️ Selecciona un niño'); return; }
+  const pac = pacientes.find(p => p.ID === sel.value);
+  if (!pac) return;
+  const plan = getPlan();
+  if (!plan[diaIdx]) plan[diaIdx] = [];
+  plan[diaIdx].push({ pacId: pac.ID, nombre: pac.Nombre, hora, lugar: pac.LugarAtencion });
+  // Ordenar por hora
+  plan[diaIdx].sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
+  savePlan(plan);
+  overlay.remove();
+  renderPlan();
+  showToast('✅ Agregado a ' + DIAS_PLAN[diaIdx]);
+}
+
+function eliminarEntradaPlan(diaIdx, entradaIdx) {
+  const plan = getPlan();
+  if (plan[diaIdx]) {
+    plan[diaIdx].splice(entradaIdx, 1);
+    savePlan(plan);
+    renderPlan();
+  }
+}
+
+function guardarPlan() {
+  showToast('✅ Planificación guardada');
+}
+
+function limpiarPlan() {
+  savePlan({});
+  renderPlan();
+  showToast('🗑️ Semana limpiada');
 }
 
 // ============================================================
