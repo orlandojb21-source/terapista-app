@@ -488,10 +488,27 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 // ============================================================
 // API
 // ============================================================
+// JSONP — evita CORS con Apps Script
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_cb' + Date.now() + Math.floor(Math.random()*9999);
+    const url = new URL(API_URL);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+    url.searchParams.set('callback', cbName);
+    window[cbName] = function(data) {
+      delete window[cbName];
+      document.getElementById('_jsonp_'+cbName) && document.getElementById('_jsonp_'+cbName).remove();
+      resolve(data);
+    };
+    const script = document.createElement('script');
+    script.id = '_jsonp_' + cbName;
+    script.src = url.toString();
+    script.onerror = () => { delete window[cbName]; reject(new Error('JSONP error')); };
+    document.head.appendChild(script);
+  });
+}
 function apiGet(params) {
-  const url = new URL(API_URL);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  return fetch(url.toString(), {redirect:'follow'}).then(r => r.json());
+  return jsonp(params);
 }
 function apiPost(body) {
   const flat = { action: body.action };
@@ -499,12 +516,7 @@ function apiPost(body) {
   if (body.id)       flat.id = body.id;
   if (body.nombre)   flat.nombre = body.nombre;
   if (body.data_raw !== undefined) flat.data = body.data_raw;
-  const url = new URL(API_URL);
-  const parts = Object.entries(flat).map(([k,v]) =>
-    encodeURIComponent(k) + '=' + encodeURIComponent(String(v))
-  );
-  const finalUrl = url.toString() + '?' + parts.join('&');
-  return fetch(finalUrl, {redirect:'follow'}).then(r => r.json());
+  return jsonp(flat);
 }
 
 // ============================================================
