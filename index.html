@@ -378,12 +378,31 @@ textarea{resize:none;height:75px;line-height:1.5}
       </div>
       <div class="field-lbl">Agencia</div>
       <select id="fp-agencia"><option value="">— Selecciona una agencia —</option></select>
+      <div class="field-lbl">Programa</div>
+      <select id="fp-programa"><option value="">— Selecciona un programa —</option></select>
       <div class="field-lbl">Precio por hora (B/.)</div>
       <input type="number" id="fp-precio" placeholder="Ej: 45" min="0" step="0.50" />
       <div class="field-lbl">Observaciones</div>
       <textarea id="fp-obs" placeholder="Notas relevantes del paciente..."></textarea>
       <button class="btn-primary" onclick="guardarPaciente()">💾 Guardar paciente</button>
       <button class="btn-danger" id="fp-delete-btn" style="display:none" onclick="desactivarPaciente()">📦 Archivar paciente</button>
+    </div>
+  </div>
+
+  <!-- GESTIÓN PROGRAMAS -->
+  <div class="overlay" id="ov-programas">
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-programas')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title">Programas</span>
+    </div>
+    <div class="overlay-body">
+      <div class="field-lbl">Nuevo programa</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="nuevo-programa-input" placeholder="Nombre del programa" style="flex:1" />
+        <button onclick="agregarPrograma()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
+      </div>
+      <div class="section-lbl" style="margin-top:14px">Programas registrados</div>
+      <div id="programas-list"></div>
     </div>
   </div>
 
@@ -454,7 +473,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
 const API_URL = "https://script.google.com/macros/s/AKfycbxcYsb9OomoLerpvlhfsBiKAUN5xj9STO1iWrxl9pI2LCuaPp61R-RokOZ1YbK82LCGwA/exec";
 
-let pacientes = [], sesiones = [], agencias = [], planData = {};
+let pacientes = [], sesiones = [], agencias = [], programas = [], planData = {};
 let currentScreen = 'hoy';
 let calMonth = new Date().getMonth(), calYear = new Date().getFullYear(), selDay = null;
 let repMonth = new Date().getMonth(), repYear = new Date().getFullYear();
@@ -492,18 +511,21 @@ async function init() {
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   updateHeader('hoy');
   try {
-    const [rPac, rSes, rAg, rPlan] = await Promise.all([
+    const [rPac, rSes, rAg, rProg, rPlan] = await Promise.all([
       apiGet({ action:'getPacientes' }),
       apiGet({ action:'getSesiones' }),
       apiGet({ action:'getAgencias' }),
+      apiGet({ action:'getProgramas' }),
       apiGet({ action:'getPlanificacion' })
     ]);
     if (rPac.success)  pacientes = rPac.data  || [];
     if (rSes.success)  sesiones  = rSes.data  || [];
     if (rAg.success)   agencias  = rAg.data   || [];
+    if (rProg.success) programas = rProg.data || [];
     if (rPlan.success) planData  = rPlan.data  || {};
     populateSelects();
     populateAgencias();
+    populateProgramas();
     showToast('✅ Datos cargados');
   } catch(e) {
     showToast('⚠️ Error: ' + e.message);
@@ -599,7 +621,8 @@ function barChart(datos,colorFn) {
 // POPULATE SELECTS
 // ============================================================
 function populateSelects() {
-  const activos = pacientes.filter(p=>p.Estado!=='inactivo');
+  const activos = pacientes.filter(p=>p.Estado!=='inactivo')
+    .sort((a,b)=>a.Nombre.localeCompare(b.Nombre,'es'));
   const opts = activos.map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
   document.getElementById('reg-paciente').innerHTML = '<option value="">— Elige un niño —</option>'+opts;
   document.getElementById('rep-paciente').innerHTML = '<option value="">— Elige un niño —</option>'+opts;
@@ -622,6 +645,58 @@ function populateAgencias() {
   sel.onchange = function() {
     if (this.value==='__gestionar__') { this.value=current; abrirGestionAgencias(); }
   };
+}
+
+// ============================================================
+// PROGRAMAS
+// ============================================================
+function populateProgramas() {
+  const sel = document.getElementById('fp-programa');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona un programa —</option>';
+  programas.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    if (p===current) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  const opt = document.createElement('option');
+  opt.value='__gestionar_prog__'; opt.textContent='⚙️ Gestionar programas...';
+  sel.appendChild(opt);
+  sel.onchange = function() {
+    if (this.value==='__gestionar_prog__') { this.value=current; abrirGestionProgramas(); }
+  };
+}
+
+function abrirGestionProgramas() { renderProgramasList(); openOv('ov-programas'); }
+function renderProgramasList() {
+  const el=document.getElementById('programas-list');
+  if(!programas.length){el.innerHTML='<div class="empty">No hay programas registrados</div>';return;}
+  el.innerHTML=programas.map(p=>`<div class="patient-row" style="padding:10px 14px">
+    <div class="p-info"><div class="p-name">${p}</div></div>
+    <button onclick="eliminarPrograma('${p}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">🗑️</button>
+  </div>`).join('');
+}
+async function agregarPrograma() {
+  const input=document.getElementById('nuevo-programa-input');
+  const nombre=input.value.trim();
+  if(!nombre){showToast('⚠️ Escribe el nombre');return;}
+  if(programas.includes(nombre)){showToast('⚠️ Ya existe');return;}
+  showToast('Guardando...');
+  try {
+    await apiPost({action:'agregarPrograma',nombre});
+    programas.push(nombre); input.value='';
+    renderProgramasList(); populateProgramas(); showToast('✅ Programa agregado');
+  } catch(e) { showToast('⚠️ Error: '+e.message); }
+}
+async function eliminarPrograma(nombre) {
+  showToast('Eliminando...');
+  try {
+    await apiPost({action:'eliminarPrograma',nombre});
+    programas=programas.filter(p=>p!==nombre);
+    renderProgramasList(); populateProgramas(); showToast('✅ Programa eliminado');
+  } catch(e) { showToast('⚠️ Error: '+e.message); }
 }
 
 // ============================================================
@@ -867,7 +942,7 @@ function renderNinos() {
       (filtroNinos==='warn'&&(s==='warn'||s==='alert'))||
       (filtroNinos==='cancel'&&hasCan);
     return matchSearch&&matchFilter;
-  });
+  }).sort((a,b)=>a.Nombre.localeCompare(b.Nombre,'es'));
   if(!list.length){document.getElementById('ninos-list').innerHTML='<div class="empty">No se encontraron niños</div>';return;}
   document.getElementById('ninos-list').innerHTML=list.map(p=>{
     const rem=sesionesRestantes(p);
@@ -970,6 +1045,7 @@ function abrirDetallePaciente(id) {
       <div class="info-row"><span class="k">Lugar</span><span class="v">${p.LugarAtencion}</span></div>
       <div class="info-row"><span class="k">Duración</span><span class="v">${p.DuracionMin} min</span></div>
       <div class="info-row"><span class="k">Agencia</span><span class="v">${p.Agencia||'—'}</span></div>
+      <div class="info-row"><span class="k">Programa</span><span class="v">${p.Programa||'—'}</span></div>
       <div class="info-row"><span class="k">Precio/hora</span><span class="v">B/. ${parseFloat(p.Precio||0).toFixed(2)}</span></div>
     </div>
     <div class="card" style="margin-top:8px">
@@ -985,6 +1061,7 @@ function abrirNuevoPaciente() {
   document.getElementById('ov-form-pac-title').textContent='Nuevo paciente';
   ['fp-nombre','fp-dob','fp-lugar','fp-contacto','fp-tel','fp-total','fp-obs','fp-precio'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fp-agencia').value='';
+  document.getElementById('fp-programa').value='';
   document.getElementById('fp-delete-btn').style.display='none';
   selectDur(30); openOv('ov-form-pac');
 }
@@ -1000,6 +1077,7 @@ function abrirFormPaciente() {
   document.getElementById('fp-obs').value=p.Observaciones||'';
   document.getElementById('fp-agencia').value=p.Agencia||'';
   document.getElementById('fp-precio').value=p.Precio||'';
+  document.getElementById('fp-programa').value=p.Programa||'';
   document.getElementById('fp-delete-btn').style.display='block';
   selectDur(parseInt(p.DuracionMin)||30); openOv('ov-form-pac');
 }
@@ -1018,7 +1096,8 @@ async function guardarPaciente() {
     TotalSesiones:document.getElementById('fp-total').value,
     DuracionMin:selectedDur,Observaciones:document.getElementById('fp-obs').value,
     Agencia:document.getElementById('fp-agencia').value,
-    Precio:document.getElementById('fp-precio').value};
+    Precio:document.getElementById('fp-precio').value,
+    Programa:document.getElementById('fp-programa').value};
   showToast('Guardando...');
   try {
     if(editingPacId){
@@ -1225,16 +1304,31 @@ function setTabReporte(tab,el) {
 function renderReportes(){renderReporteSemanal();}
 
 function getSemanasDelMes(year,month) {
+  // Genera semanas reales Domingo-Sábado que contienen días del mes indicado
   const semanas=[];
-  let d=new Date(year,month,1);
-  while(d.getMonth()===month){
-    const ini=new Date(d),fin=new Date(d);
-    fin.setDate(fin.getDate()+6);
-    const iniStr=ini.getFullYear()+'-'+String(ini.getMonth()+1).padStart(2,'0')+'-'+String(ini.getDate()).padStart(2,'0');
-    const finDate=new Date(Math.min(fin,new Date(year,month+1,0)));
-    const label=ini.getDate()+' – '+finDate.getDate()+' de '+MESES[month];
-    semanas.push({inicio:iniStr,fin:finDate.getFullYear()+'-'+String(finDate.getMonth()+1).padStart(2,'0')+'-'+String(finDate.getDate()).padStart(2,'0'),label});
-    d.setDate(d.getDate()+7);
+  // Primer día del mes
+  const primerDia=new Date(year,month,1);
+  // Domingo de esa semana (retroceder al domingo anterior o el mismo día si ya es domingo)
+  const primerDomingo=new Date(primerDia);
+  primerDomingo.setDate(primerDia.getDate()-primerDia.getDay());
+  // Iterar semanas mientras el domingo de inicio esté dentro o antes del mes
+  let dom=new Date(primerDomingo);
+  while(true){
+    const sab=new Date(dom);
+    sab.setDate(dom.getDate()+6);
+    // Si el domingo ya pasó el mes, terminar
+    if(dom.getFullYear()>year||(dom.getFullYear()===year&&dom.getMonth()>month)) break;
+    const iniStr=dom.getFullYear()+'-'+String(dom.getMonth()+1).padStart(2,'0')+'-'+String(dom.getDate()).padStart(2,'0');
+    const finStr=sab.getFullYear()+'-'+String(sab.getMonth()+1).padStart(2,'0')+'-'+String(sab.getDate()).padStart(2,'0');
+    // Etiqueta legible: ej "24 – 30 de Mayo" o "25 May – 1 Jun" si cruza meses
+    let label;
+    if(dom.getMonth()===sab.getMonth()&&dom.getFullYear()===sab.getFullYear()){
+      label=dom.getDate()+' – '+sab.getDate()+' de '+MESES[dom.getMonth()];
+    } else {
+      label=dom.getDate()+' '+MESES[dom.getMonth()].slice(0,3)+' – '+sab.getDate()+' '+MESES[sab.getMonth()].slice(0,3);
+    }
+    semanas.push({inicio:iniStr,fin:finStr,label});
+    dom.setDate(dom.getDate()+7);
   }
   return semanas.reverse();
 }
@@ -1582,8 +1676,9 @@ async function guardarPlan() {
   showToast('Guardando planificación...');
   try {
     const encoded=encodeURIComponent(JSON.stringify(planData));
-    await apiGet({action:'guardarPlanificacion',data:encoded});
-    showToast('✅ Planificación guardada en la nube');
+    const r=await apiGet({action:'guardarPlanificacion',data:encoded});
+    if(r && r.success) showToast('✅ Planificación guardada en la nube');
+    else showToast('⚠️ No se pudo guardar: '+(r&&r.error||'error desconocido'));
   } catch(e){showToast('⚠️ Error: '+e.message);}
 }
 
@@ -1604,18 +1699,21 @@ function closeOv(id){document.getElementById(id).classList.remove('show');}
 // ============================================================
 async function recargarDatos() {
   try {
-    const [rPac,rSes,rAg,rPlan]=await Promise.all([
+    const [rPac,rSes,rAg,rProg,rPlan]=await Promise.all([
       apiGet({action:'getPacientes'}),
       apiGet({action:'getSesiones'}),
       apiGet({action:'getAgencias'}),
+      apiGet({action:'getProgramas'}),
       apiGet({action:'getPlanificacion'})
     ]);
     if(rPac.success) pacientes=rPac.data||[];
     if(rSes.success) sesiones=rSes.data||[];
     if(rAg.success)  agencias=rAg.data||[];
+    if(rProg.success) programas=rProg.data||[];
     if(rPlan.success) planData=rPlan.data||{};
     populateSelects();
     populateAgencias();
+    populateProgramas();
     updateHeader(currentScreen);
     if(currentScreen==='hoy') renderHoy();
     else if(currentScreen==='mes') renderMes();
