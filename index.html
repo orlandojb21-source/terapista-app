@@ -491,21 +491,20 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 function apiGet(params) {
   const url = new URL(API_URL);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  return fetch(url.toString()).then(r => r.json());
+  return fetch(url.toString(), {redirect:'follow'}).then(r => r.json());
 }
 function apiPost(body) {
   const flat = { action: body.action };
   if (body.data && typeof body.data === 'object') Object.assign(flat, body.data);
   if (body.id)       flat.id = body.id;
   if (body.nombre)   flat.nombre = body.nombre;
-  if (body.data_raw !== undefined) flat.data = body.data_raw; // string crudo, no descomponer
+  if (body.data_raw !== undefined) flat.data = body.data_raw;
   const url = new URL(API_URL);
-  // Construir query string manualmente para evitar doble-encoding
   const parts = Object.entries(flat).map(([k,v]) =>
     encodeURIComponent(k) + '=' + encodeURIComponent(String(v))
   );
-  return fetch(url.toString() + (url.toString().includes('?') ? '&' : '?') + parts.join('&'))
-    .then(r => r.json());
+  const finalUrl = url.toString() + '?' + parts.join('&');
+  return fetch(finalUrl, {redirect:'follow'}).then(r => r.json());
 }
 
 // ============================================================
