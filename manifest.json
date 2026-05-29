@@ -2,10 +2,11 @@
   "name": "TerapistaApp",
   "short_name": "Terapista",
   "description": "Sistema de gestión para terapistas",
-  "start_url": "/terapista-app/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0f2a4a",
-  "theme_color": "#0f2a4a",
+  "background_color": "#534AB7",
+  "theme_color": "#534AB7",
   "orientation": "portrait",
   "icons": [
     {
