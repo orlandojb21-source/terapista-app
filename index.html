@@ -471,7 +471,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 // CONFIG & STATE
 // ============================================================
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbzKd7JBt51tojV9SvkailXleSrvOJn29V3GYH4xKBMl44buOKOD7_q-iS3NrEyZlNg7Qw/exec";
+const API_URL = "/api/proxy";
 
 let pacientes = [], sesiones = [], agencias = [], programas = [], planData = {};
 let currentScreen = 'hoy';
@@ -488,27 +488,10 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 // ============================================================
 // API
 // ============================================================
-// JSONP — evita CORS con Apps Script
-function jsonp(params) {
-  return new Promise((resolve, reject) => {
-    const cbName = '_cb' + Date.now() + Math.floor(Math.random()*9999);
-    const url = new URL(API_URL);
-    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, String(v)));
-    url.searchParams.set('callback', cbName);
-    window[cbName] = function(data) {
-      delete window[cbName];
-      document.getElementById('_jsonp_'+cbName) && document.getElementById('_jsonp_'+cbName).remove();
-      resolve(data);
-    };
-    const script = document.createElement('script');
-    script.id = '_jsonp_' + cbName;
-    script.src = url.toString();
-    script.onerror = () => { delete window[cbName]; reject(new Error('JSONP error')); };
-    document.head.appendChild(script);
-  });
-}
 function apiGet(params) {
-  return jsonp(params);
+  const url = new URL(API_URL, location.origin);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+  return fetch(url.toString()).then(r => r.json());
 }
 function apiPost(body) {
   const flat = { action: body.action };
@@ -516,7 +499,9 @@ function apiPost(body) {
   if (body.id)       flat.id = body.id;
   if (body.nombre)   flat.nombre = body.nombre;
   if (body.data_raw !== undefined) flat.data = body.data_raw;
-  return jsonp(flat);
+  const url = new URL(API_URL, location.origin);
+  Object.entries(flat).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+  return fetch(url.toString()).then(r => r.json());
 }
 
 // ============================================================
