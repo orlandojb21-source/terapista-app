@@ -3,10 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f2a4a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TerapistaApp">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="TerapistaApp">
-<title>TerapistaApp</title>
+<meta name="apple-mobile-web-app-title" content="AppointmentApp">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzUzNEFCNyIvPgogIDxyZWN0IHg9IjgwIiB5PSIxMjAiIHdpZHRoPSIzNTIiIGhlaWdodD0iMzAwIiByeD0iMjQiIGZpbGw9IiNFRUVERkUiLz4KICA8cmVjdCB4PSI4MCIgeT0iMTIwIiB3aWR0aD0iMzUyIiBoZWlnaHQ9IjgwIiByeD0iMjQiIGZpbGw9IiM3Rjc3REQiLz4KICA8cmVjdCB4PSI4MCIgeT0iMTc1IiB3aWR0aD0iMzUyIiBoZWlnaHQ9IjI1IiBmaWxsPSIjN0Y3N0REIi8+CiAgPCEtLSBDYWxlbmRhcmlvIGzDrW5lYXMgLS0+CiAgPHJlY3QgeD0iMTIwIiB5PSIyNDAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIxMCIgcng9IjUiIGZpbGw9IiM1MzRBQjciLz4KICA8cmVjdCB4PSIxMjAiIHk9IjI3MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjEwIiByeD0iNSIgZmlsbD0iI0FGQTlFQyIvPgogIDxyZWN0IHg9IjEyMCIgeT0iMzAwIiB3aWR0aD0iNzAiIGhlaWdodD0iMTAiIHJ4PSI1IiBmaWxsPSIjQUZBOUVDIi8+CiAgPHJlY3QgeD0iMTIwIiB5PSIzMzAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMCIgcng9IjUiIGZpbGw9IiNBRkE5RUMiLz4KICA8IS0tIFB1bnRvcyBkZSBzZXNpb25lcyAtLT4KICA8Y2lyY2xlIGN4PSIyODAiIGN5PSIyNDUiIHI9IjEyIiBmaWxsPSIjMUQ5RTc1Ii8+CiAgPGNpcmNsZSBjeD0iMzIwIiBjeT0iMjQ1IiByPSIxMiIgZmlsbD0iIzUzNEFCNyIvPgogIDxjaXJjbGUgY3g9IjM2MCIgY3k9IjI0NSIgcj0iMTIiIGZpbGw9IiMxRDlFNzUiLz4KICA8Y2lyY2xlIGN4PSIyODAiIGN5PSIyNzUiIHI9IjEyIiBmaWxsPSIjNTM0QUI3Ii8+CiAgPGNpcmNsZSBjeD0iMzIwIiBjeT0iMjc1IiByPSIxMiIgZmlsbD0iI0Q0NTM3RSIvPgogIDxjaXJjbGUgY3g9IjM2MCIgY3k9IjI3NSIgcj0iMTIiIGZpbGw9IiM1MzRBQjciLz4KICA8Y2lyY2xlIGN4PSIyODAiIGN5PSIzMDUiIHI9IjEyIiBmaWxsPSIjMUQ5RTc1Ii8+CiAgPGNpcmNsZSBjeD0iMzIwIiBjeT0iMzA1IiByPSIxMiIgZmlsbD0iIzUzNEFCNyIvPgogIDxjaXJjbGUgY3g9IjM2MCIgY3k9IjMwNSIgcj0iMTIiIGZpbGw9IiNBRkE5RUMiLz4KICA8IS0tIExldHJhcyBBUyAtLT4KICA8dGV4dCB4PSIyNTYiIHk9IjE2OCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iNDQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QVM8L3RleHQ+CiAgPCEtLSBMw61uZWFzIGRlY29yYXRpdmFzIGNhYmVjZXJhIC0tPgogIDxjaXJjbGUgY3g9IjEzMCIgY3k9IjE2MCIgcj0iMTQiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSIzODIiIGN5PSIxNjAiIHI9IjE0IiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4zIi8+Cjwvc3ZnPgo=">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzUzNEFCNyIvPgogIDxyZWN0IHg9IjgwIiB5PSIxMjAiIHdpZHRoPSIzNTIiIGhlaWdodD0iMzAwIiByeD0iMjQiIGZpbGw9IiNFRUVERkUiLz4KICA8cmVjdCB4PSI4MCIgeT0iMTIwIiB3aWR0aD0iMzUyIiBoZWlnaHQ9IjgwIiByeD0iMjQiIGZpbGw9IiM3Rjc3REQiLz4KICA8cmVjdCB4PSI4MCIgeT0iMTc1IiB3aWR0aD0iMzUyIiBoZWlnaHQ9IjI1IiBmaWxsPSIjN0Y3N0REIi8+CiAgPCEtLSBDYWxlbmRhcmlvIGzDrW5lYXMgLS0+CiAgPHJlY3QgeD0iMTIwIiB5PSIyNDAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIxMCIgcng9IjUiIGZpbGw9IiM1MzRBQjciLz4KICA8cmVjdCB4PSIxMjAiIHk9IjI3MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjEwIiByeD0iNSIgZmlsbD0iI0FGQTlFQyIvPgogIDxyZWN0IHg9IjEyMCIgeT0iMzAwIiB3aWR0aD0iNzAiIGhlaWdodD0iMTAiIHJ4PSI1IiBmaWxsPSIjQUZBOUVDIi8+CiAgPHJlY3QgeD0iMTIwIiB5PSIzMzAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMCIgcng9IjUiIGZpbGw9IiNBRkE5RUMiLz4KICA8IS0tIFB1bnRvcyBkZSBzZXNpb25lcyAtLT4KICA8Y2lyY2xlIGN4PSIyODAiIGN5PSIyNDUiIHI9IjEyIiBmaWxsPSIjMUQ5RTc1Ii8+CiAgPGNpcmNsZSBjeD0iMzIwIiBjeT0iMjQ1IiByPSIxMiIgZmlsbD0iIzUzNEFCNyIvPgogIDxjaXJjbGUgY3g9IjM2MCIgY3k9IjI0NSIgcj0iMTIiIGZpbGw9IiMxRDlFNzUiLz4KICA8Y2lyY2xlIGN4PSIyODAiIGN5PSIyNzUiIHI9IjEyIiBmaWxsPSIjNTM0QUI3Ii8+CiAgPGNpcmNsZSBjeD0iMzIwIiBjeT0iMjc1IiByPSIxMiIgZmlsbD0iI0Q0NTM3RSIvPgogIDxjaXJjbGUgY3g9IjM2MCIgY3k9IjI3NSIgcj0iMTIiIGZpbGw9IiM1MzRBQjciLz4KICA8Y2lyY2xlIGN4PSIyODAiIGN5PSIzMDUiIHI9IjEyIiBmaWxsPSIjMUQ5RTc1Ii8+CiAgPGNpcmNsZSBjeD0iMzIwIiBjeT0iMzA1IiByPSIxMiIgZmlsbD0iIzUzNEFCNyIvPgogIDxjaXJjbGUgY3g9IjM2MCIgY3k9IjMwNSIgcj0iMTIiIGZpbGw9IiNBRkE5RUMiLz4KICA8IS0tIExldHJhcyBBUyAtLT4KICA8dGV4dCB4PSIyNTYiIHk9IjE2OCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iNDQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QVM8L3RleHQ+CiAgPCEtLSBMw61uZWFzIGRlY29yYXRpdmFzIGNhYmVjZXJhIC0tPgogIDxjaXJjbGUgY3g9IjEzMCIgY3k9IjE2MCIgcj0iMTQiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSIzODIiIGN5PSIxNjAiIHI9IjE0IiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4zIi8+Cjwvc3ZnPgo=">
+<title>Appointment Scheduling</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root {
@@ -215,6 +224,7 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
 }
 .type-opt.sel-normal { border-color: var(--lav); background: var(--lav-light); }
 .type-opt.sel-recovery { border-color: var(--mint); background: var(--mint-light); }
+.type-opt.sel-cancel { border-color: var(--pink); background: var(--red-light); }
 .type-opt .t-icon { font-size: 18px; margin-bottom: 4px; }
 .type-opt .t-lbl { font-size: 12px; color: var(--text); font-weight: 500; }
 .type-opt .t-sub { font-size: 10px; color: var(--sub); }
@@ -416,9 +426,15 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
         <div class="type-opt" id="topt-recovery" onclick="selectTipo('recovery')">
           <div class="t-icon">🔄</div><div class="t-lbl">Recuperación</div><div class="t-sub">Sesión cancelada anterior</div>
         </div>
+        <div class="type-opt" id="topt-cancel" onclick="selectTipo('cancel')" style="grid-column:span 2">
+          <div class="t-icon">❌</div><div class="t-lbl">Cancelada</div><div class="t-sub">El niño no asistió</div>
+        </div>
       </div>
       <div id="recovery-note" style="display:none;background:var(--mint-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:#0F6E56">
         🔄 Esta sesión se contará como recuperación de una cancelada anterior.
+      </div>
+      <div id="cancel-note" style="display:none;background:var(--red-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--red)">
+        ❌ Esta sesión se registrará como cancelada — no contará como atención realizada.
       </div>
       <button class="btn-primary" onclick="regGoStep(2)">Continuar →</button>
     </div>
@@ -498,9 +514,11 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
       <div class="tab active" onclick="setTabReporte('semanal',this)">📅 Semanal</div>
       <div class="tab" onclick="setTabReporte('mensual',this)">🗓️ Mensual</div>
       <div class="tab" onclick="setTabReporte('paciente',this)">👧 Paciente</div>
+      <div class="tab" onclick="setTabReporte('ingresos',this)">💰 Ingresos</div>
     </div>
     <div id="reporte-semanal"></div>
     <div id="reporte-mensual" style="display:none"></div>
+    <div id="reporte-ingresos" style="display:none"></div>
     <div id="reporte-paciente" style="display:none">
       <div class="field-lbl">Selecciona un paciente</div>
       <select id="rep-paciente" onchange="renderReportePaciente()">
@@ -559,10 +577,65 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
           <div class="d-icon">🕐</div><div class="d-lbl">1 hora</div><div class="d-sub">Sesión completa</div>
         </div>
       </div>
+      <div class="field-lbl">Agencia</div>
+      <select id="fp-agencia">
+        <option value="">— Selecciona una agencia —</option>
+      </select>
+      <div class="field-lbl">Precio por hora (B/.)</div>
+      <input type="number" id="fp-precio" placeholder="Ej: 45" min="0" step="0.50" />
       <div class="field-lbl">Observaciones</div>
       <textarea id="fp-obs" placeholder="Notas relevantes del paciente..."></textarea>
       <button class="btn-primary" onclick="guardarPaciente()">💾 Guardar paciente</button>
-      <button class="btn-danger" id="fp-delete-btn" style="display:none" onclick="eliminarPaciente()">🗑️ Eliminar paciente</button>
+      <button class="btn-danger" id="fp-delete-btn" style="display:none" onclick="desactivarPaciente()">📦 Archivar paciente</button>
+    </div>
+  </div>
+
+  <!-- OVERLAY EDITAR SESIÓN -->
+  <div class="overlay" id="ov-edit-sesion">
+    <div class="status-bar"><span></span><span>Editar sesión</span><span></span></div>
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-edit-sesion')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title">Editar sesión</span>
+    </div>
+    <div class="overlay-body">
+      <input type="hidden" id="edit-ses-id" />
+      <div class="field-lbl">Paciente</div>
+      <div class="readonly-field" id="edit-ses-pac">—</div>
+      <div class="field-lbl">Fecha</div>
+      <input type="date" id="edit-ses-fecha" />
+      <div class="field-lbl">Horario</div>
+      <div class="two-col">
+        <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Inicio</div><input type="time" id="edit-ses-inicio" /></div>
+        <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Fin</div><input type="time" id="edit-ses-fin" /></div>
+      </div>
+      <div class="field-lbl">Tipo</div>
+      <select id="edit-ses-tipo">
+        <option value="Normal">📋 Normal</option>
+        <option value="Recuperacion">🔄 Recuperación</option>
+        <option value="Cancelada">❌ Cancelada</option>
+      </select>
+      <div class="field-lbl">Notas</div>
+      <textarea id="edit-ses-notas" placeholder="Notas de la sesión..."></textarea>
+      <button class="btn-primary" onclick="guardarEdicionSesion()">💾 Guardar cambios</button>
+      <button class="btn-danger" onclick="eliminarSesion()" style="margin-top:6px">🗑️ Eliminar sesión</button>
+    </div>
+  </div>
+
+  <!-- OVERLAY GESTIÓN AGENCIAS -->
+  <div class="overlay" id="ov-agencias">
+    <div class="status-bar"><span></span><span>Gestionar agencias</span><span></span></div>
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-agencias')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title">Agencias</span>
+    </div>
+    <div class="overlay-body">
+      <div class="field-lbl">Nueva agencia</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="nueva-agencia-input" placeholder="Nombre de la agencia" style="flex:1" />
+        <button onclick="agregarAgencia()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
+      </div>
+      <div class="section-lbl" style="margin-top:14px">Agencias registradas</div>
+      <div id="agencias-list"></div>
     </div>
   </div>
 
@@ -595,7 +668,7 @@ textarea { resize: none; height: 75px; line-height: 1.5; }
 // ============================================================
 // CONFIG
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbwR6Tne3OrwG803VJaiwBMfJ5Sf4XeJ_yBxzK2ZxIGWyh0NeV0cDgGc2qjX_Wa8q1ER7A/exec';
+// API via fetch — GitHub Pages
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6'];
 
 // ============================================================
@@ -603,6 +676,7 @@ const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6'];
 // ============================================================
 let pacientes = [];
 let sesiones  = [];
+let agencias  = [];
 let currentScreen = 'hoy';
 let calMonth = new Date().getMonth();
 let calYear  = new Date().getFullYear();
@@ -621,63 +695,27 @@ let searchNinos = '';
 let searchPacs  = '';
 
 // ============================================================
-// API — Google Apps Script directo via script tag (GET) y form (POST)
+// API — fetch (GitHub Pages)
 // ============================================================
-async function apiGet(params) {
-  // Google Apps Script redirige a googleusercontent.com — usar no-cors + iframe trick
-  // En su lugar usamos un iframe oculto que puede leer cross-origin via postMessage
-  return new Promise((resolve, reject) => {
-    const cbName = 'gcb_' + Math.random().toString(36).slice(2);
-    const allParams = {...params, callback: cbName};
-    const url = API_URL + '?' + new URLSearchParams(allParams);
-    
-    // JSONP via script tag — la URL final de googleusercontent SÍ permite esto
-    const script = document.createElement('script');
-    let done = false;
-    
-    const timer = setTimeout(() => {
-      if (done) return;
-      done = true;
-      try { document.head.removeChild(script); } catch(e) {}
-      if (window[cbName]) delete window[cbName];
-      reject(new Error('Timeout'));
-    }, 25000);
-    
-    window[cbName] = function(data) {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      try { document.head.removeChild(script); } catch(e) {}
-      delete window[cbName];
-      resolve(data);
-    };
-    
-    script.src = url;
-    script.async = true;
-    script.onerror = function(e) {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      try { document.head.removeChild(script); } catch(e) {}
-      if (window[cbName]) delete window[cbName];
-      reject(new Error('Script error'));
-    };
-    document.head.appendChild(script);
-  });
+const API_URL = "https://script.google.com/macros/s/AKfycbzpJVnCPncIU1SmiaaJR7eYJeRpRmDU34oRMpZ0ZLryU8F7Z2H-XTkBgWJvRNY3uItwtA/exec";
+
+function apiGet(params) {
+  const url = new URL(API_URL);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  return fetch(url.toString()).then(r => r.json());
 }
 
-async function apiPost(body) {
-  // Codificar body como parámetro GET para evitar CORS
-  const encoded = encodeURIComponent(JSON.stringify(body));
-  const url = API_URL + '?postdata=' + encoded;
-  try {
-    const res = await fetch(url, { redirect: 'follow' });
-    const text = await res.text();
-    try { return JSON.parse(text); }
-    catch(e) { return { success: true }; }
-  } catch(e) {
-    return { success: true }; // asumir éxito — el dato llega al Sheet
-  }
+function apiPost(body) {
+  // Aplanar body para enviar como GET params (Apps Script no acepta POST cross-origin)
+  const flat = { action: body.action };
+  if (body.data)   Object.assign(flat, body.data);
+  if (body.id)     flat.id = body.id;
+  if (body.nombre) flat.nombre = body.nombre;
+  if (body.mes)    flat.mes = body.mes;
+  if (body.anio)   flat.anio = body.anio;
+  const url = new URL(API_URL);
+  Object.entries(flat).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+  return fetch(url.toString()).then(r => r.json());
 }
 
 // ============================================================
@@ -687,13 +725,17 @@ async function init() {
   // Mostrar spinner inicial
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   try {
-    const [rPac, rSes] = await Promise.all([
+    const [rPac, rSes, rAg] = await Promise.all([
       apiGet({ action: 'getPacientes' }),
-      apiGet({ action: 'getSesiones' })
+      apiGet({ action: 'getSesiones' }),
+      apiGet({ action: 'getAgencias' })
     ]);
     if (rPac.success) pacientes = rPac.data || [];
     if (rSes.success) sesiones  = rSes.data || [];
+    if (rAg.success)  agencias  = rAg.data  || [];
     populateSelects();
+    populateAgencias();
+    populateAgencias();
     showToast('✅ Datos cargados');
   } catch(e) {
     console.error('Init error:', e);
@@ -712,7 +754,10 @@ async function init() {
 // ============================================================
 function today() {
   const d = new Date();
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + day;
 }
 function fmt(dateStr) {
   if (!dateStr) return '—';
@@ -767,6 +812,31 @@ function showToast(msg, dur=2500) {
   setTimeout(()=>t.classList.remove('show'), dur);
 }
 
+function populateAgencias() {
+  const sel = document.getElementById('fp-agencia');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona una agencia —</option>';
+  agencias.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    if (a === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  // Agregar opción para gestionar agencias
+  const opt = document.createElement('option');
+  opt.value = '__gestionar__';
+  opt.textContent = '⚙️ Gestionar agencias...';
+  sel.appendChild(opt);
+  sel.onchange = function() {
+    if (this.value === '__gestionar__') {
+      this.value = current;
+      abrirGestionAgencias();
+    }
+  };
+}
+
 function populateSelects() {
   const opts = pacientes.map(p => `<option value="${p.ID}">${p.Nombre}</option>`).join('');
   document.getElementById('reg-paciente').innerHTML = '<option value="">— Elige un niño —</option>' + opts;
@@ -807,10 +877,14 @@ function updateHeader(screen) {
     document.getElementById('main-header').innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <p style="font-size:11px;color:var(--sub)">${dias[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]}</p>
-          <h1 style="font-size:20px;color:var(--text)">Hola, buenos días 👋</h1>
+          <p style="font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">${dias[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]} ${now.getFullYear()}</p>
+          <h1 style="font-size:17px;color:var(--text);font-weight:500;margin-top:2px">Appointment Scheduling</h1>
+          <p style="font-size:12px;color:var(--sub);margin-top:1px">Speech Therapist</p>
         </div>
-        <button onclick="recargarManual()" style="background:var(--lav-light);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:16px;color:var(--lav);display:flex;align-items:center;justify-content:center">↻</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span style="font-size:12px;font-weight:500;color:var(--lav)">Stacy Saavedra</span>
+          <button onclick="recargarManual()" style="background:var(--lav-light);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--lav);display:flex;align-items:center;justify-content:center">↻</button>
+        </div>
       </div>`;
   } else if (screen==='mes') {
     document.getElementById('main-header').innerHTML = `
@@ -846,6 +920,99 @@ function updateHeader(screen) {
 // ============================================================
 // HOY
 // ============================================================
+function abrirEditarSesion(id) {
+  const s = sesiones.find(x=>x.ID===id);
+  if (!s) return;
+  const pac = pacientes.find(x=>x.ID===s.PacienteID);
+  document.getElementById('edit-ses-id').value = id;
+  document.getElementById('edit-ses-pac').textContent = pac ? pac.Nombre : 'Paciente desconocido';
+  document.getElementById('edit-ses-fecha').value = s.Fecha;
+  document.getElementById('edit-ses-inicio').value = s.HoraInicio;
+  document.getElementById('edit-ses-fin').value = s.HoraFin;
+  document.getElementById('edit-ses-tipo').value = s.Tipo;
+  document.getElementById('edit-ses-notas').value = s.Notas||'';
+  openOv('ov-edit-sesion');
+}
+
+async function guardarEdicionSesion() {
+  const id = document.getElementById('edit-ses-id').value;
+  const data = {
+    ID: id,
+    Fecha: document.getElementById('edit-ses-fecha').value,
+    HoraInicio: document.getElementById('edit-ses-inicio').value,
+    HoraFin: document.getElementById('edit-ses-fin').value,
+    Tipo: document.getElementById('edit-ses-tipo').value,
+    Notas: document.getElementById('edit-ses-notas').value,
+  };
+  showToast('Guardando cambios...');
+  try {
+    await apiPost({ action:'editarSesion', data });
+    // Actualizar localmente
+    const idx = sesiones.findIndex(x=>x.ID===id);
+    if (idx>=0) sesiones[idx] = {...sesiones[idx], ...data};
+    closeOv('ov-edit-sesion');
+    showToast('✅ Sesión actualizada');
+    recargarDatos();
+  } catch(e) { showToast('⚠️ Error: '+e.message); }
+}
+
+async function eliminarSesion() {
+  const id = document.getElementById('edit-ses-id').value;
+  showToast('Eliminando sesión...');
+  try {
+    await apiPost({ action:'eliminarSesion', id });
+    sesiones = sesiones.filter(x=>x.ID!==id);
+    closeOv('ov-edit-sesion');
+    showToast('✅ Sesión eliminada');
+    recargarDatos();
+  } catch(e) { showToast('⚠️ Error: '+e.message); }
+}
+
+function abrirGestionAgencias() {
+  renderAgenciasList();
+  openOv('ov-agencias');
+}
+
+function renderAgenciasList() {
+  const el = document.getElementById('agencias-list');
+  if (!agencias.length) {
+    el.innerHTML = '<div class="empty">No hay agencias registradas</div>';
+    return;
+  }
+  el.innerHTML = agencias.map(a => `
+    <div class="patient-row" style="padding:10px 14px">
+      <div class="p-info"><div class="p-name">${a}</div></div>
+      <button onclick="eliminarAgencia('${a}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">🗑️</button>
+    </div>`).join('');
+}
+
+async function agregarAgencia() {
+  const input = document.getElementById('nueva-agencia-input');
+  const nombre = input.value.trim();
+  if (!nombre) { showToast('⚠️ Escribe el nombre de la agencia'); return; }
+  if (agencias.includes(nombre)) { showToast('⚠️ Esa agencia ya existe'); return; }
+  showToast('Guardando...');
+  try {
+    await apiPost({ action:'agregarAgencia', nombre });
+    agencias.push(nombre);
+    input.value = '';
+    renderAgenciasList();
+    populateAgencias();
+    showToast('✅ Agencia agregada');
+  } catch(e) { showToast('⚠️ Error: ' + e.message); }
+}
+
+async function eliminarAgencia(nombre) {
+  showToast('Eliminando...');
+  try {
+    await apiPost({ action:'eliminarAgencia', nombre });
+    agencias = agencias.filter(a => a !== nombre);
+    renderAgenciasList();
+    populateAgencias();
+    showToast('✅ Agencia eliminada');
+  } catch(e) { showToast('⚠️ Error: ' + e.message); }
+}
+
 async function recargarManual() {
   showToast('🔄 Recargando datos...');
   await recargarDatos();
@@ -867,7 +1034,7 @@ function renderHoy() {
     const pac = pacientes.find(p=>p.ID===s.PacienteID) || {};
     const nombre = pac.Nombre || 'Paciente desconocido';
     const isRec = s.Tipo==='Recuperacion';
-    return `<div class="session-item">
+    return `<div class="session-item" onclick="abrirEditarSesion('${s.ID}')" style="cursor:pointer">
       <span class="s-time">${s.HoraInicio}</span>
       <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
       <div class="s-info">
@@ -875,6 +1042,7 @@ function renderHoy() {
         <div class="s-sub">${s.Lugar} · ${pac.DuracionMin||'?'} min</div>
       </div>
       ${chipHTML(s.Tipo)}
+      <i class="fas fa-pen" style="font-size:11px;color:var(--lav-pale);margin-left:4px"></i>
     </div>`;
   }).join('') : '<div class="empty">Sin sesiones registradas hoy</div>';
 
@@ -970,6 +1138,7 @@ function selectCalDay(dateStr) {
 // ============================================================
 function renderNinos() {
   const list = pacientes.filter(p=>{
+    if (p.Estado === 'inactivo') return false; // ocultar inactivos
     const matchSearch = p.Nombre.toLowerCase().includes(searchNinos.toLowerCase());
     const s = getStatus(p);
     const hasCan = hasCancelaciones(p.ID);
@@ -1055,7 +1224,7 @@ function abrirDetalleNino(id) {
 // PACIENTES BD
 // ============================================================
 function renderPacientes() {
-  const list = pacientes.filter(p=>p.Nombre.toLowerCase().includes(searchPacs.toLowerCase()));
+  const list = pacientes.filter(p=>p.Nombre.toLowerCase().includes(searchPacs.toLowerCase()) && p.Estado !== 'inactivo');
   if (!list.length) { document.getElementById('pacientes-list').innerHTML='<div class="empty">No se encontraron pacientes</div>'; return; }
   document.getElementById('pacientes-list').innerHTML = list.map(p=>{
     const rem = sesionesRestantes(p);
@@ -1122,6 +1291,8 @@ function abrirNuevoPaciente() {
   document.getElementById('fp-tel').value = '';
   document.getElementById('fp-total').value = '';
   document.getElementById('fp-obs').value = '';
+  document.getElementById('fp-agencia').value = '';
+  document.getElementById('fp-precio').value = '';
   document.getElementById('fp-delete-btn').style.display = 'none';
   selectDur(30);
   openOv('ov-form-pac');
@@ -1138,6 +1309,8 @@ function abrirFormPaciente() {
   document.getElementById('fp-tel').value = p.Telefono;
   document.getElementById('fp-total').value = p.TotalSesiones;
   document.getElementById('fp-obs').value = p.Observaciones||'';
+  document.getElementById('fp-agencia').value = p.Agencia||'';
+  document.getElementById('fp-precio').value = p.Precio||'';
   document.getElementById('fp-delete-btn').style.display = 'block';
   selectDur(parseInt(p.DuracionMin)||30);
   openOv('ov-form-pac');
@@ -1161,6 +1334,8 @@ async function guardarPaciente() {
     TotalSesiones: document.getElementById('fp-total').value,
     DuracionMin: selectedDur,
     Observaciones: document.getElementById('fp-obs').value,
+    Agencia: document.getElementById('fp-agencia').value,
+    Precio: document.getElementById('fp-precio').value,
   };
   showToast('Guardando...');
   try {
@@ -1184,19 +1359,22 @@ async function guardarPaciente() {
   }
 }
 
-async function eliminarPaciente() {
+async function desactivarPaciente() {
   if (!editingPacId) return;
-  showToast('Eliminando...');
+  showToast('Archivando paciente...');
   try {
-    await apiPost({ action:'eliminarPaciente', id:editingPacId });
-    pacientes = pacientes.filter(x=>x.ID!==editingPacId);
+    await apiPost({ action:'desactivarPaciente', id:editingPacId });
+    // Marcar como inactivo localmente
+    const p = pacientes.find(x=>x.ID===editingPacId);
+    if (p) p.Estado = 'inactivo';
     populateSelects();
     renderPacientes();
+    renderNinos();
     closeOv('ov-form-pac');
     closeOv('ov-pac');
-    showToast('✅ Paciente eliminado');
+    showToast('✅ Paciente archivado');
   } catch(e) {
-    showToast('⚠️ Error al eliminar');
+    showToast('⚠️ Error: ' + e.message);
   }
 }
 
@@ -1252,7 +1430,9 @@ function selectTipo(tipo) {
   regTipo = tipo;
   document.getElementById('topt-normal').className='type-opt'+(tipo==='normal'?' sel-normal':'');
   document.getElementById('topt-recovery').className='type-opt'+(tipo==='recovery'?' sel-recovery':'');
+  document.getElementById('topt-cancel').className='type-opt'+(tipo==='cancel'?' sel-cancel':'');
   document.getElementById('recovery-note').style.display = tipo==='recovery'?'block':'none';
+  document.getElementById('cancel-note').style.display = tipo==='cancel'?'block':'none';
 }
 
 function fillSummary() {
@@ -1276,7 +1456,7 @@ async function guardarSesion() {
     HoraInicio: document.getElementById('reg-inicio').value,
     HoraFin: document.getElementById('reg-fin').value,
     Lugar: p.LugarAtencion,
-    Tipo: regTipo==='recovery'?'Recuperacion':'Normal',
+    Tipo: regTipo==='recovery'?'Recuperacion':regTipo==='cancel'?'Cancelada':'Normal',
     Notas: document.getElementById('reg-notas').value,
   };
   showToast('Guardando sesión...');
@@ -1321,180 +1501,487 @@ function changeRepMonth(dir) {
 }
 
 function setTabReporte(tab, el) {
-  repTab=tab;
-  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  repTab = tab;
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('reporte-semanal').style.display=tab==='semanal'?'block':'none';
-  document.getElementById('reporte-mensual').style.display=tab==='mensual'?'block':'none';
-  document.getElementById('reporte-paciente').style.display=tab==='paciente'?'block':'none';
+  document.getElementById('reporte-semanal').style.display   = tab==='semanal'  ? 'block' : 'none';
+  document.getElementById('reporte-mensual').style.display   = tab==='mensual'  ? 'block' : 'none';
+  document.getElementById('reporte-ingresos').style.display  = tab==='ingresos' ? 'block' : 'none';
+  document.getElementById('reporte-paciente').style.display  = tab==='paciente' ? 'block' : 'none';
+  if (tab==='semanal')  renderReporteSemanal();
+  if (tab==='mensual')  renderReporteMensual();
+  if (tab==='ingresos') renderReporteIngresos();
 }
 
 function renderReportes() {
-  renderReporteMensual();
   renderReporteSemanal();
 }
 
-function renderReporteMensual() {
-  const mes = repMonth+1;
-  const anio = repYear;
-  const filtradas = sesiones.filter(s=>{
-    const f=new Date(s.Fecha);
-    return f.getMonth()===repMonth && f.getFullYear()===repYear;
-  });
-  const realizadas = filtradas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
-  const canceladas = filtradas.filter(s=>s.Tipo==='Cancelada');
-  const recuperaciones = filtradas.filter(s=>s.Tipo==='Recuperacion');
-  let minutos=0;
-  realizadas.forEach(s=>{
-    if(s.HoraInicio&&s.HoraFin){
-      const[h1,m1]=s.HoraInicio.split(':').map(Number);
-      const[h2,m2]=s.HoraFin.split(':').map(Number);
-      minutos+=(h2*60+m2)-(h1*60+m1);
-    }
-  });
-  const horas = Math.round(minutos/60*10)/10;
-  const porSemana=[0,0,0,0];
-  realizadas.forEach(s=>{const d=new Date(s.Fecha).getDate();const sem=Math.min(Math.floor((d-1)/7),3);porSemana[sem]++;});
-  const max=Math.max(...porSemana,1);
-  const barChart=porSemana.map((v,i)=>`<div class="bc"><div class="bc-num">${v}</div><div class="bc-fill" style="height:${Math.round((v/max)*45)+5}px;background:${v?'var(--lav)':'var(--lav-light)'}"></div><div class="bc-lbl">S${i+1}</div></div>`).join('');
-  const porPaciente=pacientes.map(p=>{
-    const sp=realizadas.filter(s=>s.PacienteID===p.ID).length;
-    return `<div class="session-item"><div class="s-dot" style="background:${colorFor(p.ID)}"></div><div class="s-info"><div class="s-name">${p.Nombre.split(' ')[0]}</div></div><span style="font-size:12px;color:var(--text);font-weight:500">${sp} ses.</span></div>`;
-  }).join('');
-  document.getElementById('reporte-mensual').innerHTML=`
-    <div class="card-grid">
-      <div class="stat-card"><div class="num">${realizadas.length}</div><div class="lbl">Realizadas</div></div>
-      <div class="stat-card"><div class="num">${canceladas.length}</div><div class="lbl">Cancelaciones</div></div>
-      <div class="stat-card"><div class="num">${recuperaciones.length}</div><div class="lbl">Recuperaciones</div></div>
-      <div class="stat-card"><div class="num">${horas}h</div><div class="lbl">Horas</div></div>
-    </div>
-    <div class="card"><div class="section-lbl" style="margin-top:0">Sesiones por semana</div><div class="bar-chart">${barChart}</div></div>
-    <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Por paciente</div>${porPaciente||'<div class="empty">Sin sesiones</div>'}</div>
-    <button class="btn-green" onclick="showToast('📄 PDF generado — función disponible en la versión final')"><i class="fas fa-file-pdf"></i> Exportar PDF mensual</button>
-    <button class="btn-outline" onclick="showToast('📊 Exportar a Google Sheets — función disponible en la versión final')"><i class="fas fa-table"></i> Ver en Google Sheets</button>`;
-}
-
-function renderReporteSemanal() {
-  const semanasDelMes = getSemanasDelMes(repYear, repMonth);
-  if (!semanasDelMes.length) return;
-  const idx = Math.min(repWeekOffset, semanasDelMes.length-1);
-  const {inicio, fin, label} = semanasDelMes[idx];
-  const filtradas = sesiones.filter(s=>s.Fecha>=inicio&&s.Fecha<=fin);
-  const realizadas = filtradas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
-  const canceladas = filtradas.filter(s=>s.Tipo==='Cancelada');
-  const recuperaciones = filtradas.filter(s=>s.Tipo==='Recuperacion');
-  let minutos=0;
-  realizadas.forEach(s=>{
-    if(s.HoraInicio&&s.HoraFin){
-      const[h1,m1]=s.HoraInicio.split(':').map(Number);
-      const[h2,m2]=s.HoraFin.split(':').map(Number);
-      minutos+=(h2*60+m2)-(h1*60+m1);
-    }
-  });
-  const horas=Math.round(minutos/60*10)/10;
-  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const porDia=[0,0,0,0,0,0,0];
-  realizadas.forEach(s=>{porDia[new Date(s.Fecha).getDay()]++;});
-  const max=Math.max(...porDia,1);
-  const barChart=porDia.map((v,i)=>`<div class="bc"><div class="bc-num">${v||''}</div><div class="bc-fill" style="height:${Math.round((v/max)*45)+5}px;background:${v?'var(--lav)':'var(--lav-light)'}"></div><div class="bc-lbl">${dias[i]}</div></div>`).join('');
-  const sesHTML=filtradas.length?filtradas.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)||a.HoraInicio.localeCompare(b.HoraInicio)).map(s=>{
-    const p=pacientes.find(x=>x.ID===s.PacienteID)||{};
-    return `<div class="session-item"><div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div><div class="s-info"><div class="s-name">${p.Nombre||'—'}${s.Tipo==='Recuperacion'?' 🔄':''}</div><div class="s-sub">${fmt(s.Fecha)} · ${s.HoraInicio}</div></div>${chipHTML(s.Tipo)}</div>`;
-  }).join(''):'<div class="empty">Sin sesiones esta semana</div>';
-  const prevDisabled=idx>=semanasDelMes.length-1;
-  const nextDisabled=idx<=0;
-  document.getElementById('reporte-semanal').innerHTML=`
-    <div class="week-nav">
-      <button onclick="changeRepWeek(1)" ${prevDisabled?'disabled style="opacity:0.3"':''}>‹</button>
-      <span>${label}</span>
-      <button onclick="changeRepWeek(-1)" ${nextDisabled?'disabled style="opacity:0.3"':''}>›</button>
-    </div>
-    <div class="card-grid">
-      <div class="stat-card"><div class="num">${realizadas.length}</div><div class="lbl">Realizadas</div></div>
-      <div class="stat-card"><div class="num">${canceladas.length}</div><div class="lbl">Cancelaciones</div></div>
-      <div class="stat-card"><div class="num">${recuperaciones.length}</div><div class="lbl">Recuperaciones</div></div>
-      <div class="stat-card"><div class="num">${horas}h</div><div class="lbl">Horas</div></div>
-    </div>
-    <div class="card"><div class="section-lbl" style="margin-top:0">Por día</div><div class="bar-chart">${barChart}</div></div>
-    <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Detalle</div>${sesHTML}</div>
-    <button class="btn-green" onclick="showToast('📄 PDF generado — función disponible en la versión final')"><i class="fas fa-file-pdf"></i> Exportar PDF semanal</button>
-    <button class="btn-outline" onclick="showToast('📊 Ver en Google Sheets')"><i class="fas fa-table"></i> Ver en Google Sheets</button>`;
-}
-
+// ── HELPERS COMUNES ──────────────────────────────────────────
 function getSemanasDelMes(year, month) {
-  const semanas=[];
-  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  let d=new Date(year,month,1);
-  while(d.getMonth()===month){
-    const ini=new Date(d);
-    const fin=new Date(d);
-    fin.setDate(fin.getDate()+6);
-    const iniStr=ini.toISOString().split('T')[0];
-    const finStr=fin.toISOString().split('T')[0];
-    const label=`${ini.getDate()} – ${Math.min(fin.getDate(),new Date(year,month+1,0).getDate())} de ${MESES[month]}`;
-    semanas.push({inicio:iniStr,fin:finStr,label});
-    d.setDate(d.getDate()+7);
+  const semanas = [];
+  let d = new Date(year, month, 1);
+  while (d.getMonth() === month) {
+    const ini = new Date(d);
+    const fin = new Date(d);
+    fin.setDate(fin.getDate() + 6);
+    const iniStr = ini.toISOString ? ini.getFullYear()+'-'+String(ini.getMonth()+1).padStart(2,'0')+'-'+String(ini.getDate()).padStart(2,'0') : '';
+    const finDate = new Date(Math.min(fin, new Date(year, month+1, 0)));
+    const finStr  = finDate.getFullYear()+'-'+String(finDate.getMonth()+1).padStart(2,'0')+'-'+String(finDate.getDate()).padStart(2,'0');
+    const label = ini.getDate()+' – '+finDate.getDate()+' de '+MESES[month];
+    semanas.push({ inicio: iniStr, fin: finStr, label });
+    d.setDate(d.getDate() + 7);
   }
   return semanas.reverse();
 }
 
+function sesionesEnRango(inicio, fin) {
+  return sesiones.filter(s => s.Fecha >= inicio && s.Fecha <= fin);
+}
+
+function chipHTML(tipo) {
+  if (tipo==='Normal')      return '<span class="chip chip-done">Realizada</span>';
+  if (tipo==='Recuperacion') return '<span class="chip chip-recovery">🔄 Recuperación</span>';
+  if (tipo==='Cancelada')   return '<span class="chip chip-cancel">Cancelada</span>';
+  return '';
+}
+
+function barChart(datos, colorFn) {
+  const max = Math.max(...datos.map(d=>d.val), 1);
+  return '<div class="bar-chart">' + datos.map(d =>
+    `<div class="bc">
+      <div class="bc-num">${d.val||''}</div>
+      <div class="bc-fill" style="height:${Math.round((d.val/max)*50)+5}px;background:${d.val?colorFn(d):'var(--lav-light)'}"></div>
+      <div class="bc-lbl">${d.lbl}</div>
+    </div>`).join('') + '</div>';
+}
+
+function calcHoras(lista) {
+  let min = 0;
+  lista.forEach(s => {
+    if (s.HoraInicio && s.HoraFin && s.HoraFin !== '0:00' && s.HoraFin !== '00:00') {
+      const [h1,m1] = s.HoraInicio.split(':').map(Number);
+      const [h2,m2] = s.HoraFin.split(':').map(Number);
+      const diff = (h2*60+m2)-(h1*60+m1);
+      if (diff > 0) min += diff;
+    }
+  });
+  return Math.round(min/60*10)/10;
+}
+
+function resumenCards(realizadas, canceladas, recuperaciones, horas) {
+  return `<div class="card-grid">
+    <div class="stat-card"><div class="num">${realizadas}</div><div class="lbl">Realizadas</div></div>
+    <div class="stat-card"><div class="num">${canceladas}</div><div class="lbl">Cancelaciones</div></div>
+    <div class="stat-card"><div class="num">${recuperaciones}</div><div class="lbl">Recuperaciones</div></div>
+    <div class="stat-card"><div class="num">${horas}h</div><div class="lbl">Horas</div></div>
+  </div>`;
+}
+
+// ── REPORTE SEMANAL ───────────────────────────────────────────
+function renderReporteSemanal() {
+  const el = document.getElementById('reporte-semanal');
+  const semanas = getSemanasDelMes(repYear, repMonth);
+  if (!semanas.length) { el.innerHTML='<div class="empty">Sin semanas</div>'; return; }
+  const idx = Math.min(repWeekOffset, semanas.length-1);
+  const sem = semanas[idx];
+  const todas = sesionesEnRango(sem.inicio, sem.fin);
+  const realizadas = todas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+  const canceladas = todas.filter(s=>s.Tipo==='Cancelada');
+  const recuperaciones = todas.filter(s=>s.Tipo==='Recuperacion');
+  const horas = calcHoras(realizadas);
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const porDia = [0,0,0,0,0,0,0];
+  realizadas.forEach(s => { porDia[new Date(s.Fecha+'T12:00:00').getDay()]++; });
+  const prevOk = idx < semanas.length-1;
+  const nextOk = idx > 0;
+  const sesHTML = todas.length ? todas.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)||a.HoraInicio.localeCompare(b.HoraInicio)).map(s => {
+    const p = pacientes.find(x=>x.ID===s.PacienteID);
+    const nombre = p ? p.Nombre : (s.PacienteID ? 'Paciente archivado' : '—');
+    return `<div class="session-item">
+      <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+      <div class="s-info"><div class="s-name">${nombre}${s.Tipo==='Recuperacion'?' 🔄':''}</div>
+      <div class="s-sub">${fmt(s.Fecha)} · ${s.HoraInicio}</div></div>
+      ${chipHTML(s.Tipo)}
+    </div>`;
+  }).join('') : '<div class="empty">Sin sesiones esta semana</div>';
+
+  el.innerHTML = `
+    <div class="week-nav">
+      <button onclick="changeRepWeek(1)" ${!prevOk?'disabled style="opacity:0.3"':''}>‹</button>
+      <span>${sem.label}</span>
+      <button onclick="changeRepWeek(-1)" ${!nextOk?'disabled style="opacity:0.3"':''}>›</button>
+    </div>
+    ${resumenCards(realizadas.length, canceladas.length, recuperaciones.length, horas)}
+    <div class="card"><div class="section-lbl" style="margin-top:0">Por día</div>
+      ${barChart(porDia.map((v,i)=>({val:v,lbl:dias[i]})), ()=>'var(--lav)')}
+    </div>
+    <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Detalle</div>${sesHTML}</div>
+    <button class="btn-green" onclick="imprimirReporte('semanal')">
+      <i class="fas fa-file-pdf"></i> Exportar PDF semanal
+    </button>`;
+}
+
 function changeRepWeek(dir) {
-  const semanasDelMes=getSemanasDelMes(repYear,repMonth);
-  repWeekOffset=Math.max(0,Math.min(semanasDelMes.length-1,repWeekOffset+dir));
+  const semanas = getSemanasDelMes(repYear, repMonth);
+  repWeekOffset = Math.max(0, Math.min(semanas.length-1, repWeekOffset+dir));
   renderReporteSemanal();
 }
 
-function renderReportePaciente() {
-  const id=document.getElementById('rep-paciente').value;
-  const body=document.getElementById('rep-paciente-body');
-  if(!id){body.innerHTML='';return;}
-  const p=pacientes.find(x=>x.ID===id);
-  if(!p){return;}
-  const sesPac=sesiones.filter(s=>s.PacienteID===id).sort((a,b)=>b.Fecha.localeCompare(a.Fecha));
-  const realizadas=sesPac.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
-  const canceladas=sesPac.filter(s=>s.Tipo==='Cancelada');
-  const recuperaciones=sesPac.filter(s=>s.Tipo==='Recuperacion');
-  const rem=sesionesRestantes(p);
-  const total=parseInt(p.TotalSesiones)||1;
-  const done=total-rem;
-  const pct=Math.round((done/total)*100);
-  const bCls=barClass(p);
-  body.innerHTML=`
-    <div class="card" style="margin-top:8px">
-      <div class="stats-3">
-        <div><div class="n">${total}</div><div class="l">Asignadas</div></div>
-        <div><div class="n">${done}</div><div class="l">Realizadas</div></div>
-        <div><div class="n" style="color:${rem<=5?'var(--pink)':rem<=10?'var(--amber)':'var(--mint)'}">${rem}</div><div class="l">Restantes</div></div>
-      </div>
-      <div class="bar-bg" style="margin:6px 0 4px"><div class="bar-fill ${bCls}" style="width:${pct}%"></div></div>
-      <div style="font-size:11px;color:var(--sub);text-align:right">${pct}% completado</div>
+// ── REPORTE MENSUAL ───────────────────────────────────────────
+function renderReporteMensual() {
+  const el = document.getElementById('reporte-mensual');
+  const y = repYear, m = repMonth;
+  const inicio = y+'-'+String(m+1).padStart(2,'0')+'-01';
+  const fin    = y+'-'+String(m+1).padStart(2,'0')+'-'+String(new Date(y,m+1,0).getDate()).padStart(2,'0');
+  const todas = sesionesEnRango(inicio, fin);
+  const realizadas    = todas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+  const canceladas    = todas.filter(s=>s.Tipo==='Cancelada');
+  const recuperaciones= todas.filter(s=>s.Tipo==='Recuperacion');
+  const horas = calcHoras(realizadas);
+  const porSemana = [0,0,0,0];
+  realizadas.forEach(s => { const d=new Date(s.Fecha+'T12:00:00').getDate(); porSemana[Math.min(Math.floor((d-1)/7),3)]++; });
+  const porPaciente = pacientes.filter(p=>p.Estado!=='inactivo').map(p => {
+    const cnt = realizadas.filter(s=>s.PacienteID===p.ID).length;
+    return cnt>0 ? `<div class="session-item">
+      <div class="s-dot" style="background:${colorFor(p.ID)}"></div>
+      <div class="s-info"><div class="s-name">${p.Nombre}</div><div class="s-sub">${p.Agencia||'Sin agencia'}</div></div>
+      <span style="font-size:12px;font-weight:500;color:var(--text)">${cnt} ses.</span>
+    </div>` : '';
+  }).filter(Boolean).join('') || '<div class="empty">Sin sesiones</div>';
+
+  el.innerHTML = `
+    ${resumenCards(realizadas.length, canceladas.length, recuperaciones.length, horas)}
+    <div class="card"><div class="section-lbl" style="margin-top:0">Por semana</div>
+      ${barChart([{val:porSemana[0],lbl:'S1'},{val:porSemana[1],lbl:'S2'},{val:porSemana[2],lbl:'S3'},{val:porSemana[3],lbl:'S4'}], ()=>'var(--lav)')}
     </div>
-    <div class="card" style="margin-top:8px">
-      <div class="section-lbl" style="margin-top:0">Historial completo</div>
-      ${sesPac.length?sesPac.map(s=>`<div class="session-item"><span class="s-time">${fmt(s.Fecha)}</span><div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div><div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>${chipHTML(s.Tipo)}</div>`).join(''):'<div class="empty">Sin sesiones</div>'}
-    </div>
-    <button class="btn-green" onclick="showToast('📄 PDF de ${p.Nombre.split(' ')[0]} generado')"><i class="fas fa-file-pdf"></i> Exportar PDF del paciente</button>
-    <button class="btn-outline" onclick="showToast('📊 Ver en Google Sheets')"><i class="fas fa-table"></i> Ver en Google Sheets</button>`;
+    <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Por paciente</div>${porPaciente}</div>
+    <button class="btn-green" onclick="imprimirReporte('mensual')">
+      <i class="fas fa-file-pdf"></i> Exportar PDF mensual
+    </button>`;
 }
 
-// ============================================================
-// OVERLAYS
-// ============================================================
+
+async function renderReporteIngresos() {
+  const el = document.getElementById('reporte-ingresos');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Calculando ingresos...</p></div>';
+  try {
+    // Calcular ingresos localmente usando datos ya cargados
+    const y = repYear, m = repMonth;
+    const inicio = y+'-'+String(m+1).padStart(2,'0')+'-01';
+    const fin    = y+'-'+String(m+1).padStart(2,'0')+'-'+String(new Date(y,m+1,0).getDate()).padStart(2,'0');
+
+    // Semana actual
+    const semanas = getSemanasDelMes(y, m);
+    const sem = semanas[Math.min(repWeekOffset, semanas.length-1)];
+    const sesSem = sesiones.filter(s=>s.Fecha>=sem.inicio&&s.Fecha<=sem.fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+
+    // Mes completo
+    const sesMes = sesiones.filter(s=>s.Fecha>=inicio&&s.Fecha<=fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+
+    // Calcular ingresos
+    let totalSemana = 0, totalMes = 0;
+    const porAgencia = {}, porPacienteMes = [];
+
+    pacientes.forEach(p => {
+      const precio = parseFloat(p.Precio)||0;
+      const dur = parseInt(p.DuracionMin)||60;
+      const agencia = p.Agencia||'Sin agencia';
+      const pxs = dur===30 ? precio/2 : precio;
+
+      const sesPacSem = sesSem.filter(s=>s.PacienteID===p.ID);
+      const sesPacMes = sesMes.filter(s=>s.PacienteID===p.ID);
+
+      totalSemana += sesPacSem.length * pxs;
+      const totPacMes = sesPacMes.length * pxs;
+      totalMes += totPacMes;
+
+      if (totPacMes > 0) {
+        if (!porAgencia[agencia]) porAgencia[agencia] = 0;
+        porAgencia[agencia] += totPacMes;
+        porPacienteMes.push({ nombre:p.Nombre, agencia, sesiones:sesPacMes.length, pxs, total:totPacMes });
+      }
+    });
+
+    const agenciaHTML = Object.entries(porAgencia).map(([a,t])=>`
+      <div class="session-item">
+        <div class="s-info"><div class="s-name">${a}</div></div>
+        <span style="font-size:13px;font-weight:500;color:var(--mint)">B/. ${t.toFixed(2)}</span>
+      </div>`).join('') || '<div class="empty">Sin datos</div>';
+
+    const pacienteHTML = porPacienteMes.map(p=>`
+      <div class="session-item">
+        <div class="s-info">
+          <div class="s-name">${p.nombre}</div>
+          <div class="s-sub">${p.agencia} · ${p.sesiones} ses. × B/. ${p.pxs.toFixed(2)}</div>
+        </div>
+        <span style="font-size:13px;font-weight:500;color:var(--text)">B/. ${p.total.toFixed(2)}</span>
+      </div>`).join('') || '<div class="empty">Sin datos</div>';
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="stat-card">
+          <div class="num" style="color:var(--mint)">B/. ${totalSemana.toFixed(2)}</div>
+          <div class="lbl">Esta semana</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" style="color:var(--mint)">B/. ${totalMes.toFixed(2)}</div>
+          <div class="lbl">Este mes</div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:8px">
+        <div class="section-lbl" style="margin-top:0">Por agencia — ${MESES[m]} ${y}</div>
+        ${agenciaHTML}
+      </div>
+      <div class="card" style="margin-bottom:8px">
+        <div class="section-lbl" style="margin-top:0">Por paciente — ${MESES[m]} ${y}</div>
+        ${pacienteHTML}
+      </div>
+      <button class="btn-green" onclick="imprimirReporte('ingresos')">
+        <i class="fas fa-file-pdf"></i> Exportar PDF de ingresos
+      </button>`;
+  } catch(e) {
+    el.innerHTML='<div class="empty">Error: '+e.message+'</div>';
+  }
+}
+
+function renderReportePaciente() {
+  const id = document.getElementById('rep-paciente').value;
+  const body = document.getElementById('rep-paciente-body');
+  if (!id) { body.innerHTML=''; return; }
+
+  // Buscar en todos los pacientes incluyendo archivados
+  const p = pacientes.find(x=>x.ID===id);
+  const nombre = p ? p.Nombre : 'Paciente archivado';
+
+  // Sesiones del mes seleccionado
+  const y = repYear, m = repMonth;
+  const inicio = y+'-'+String(m+1).padStart(2,'0')+'-01';
+  const fin    = y+'-'+String(m+1).padStart(2,'0')+'-'+String(new Date(y,m+1,0).getDate()).padStart(2,'0');
+  const sesMes = sesiones.filter(s=>s.PacienteID===id&&s.Fecha>=inicio&&s.Fecha<=fin);
+  const realizadasMes = sesMes.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+  const canceladasMes = sesMes.filter(s=>s.Tipo==='Cancelada');
+
+  // Historial completo
+  const todoHistorial = sesiones.filter(s=>s.PacienteID===id).sort((a,b)=>b.Fecha.localeCompare(a.Fecha));
+  const totalRealizadas = todoHistorial.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion').length;
+
+  // Progreso si está activo
+  let progresoHTML = '';
+  if (p) {
+    const total = parseInt(p.TotalSesiones)||1;
+    const rem = Math.max(0, total - totalRealizadas);
+    const pct = Math.round((totalRealizadas/total)*100);
+    const bCls = rem<=5?'alert':rem<=10?'warn':'';
+    progresoHTML = `
+      <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:8px;text-align:center">
+        <div><div class="n">${total}</div><div class="l">Asignadas</div></div>
+        <div><div class="n">${totalRealizadas}</div><div class="l">Realizadas</div></div>
+        <div><div class="n" style="color:${rem<=5?'var(--pink)':rem<=10?'var(--amber)':'var(--mint)'}">${rem}</div><div class="l">Restantes</div></div>
+      </div>
+      <div class="bar-bg" style="margin-bottom:4px"><div class="bar-fill ${bCls}" style="width:${pct}%"></div></div>
+      <div style="font-size:11px;color:var(--sub);text-align:right;margin-bottom:12px">${pct}% completado</div>`;
+  }
+
+  const mesHTML = sesMes.length ? sesMes.map(s=>`
+    <div class="session-item">
+      <span class="s-time">${s.HoraInicio}</span>
+      <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+      <div class="s-info"><div class="s-name">${fmt(s.Fecha)}</div></div>
+      ${chipHTML(s.Tipo)}
+    </div>`).join('') : '<div class="empty">Sin sesiones este mes</div>';
+
+  const histHTML = todoHistorial.slice(0,20).map(s=>`
+    <div class="session-item">
+      <span class="s-time">${fmt(s.Fecha)}</span>
+      <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+      <div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>
+      ${chipHTML(s.Tipo)}
+    </div>`).join('') || '<div class="empty">Sin historial</div>';
+
+  body.innerHTML = `
+    ${progresoHTML}
+    <div class="card" style="margin-bottom:8px">
+      <div class="section-lbl" style="margin-top:0">Sesiones en ${MESES[m]} ${y}</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div class="stat-card" style="flex:1"><div class="num">${realizadasMes.length}</div><div class="lbl">Realizadas</div></div>
+        <div class="stat-card" style="flex:1"><div class="num">${canceladasMes.length}</div><div class="lbl">Canceladas</div></div>
+      </div>
+      ${mesHTML}
+    </div>
+    <div class="card" style="margin-bottom:8px">
+      <div class="section-lbl" style="margin-top:0">Historial completo (últimas 20)</div>
+      ${histHTML}
+    </div>
+    <button class="btn-green" onclick="imprimirReporte('paciente')">
+      <i class="fas fa-file-pdf"></i> Exportar PDF del paciente
+    </button>`;
+}
+
+
 function openOv(id) { document.getElementById(id).classList.add('show'); }
 function closeOv(id) { document.getElementById(id).classList.remove('show'); }
+
+// ============================================================
+// EXPORTAR PDF
+// ============================================================
+function imprimirReporte(tipo) {
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const titulos = { semanal:'Reporte Semanal', mensual:'Reporte Mensual', ingresos:'Reporte de Ingresos', paciente:'Reporte del Paciente' };
+  const titulo = titulos[tipo];
+
+  // Generar HTML del reporte según tipo
+  let htmlReporte = '';
+
+  if (tipo === 'semanal' || tipo === 'mensual') {
+    const esSemanal = tipo === 'semanal';
+    const semanas = getSemanasDelMes(repYear, repMonth);
+    const sem = semanas[Math.min(repWeekOffset, semanas.length-1)];
+    const inicio = esSemanal ? sem.inicio : repYear+'-'+String(repMonth+1).padStart(2,'0')+'-01';
+    const fin    = esSemanal ? sem.fin    : repYear+'-'+String(repMonth+1).padStart(2,'0')+'-'+String(new Date(repYear,repMonth+1,0).getDate()).padStart(2,'0');
+    const todas = sesiones.filter(s=>s.Fecha>=inicio&&s.Fecha<=fin);
+    const realizadas    = todas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+    const canceladas    = todas.filter(s=>s.Tipo==='Cancelada');
+    const recuperaciones= todas.filter(s=>s.Tipo==='Recuperacion');
+    const horas = calcHoras(realizadas);
+    const periodo = esSemanal ? sem.label : meses[repMonth]+' '+repYear;
+
+    const filas = todas.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)||a.HoraInicio.localeCompare(b.HoraInicio)).map(s => {
+      const pac = pacientes.find(x=>x.ID===s.PacienteID);
+      const nombre = pac ? pac.Nombre : 'Paciente archivado';
+      const tipoLabel = s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperación':'Cancelada';
+      return `<tr>
+        <td>${fmt(s.Fecha)}</td>
+        <td>${s.HoraInicio} – ${s.HoraFin}</td>
+        <td>${nombre}</td>
+        <td>${pac ? (pac.Agencia||'—') : '—'}</td>
+        <td>${tipoLabel}</td>
+        <td>${s.Notas||''}</td>
+      </tr>`;
+    }).join('');
+
+    htmlReporte = `
+      <div class="resumen">
+        <div class="stat-box"><div class="snum">${realizadas.length}</div><div class="slbl">Realizadas</div></div>
+        <div class="stat-box"><div class="snum">${canceladas.length}</div><div class="slbl">Cancelaciones</div></div>
+        <div class="stat-box"><div class="snum">${recuperaciones.length}</div><div class="slbl">Recuperaciones</div></div>
+        <div class="stat-box"><div class="snum">${horas}h</div><div class="slbl">Horas trabajadas</div></div>
+      </div>
+      <h2>Detalle de sesiones — ${periodo}</h2>
+      <table>
+        <thead><tr><th>Fecha</th><th>Horario</th><th>Paciente</th><th>Agencia</th><th>Tipo</th><th>Notas</th></tr></thead>
+        <tbody>${filas || '<tr><td colspan="6">Sin sesiones</td></tr>'}</tbody>
+      </table>`;
+
+  } else if (tipo === 'ingresos') {
+    const inicio = repYear+'-'+String(repMonth+1).padStart(2,'0')+'-01';
+    const fin    = repYear+'-'+String(repMonth+1).padStart(2,'0')+'-'+String(new Date(repYear,repMonth+1,0).getDate()).padStart(2,'0');
+    const sesMes = sesiones.filter(s=>s.Fecha>=inicio&&s.Fecha<=fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+    let totalMes = 0;
+    const porAgencia = {}, filasPac = [];
+    pacientes.forEach(p => {
+      const precio = parseFloat(p.Precio)||0;
+      const dur = parseInt(p.DuracionMin)||60;
+      const pxs = dur===30 ? precio/2 : precio;
+      const agencia = p.Agencia||'Sin agencia';
+      const cnt = sesMes.filter(s=>s.PacienteID===p.ID).length;
+      if (cnt > 0) {
+        const total = cnt * pxs;
+        totalMes += total;
+        if (!porAgencia[agencia]) porAgencia[agencia] = 0;
+        porAgencia[agencia] += total;
+        filasPac.push(`<tr><td>${p.Nombre}</td><td>${agencia}</td><td>${cnt}</td><td>B/. ${pxs.toFixed(2)}</td><td><strong>B/. ${total.toFixed(2)}</strong></td></tr>`);
+      }
+    });
+    const filasAg = Object.entries(porAgencia).map(([a,t])=>`<tr><td>${a}</td><td><strong>B/. ${t.toFixed(2)}</strong></td></tr>`).join('');
+
+    htmlReporte = `
+      <div class="total-grande">
+        <div>TOTAL DEL MES</div>
+        <div style="font-size:36px;color:#1D9E75;font-weight:bold">B/. ${totalMes.toFixed(2)}</div>
+        <div>${meses[repMonth]} ${repYear}</div>
+      </div>
+      <h2>Por agencia</h2>
+      <table><thead><tr><th>Agencia</th><th>Total</th></tr></thead>
+      <tbody>${filasAg||'<tr><td colspan="2">Sin datos</td></tr>'}</tbody></table>
+      <h2>Por paciente</h2>
+      <table><thead><tr><th>Paciente</th><th>Agencia</th><th>Sesiones</th><th>Precio/ses.</th><th>Total</th></tr></thead>
+      <tbody>${filasPac.join('')||'<tr><td colspan="5">Sin datos</td></tr>'}</tbody></table>`;
+
+  } else if (tipo === 'paciente') {
+    const id = document.getElementById('rep-paciente').value;
+    const p = pacientes.find(x=>x.ID===id);
+    if (!p) { showToast('⚠️ Selecciona un paciente'); return; }
+    const inicio = repYear+'-'+String(repMonth+1).padStart(2,'0')+'-01';
+    const fin    = repYear+'-'+String(repMonth+1).padStart(2,'0')+'-'+String(new Date(repYear,repMonth+1,0).getDate()).padStart(2,'0');
+    const sesMes = sesiones.filter(s=>s.PacienteID===id&&s.Fecha>=inicio&&s.Fecha<=fin);
+    const total  = parseInt(p.TotalSesiones)||1;
+    const realizadasTotal = sesiones.filter(s=>s.PacienteID===id&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion')).length;
+    const rem = Math.max(0, total - realizadasTotal);
+    const filas = sesMes.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)).map(s =>
+      `<tr><td>${fmt(s.Fecha)}</td><td>${s.HoraInicio} – ${s.HoraFin}</td><td>${s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperación':'Cancelada'}</td><td>${s.Notas||''}</td></tr>`
+    ).join('');
+
+    htmlReporte = `
+      <div class="resumen">
+        <div class="stat-box"><div class="snum">${total}</div><div class="slbl">Total asignadas</div></div>
+        <div class="stat-box"><div class="snum">${realizadasTotal}</div><div class="slbl">Realizadas</div></div>
+        <div class="stat-box"><div class="snum">${rem}</div><div class="slbl">Restantes</div></div>
+      </div>
+      <h2>Sesiones de ${meses[repMonth]} ${repYear}</h2>
+      <table><thead><tr><th>Fecha</th><th>Horario</th><th>Tipo</th><th>Notas</th></tr></thead>
+      <tbody>${filas||'<tr><td colspan="4">Sin sesiones este mes</td></tr>'}</tbody></table>`;
+  }
+
+  const ventana = window.open('', '_blank');
+  ventana.document.write(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>${titulo} — TerapistaApp</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Georgia, serif; color: #3C3489; padding: 24px; max-width: 700px; margin: 0 auto; font-size: 13px; }
+  h1 { font-size: 22px; color: #534AB7; margin-bottom: 2px; }
+  h2 { font-size: 14px; color: #534AB7; margin: 16px 0 8px; }
+  .sub { font-size: 11px; color: #7F77DD; margin-bottom: 20px; }
+  .resumen { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat-box { border: 1px solid #AFA9EC; border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 100px; }
+  .snum { font-size: 22px; color: #3C3489; }
+  .slbl { font-size: 10px; color: #7F77DD; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th { background: #EEEDFE; color: #534AB7; padding: 8px; text-align: left; font-size: 11px; }
+  td { padding: 7px 8px; border-bottom: 1px solid #EEEDFE; font-size: 12px; }
+  tr:last-child td { border-bottom: none; }
+  .total-grande { text-align: center; background: #EEEDFE; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  @media print {
+    body { padding: 10px; }
+    @page { margin: 1.5cm; }
+  }
+</style>
+</head><body>
+<h1>TerapistaApp — ${titulo}</h1>
+<div class="sub">Generado el ${new Date().toLocaleDateString('es-PA', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+${htmlReporte}
+<script>setTimeout(()=>window.print(), 500)<\/script>
+</body></html>`);
+  ventana.document.close();
+}
 
 // ============================================================
 // RECARGAR DATOS
 // ============================================================
 async function recargarDatos() {
   try {
-    const [rPac, rSes] = await Promise.all([
+    const [rPac, rSes, rAg] = await Promise.all([
       apiGet({ action: 'getPacientes' }),
-      apiGet({ action: 'getSesiones' })
+      apiGet({ action: 'getSesiones' }),
+      apiGet({ action: 'getAgencias' })
     ]);
     if (rPac.success) pacientes = rPac.data || [];
     if (rSes.success) sesiones  = rSes.data || [];
+    if (rAg.success)  agencias  = rAg.data  || [];
     populateSelects();
+    populateAgencias();
+    populateAgencias();
     // Actualizar header y refrescar pantalla actual
     updateHeader(currentScreen);
     if (currentScreen === 'hoy') renderHoy();
@@ -1516,6 +2003,13 @@ document.getElementById('reg-fecha').value = today();
 // START
 // ============================================================
 init();
+
+  // PWA Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW:', e); });
+    });
+  }
 </script>
 </body>
 </html>
