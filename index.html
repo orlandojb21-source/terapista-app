@@ -471,7 +471,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 // CONFIG & STATE
 // ============================================================
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbxcYsb9OomoLerpvlhfsBiKAUN5xj9STO1iWrxl9pI2LCuaPp61R-RokOZ1YbK82LCGwA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzKd7JBt51tojV9SvkailXleSrvOJn29V3GYH4xKBMl44buOKOD7_q-iS3NrEyZlNg7Qw/exec";
 
 let pacientes = [], sesiones = [], agencias = [], programas = [], planData = {};
 let currentScreen = 'hoy';
@@ -495,13 +495,17 @@ function apiGet(params) {
 }
 function apiPost(body) {
   const flat = { action: body.action };
-  if (body.data)   Object.assign(flat, body.data);
-  if (body.id)     flat.id = body.id;
-  if (body.nombre) flat.nombre = body.nombre;
-  if (body.data_str) flat.data = body.data_str;
+  if (body.data && typeof body.data === 'object') Object.assign(flat, body.data);
+  if (body.id)       flat.id = body.id;
+  if (body.nombre)   flat.nombre = body.nombre;
+  if (body.data_raw !== undefined) flat.data = body.data_raw; // string crudo, no descomponer
   const url = new URL(API_URL);
-  Object.entries(flat).forEach(([k,v]) => url.searchParams.set(k, String(v)));
-  return fetch(url.toString()).then(r => r.json());
+  // Construir query string manualmente para evitar doble-encoding
+  const parts = Object.entries(flat).map(([k,v]) =>
+    encodeURIComponent(k) + '=' + encodeURIComponent(String(v))
+  );
+  return fetch(url.toString() + (url.toString().includes('?') ? '&' : '?') + parts.join('&'))
+    .then(r => r.json());
 }
 
 // ============================================================
@@ -1675,9 +1679,9 @@ function eliminarEntradaPlan(diaIdx,entradaIdx) {
 async function guardarPlan() {
   showToast('Guardando planificación...');
   try {
-    const encoded=encodeURIComponent(JSON.stringify(planData));
-    const r=await apiGet({action:'guardarPlanificacion',data:encoded});
-    if(r && r.success) showToast('✅ Planificación guardada en la nube');
+    // data_raw evita que apiPost descomponga el string JSON
+    const r=await apiPost({action:'guardarPlanificacion', data_raw: JSON.stringify(planData)});
+    if(r && r.success) showToast('✅ Planificación guardada');
     else showToast('⚠️ No se pudo guardar: '+(r&&r.error||'error desconocido'));
   } catch(e){showToast('⚠️ Error: '+e.message);}
 }
