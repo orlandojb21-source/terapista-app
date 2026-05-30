@@ -378,8 +378,13 @@ textarea{resize:none;height:75px;line-height:1.5}
       </div>
       <div class="field-lbl">Agencia</div>
       <select id="fp-agencia"><option value="">— Selecciona una agencia —</option></select>
-      <div class="field-lbl">Tipo de paciente</div>
-      <select id="fp-tipo"><option value="">— Selecciona tipo —</option></select>
+      <div class="field-lbl">Programa</div>
+      <select id="fp-tipo">
+        <option value="">— Selecciona un programa —</option>
+        <option value="CPSE">CPSE</option>
+        <option value="Early Intervention">Early Intervention</option>
+        <option value="Privado">Privado</option>
+      </select>
       <div class="field-lbl">Precio por hora (B/.)</div>
       <input type="number" id="fp-precio" placeholder="Ej: 45" min="0" step="0.50" />
       <div class="field-lbl">Observaciones</div>
@@ -932,6 +937,12 @@ function abrirDetalleNino(id) {
       <div class="section-lbl" style="margin-top:0">Datos del paciente</div>
       <div class="info-row"><span class="k">Contacto</span><span class="v">${p.Contacto||'—'}</span></div>
       <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
+      ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
+        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          📞 Llamar</a>
+        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          💬 WhatsApp</a>
+      </div>`:''}
       <div class="info-row"><span class="k">Duración sesión</span><span class="v">${p.DuracionMin} min</span></div>
     </div>
     <div class="card" style="margin-top:8px">
@@ -998,6 +1009,12 @@ function abrirDetallePaciente(id) {
       <div class="section-lbl" style="margin-top:0">Contacto</div>
       <div class="info-row"><span class="k">Nombre</span><span class="v">${p.Contacto||'—'}</span></div>
       <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
+      ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
+        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          📞 Llamar</a>
+        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          💬 WhatsApp</a>
+      </div>`:''}
     </div>
     ${p.Observaciones?`<div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Observaciones</div><div style="font-size:13px;color:var(--text);line-height:1.5">${p.Observaciones}</div></div>`:''}`;
   openOv('ov-pac');
@@ -1530,7 +1547,7 @@ ${htmlReporte}
 // ============================================================
 // PLANIFICACIÓN SEMANAL — SHEETS
 // ============================================================
-const DIAS_PLAN=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_PLAN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
 function renderPlan() {
   const activos=pacientes.filter(p=>p.Estado!=='inactivo');
@@ -1605,9 +1622,9 @@ function eliminarEntradaPlan(diaIdx,entradaIdx) {
 async function guardarPlan() {
   showToast('Guardando planificación...');
   try {
-    const encoded=encodeURIComponent(JSON.stringify(planData));
-    await apiGet({action:'guardarPlanificacion',data:encoded});
-    showToast('✅ Planificación guardada en la nube');
+    const r=await apiGet({action:'guardarPlanificacion',data:JSON.stringify(planData)});
+    if(r&&r.success) showToast('✅ Planificación guardada');
+    else showToast('⚠️ Error: '+(r&&r.error||'sin respuesta'));
   } catch(e){showToast('⚠️ Error: '+e.message);}
 }
 
