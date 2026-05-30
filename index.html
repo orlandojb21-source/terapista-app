@@ -378,6 +378,8 @@ textarea{resize:none;height:75px;line-height:1.5}
       </div>
       <div class="field-lbl">Agencia</div>
       <select id="fp-agencia"><option value="">— Selecciona una agencia —</option></select>
+      <div class="field-lbl">Tipo de paciente</div>
+      <select id="fp-tipo"><option value="">— Selecciona tipo —</option></select>
       <div class="field-lbl">Precio por hora (B/.)</div>
       <input type="number" id="fp-precio" placeholder="Ej: 45" min="0" step="0.50" />
       <div class="field-lbl">Observaciones</div>
@@ -454,7 +456,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
 const API_URL = "https://script.google.com/macros/s/AKfycbxcYsb9OomoLerpvlhfsBiKAUN5xj9STO1iWrxl9pI2LCuaPp61R-RokOZ1YbK82LCGwA/exec";
 
-let pacientes = [], sesiones = [], agencias = [], planData = {};
+let pacientes = [], sesiones = [], agencias = [], planData = {}, tiposConfig = [];
 let currentScreen = 'hoy';
 let calMonth = new Date().getMonth(), calYear = new Date().getFullYear(), selDay = null;
 let repMonth = new Date().getMonth(), repYear = new Date().getFullYear();
@@ -492,16 +494,18 @@ async function init() {
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   updateHeader('hoy');
   try {
-    const [rPac, rSes, rAg, rPlan] = await Promise.all([
+    const [rPac, rSes, rAg, rPlan, rConf2] = await Promise.all([
       apiGet({ action:'getPacientes' }),
       apiGet({ action:'getSesiones' }),
       apiGet({ action:'getAgencias' }),
-      apiGet({ action:'getPlanificacion' })
+      apiGet({ action:'getPlanificacion' }),
+      apiGet({ action:'getConfig2' })
     ]);
     if (rPac.success)  pacientes = rPac.data  || [];
     if (rSes.success)  sesiones  = rSes.data  || [];
     if (rAg.success)   agencias  = rAg.data   || [];
     if (rPlan.success) planData  = rPlan.data  || {};
+    if (rConf2 && rConf2.success) tiposConfig = rConf2.data || [];
     populateSelects();
     populateAgencias();
     showToast('✅ Datos cargados');
@@ -538,6 +542,24 @@ function colorFor(id) {
   let h = 0;
   for (let i=0; i<(id||'').length; i++) h = (h<<5)-h+id.charCodeAt(i);
   return COLORS[Math.abs(h) % COLORS.length];
+}
+function dotColor(tipo) {
+  if (tipo === 'Normal')       return '#1D9E75';  // verde
+  if (tipo === 'Recuperacion') return '#BA7517';  // amarillo
+  if (tipo === 'Cancelada')    return '#D4537E';  // rojo
+  return '#AFA9EC';
+}
+function populateTipos() {
+  const sel = document.getElementById('fp-tipo');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona tipo —</option>';
+  tiposConfig.forEach(function(t) {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    if (t === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
 }
 function sesionesRealizadas(pacId) {
   return sesiones.filter(s=>s.PacienteID===pacId&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion')).length;
@@ -599,7 +621,7 @@ function barChart(datos,colorFn) {
 // POPULATE SELECTS
 // ============================================================
 function populateSelects() {
-  const activos = pacientes.filter(p=>p.Estado!=='inactivo');
+  const activos = [...pacientes].filter(p=>p.Estado!=='inactivo').sort((a,b)=>(a.Nombre||'').localeCompare(b.Nombre||''));
   const opts = activos.map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
   document.getElementById('reg-paciente').innerHTML = '<option value="">— Elige un niño —</option>'+opts;
   document.getElementById('rep-paciente').innerHTML = '<option value="">— Elige un niño —</option>'+opts;
@@ -705,7 +727,7 @@ function renderHoy() {
     const nombre=pac.Nombre||'Paciente desconocido';
     return `<div class="session-item" onclick="abrirEditarSesion('${s.ID}')" style="cursor:pointer">
       <span class="s-time">${s.HoraInicio}</span>
-      <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+      <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
       <div class="s-info">
         <div class="s-name">${nombre}${s.Tipo==='Recuperacion'?' 🔄':''}</div>
         <div class="s-sub">${s.Lugar} · ${pac.DuracionMin||'?'} min</div>
@@ -826,7 +848,7 @@ function renderMes() {
     const hasCan=daySes.some(s=>s.Tipo==='Cancelada')&&!daySes.some(s=>s.Tipo!=='Cancelada');
     let cls='cal-day';
     if(isToday) cls+=' today'; else if(isSel) cls+=' selected'; else if(hasCan) cls+=' has-cancel';
-    const dots=daySes.slice(0,3).map(s=>`<div class="cal-dot" style="background:${isToday?'rgba(255,255,255,0.7)':colorFor(s.PacienteID)}"></div>`).join('');
+    const dots=daySes.slice(0,3).map(s=>`<div class="cal-dot" style="background:${isToday?'rgba(255,255,255,0.7)':dotColor(s.Tipo)}"></div>`).join('');
     calHTML+=`<div class="${cls}" onclick="selectCalDay('${dateStr}')"><span class="dn">${d}</span><div class="cal-dots">${dots}</div></div>`;
   }
   calHTML+=`</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 8px;font-size:10px;color:var(--sub)">
@@ -843,7 +865,7 @@ function renderMes() {
       const pac=pacientes.find(p=>p.ID===s.PacienteID)||{};
       return `<div class="session-item">
         <span class="s-time">${s.HoraInicio}</span>
-        <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+        <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
         <div class="s-info"><div class="s-name">${pac.Nombre||'—'}${s.Tipo==='Recuperacion'?' 🔄':''}</div><div class="s-sub">${s.Lugar}</div></div>
         ${chipHTML(s.Tipo)}</div>`;
     }).join(''):'<div class="empty" style="padding:14px">Sin sesiones</div>';
@@ -917,7 +939,7 @@ function abrirDetalleNino(id) {
       ${sesPac.length?sesPac.map(s=>`
         <div class="session-item">
           <span class="s-time">${fmt(s.Fecha)}</span>
-          <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+          <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
           <div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>
           ${chipHTML(s.Tipo)}</div>`).join(''):'<div class="empty" style="padding:10px">Sin sesiones registradas</div>'}
     </div>`;
@@ -999,6 +1021,7 @@ function abrirFormPaciente() {
   document.getElementById('fp-total').value=p.TotalSesiones;
   document.getElementById('fp-obs').value=p.Observaciones||'';
   document.getElementById('fp-agencia').value=p.Agencia||'';
+  if(document.getElementById('fp-tipo')) document.getElementById('fp-tipo').value=p.Tipo||'';
   document.getElementById('fp-precio').value=p.Precio||'';
   document.getElementById('fp-delete-btn').style.display='block';
   selectDur(parseInt(p.DuracionMin)||30); openOv('ov-form-pac');
@@ -1018,6 +1041,7 @@ async function guardarPaciente() {
     TotalSesiones:document.getElementById('fp-total').value,
     DuracionMin:selectedDur,Observaciones:document.getElementById('fp-obs').value,
     Agencia:document.getElementById('fp-agencia').value,
+    Tipo: (document.getElementById('fp-tipo')||{value:''}).value,
     Precio:document.getElementById('fp-precio').value};
   showToast('Guardando...');
   try {
@@ -1258,7 +1282,7 @@ function renderReporteSemanal() {
     const p=pacientes.find(x=>x.ID===s.PacienteID);
     const nombre=p?p.Nombre:(s.PacienteID?'Archivado':'—');
     return `<div class="session-item">
-      <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+      <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
       <div class="s-info"><div class="s-name">${nombre}${s.Tipo==='Recuperacion'?' 🔄':''}</div>
       <div class="s-sub">${fmt(s.Fecha)} · ${s.HoraInicio}–${s.HoraFin}</div></div>
       ${chipHTML(s.Tipo)}</div>`;
@@ -1382,13 +1406,13 @@ function renderReportePaciente() {
   const mesHTML=sesMes.length?sesMes.map(s=>`
     <div class="session-item">
       <span class="s-time">${s.HoraInicio}</span>
-      <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+      <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
       <div class="s-info"><div class="s-name">${fmt(s.Fecha)}</div></div>
       ${chipHTML(s.Tipo)}</div>`).join(''):'<div class="empty">Sin sesiones este mes</div>';
   const histHTML=todoHistorial.slice(0,20).map(s=>`
     <div class="session-item">
       <span class="s-time">${fmt(s.Fecha)}</span>
-      <div class="s-dot" style="background:${colorFor(s.PacienteID)}"></div>
+      <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
       <div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>
       ${chipHTML(s.Tipo)}</div>`).join('')||'<div class="empty">Sin historial</div>';
   body.innerHTML=`
