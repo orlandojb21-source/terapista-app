@@ -378,31 +378,12 @@ textarea{resize:none;height:75px;line-height:1.5}
       </div>
       <div class="field-lbl">Agencia</div>
       <select id="fp-agencia"><option value="">— Selecciona una agencia —</option></select>
-      <div class="field-lbl">Programa</div>
-      <select id="fp-programa"><option value="">— Selecciona un programa —</option></select>
       <div class="field-lbl">Precio por hora (B/.)</div>
       <input type="number" id="fp-precio" placeholder="Ej: 45" min="0" step="0.50" />
       <div class="field-lbl">Observaciones</div>
       <textarea id="fp-obs" placeholder="Notas relevantes del paciente..."></textarea>
       <button class="btn-primary" onclick="guardarPaciente()">💾 Guardar paciente</button>
       <button class="btn-danger" id="fp-delete-btn" style="display:none" onclick="desactivarPaciente()">📦 Archivar paciente</button>
-    </div>
-  </div>
-
-  <!-- GESTIÓN PROGRAMAS -->
-  <div class="overlay" id="ov-programas">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-programas')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title">Programas</span>
-    </div>
-    <div class="overlay-body">
-      <div class="field-lbl">Nuevo programa</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="nuevo-programa-input" placeholder="Nombre del programa" style="flex:1" />
-        <button onclick="agregarPrograma()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
-      </div>
-      <div class="section-lbl" style="margin-top:14px">Programas registrados</div>
-      <div id="programas-list"></div>
     </div>
   </div>
 
@@ -471,9 +452,9 @@ textarea{resize:none;height:75px;line-height:1.5}
 // CONFIG & STATE
 // ============================================================
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbynl3ADrGl3M71tObS8YEVTaubeC6cjJrjqaJbteGGuGbD3WfcNz7TKBtL8bUoMiEPL2A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxcYsb9OomoLerpvlhfsBiKAUN5xj9STO1iWrxl9pI2LCuaPp61R-RokOZ1YbK82LCGwA/exec";
 
-let pacientes = [], sesiones = [], agencias = [], programas = [], planData = {};
+let pacientes = [], sesiones = [], agencias = [], planData = {};
 let currentScreen = 'hoy';
 let calMonth = new Date().getMonth(), calYear = new Date().getFullYear(), selDay = null;
 let repMonth = new Date().getMonth(), repYear = new Date().getFullYear();
@@ -511,21 +492,18 @@ async function init() {
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   updateHeader('hoy');
   try {
-    const [rPac, rSes, rAg, rProg, rPlan] = await Promise.all([
+    const [rPac, rSes, rAg, rPlan] = await Promise.all([
       apiGet({ action:'getPacientes' }),
       apiGet({ action:'getSesiones' }),
       apiGet({ action:'getAgencias' }),
-      apiGet({ action:'getProgramas' }),
       apiGet({ action:'getPlanificacion' })
     ]);
     if (rPac.success)  pacientes = rPac.data  || [];
     if (rSes.success)  sesiones  = rSes.data  || [];
     if (rAg.success)   agencias  = rAg.data   || [];
-    if (rProg.success) programas = rProg.data || [];
     if (rPlan.success) planData  = rPlan.data  || {};
     populateSelects();
     populateAgencias();
-    populateProgramas();
     showToast('✅ Datos cargados');
   } catch(e) {
     showToast('⚠️ Error: ' + e.message);
@@ -790,57 +768,6 @@ async function eliminarSesion() {
 }
 
 // ============================================================
-// PROGRAMAS
-// ============================================================
-function populateProgramas() {
-  const sel = document.getElementById('fp-programa');
-  if (!sel) return;
-  const current = sel.value;
-  sel.innerHTML = '<option value="">— Selecciona un programa —</option>';
-  programas.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p; opt.textContent = p;
-    if (p === current) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  const opt = document.createElement('option');
-  opt.value = '__gestionar_prog__'; opt.textContent = '⚙️ Gestionar programas...';
-  sel.appendChild(opt);
-  sel.onchange = function() {
-    if (this.value === '__gestionar_prog__') { this.value = current; abrirGestionProgramas(); }
-  };
-}
-function abrirGestionProgramas() { renderProgramasList(); openOv('ov-programas'); }
-function renderProgramasList() {
-  const el = document.getElementById('programas-list');
-  if (!programas.length) { el.innerHTML = '<div class="empty">No hay programas registrados</div>'; return; }
-  el.innerHTML = programas.map(p => `<div class="patient-row" style="padding:10px 14px">
-    <div class="p-info"><div class="p-name">${p}</div></div>
-    <button onclick="eliminarPrograma('${p}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">🗑️</button>
-  </div>`).join('');
-}
-async function agregarPrograma() {
-  const input = document.getElementById('nuevo-programa-input');
-  const nombre = input.value.trim();
-  if (!nombre) { showToast('⚠️ Escribe el nombre'); return; }
-  if (programas.includes(nombre)) { showToast('⚠️ Ya existe'); return; }
-  showToast('Guardando...');
-  try {
-    await apiPost({ action: 'agregarPrograma', nombre });
-    programas.push(nombre); input.value = '';
-    renderProgramasList(); populateProgramas(); showToast('✅ Programa agregado');
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
-}
-async function eliminarPrograma(nombre) {
-  showToast('Eliminando...');
-  try {
-    await apiPost({ action: 'eliminarPrograma', nombre });
-    programas = programas.filter(p => p !== nombre);
-    renderProgramasList(); populateProgramas(); showToast('✅ Programa eliminado');
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
-}
-
-// ============================================================
 // AGENCIAS
 // ============================================================
 function abrirGestionAgencias() { renderAgenciasList(); openOv('ov-agencias'); }
@@ -1043,7 +970,6 @@ function abrirDetallePaciente(id) {
       <div class="info-row"><span class="k">Lugar</span><span class="v">${p.LugarAtencion}</span></div>
       <div class="info-row"><span class="k">Duración</span><span class="v">${p.DuracionMin} min</span></div>
       <div class="info-row"><span class="k">Agencia</span><span class="v">${p.Agencia||'—'}</span></div>
-      <div class="info-row"><span class="k">Programa</span><span class="v">${p.Programa||'—'}</span></div>
       <div class="info-row"><span class="k">Precio/hora</span><span class="v">B/. ${parseFloat(p.Precio||0).toFixed(2)}</span></div>
     </div>
     <div class="card" style="margin-top:8px">
@@ -1059,7 +985,6 @@ function abrirNuevoPaciente() {
   document.getElementById('ov-form-pac-title').textContent='Nuevo paciente';
   ['fp-nombre','fp-dob','fp-lugar','fp-contacto','fp-tel','fp-total','fp-obs','fp-precio'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fp-agencia').value='';
-  document.getElementById('fp-programa').value='';
   document.getElementById('fp-delete-btn').style.display='none';
   selectDur(30); openOv('ov-form-pac');
 }
@@ -1074,7 +999,6 @@ function abrirFormPaciente() {
   document.getElementById('fp-total').value=p.TotalSesiones;
   document.getElementById('fp-obs').value=p.Observaciones||'';
   document.getElementById('fp-agencia').value=p.Agencia||'';
-  document.getElementById('fp-programa').value=p.Programa||'';
   document.getElementById('fp-precio').value=p.Precio||'';
   document.getElementById('fp-delete-btn').style.display='block';
   selectDur(parseInt(p.DuracionMin)||30); openOv('ov-form-pac');
@@ -1094,7 +1018,6 @@ async function guardarPaciente() {
     TotalSesiones:document.getElementById('fp-total').value,
     DuracionMin:selectedDur,Observaciones:document.getElementById('fp-obs').value,
     Agencia:document.getElementById('fp-agencia').value,
-    Programa:document.getElementById('fp-programa').value,
     Precio:document.getElementById('fp-precio').value};
   showToast('Guardando...');
   try {
@@ -1581,27 +1504,28 @@ ${htmlReporte}
 }
 
 // ============================================================
-// PLANIFICACIÓN SEMANAL
+// PLANIFICACIÓN SEMANAL — SHEETS
 // ============================================================
-const DIAS_PLAN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_PLAN=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
 function renderPlan() {
-  const diasHTML=DIAS_PLAN.map(dia=>{
-    const entradas=planData[dia]||[];
+  const activos=pacientes.filter(p=>p.Estado!=='inactivo');
+  const diasHTML=DIAS_PLAN.map((dia,idx)=>{
+    const entradas=planData[idx]||[];
     const entradasHTML=entradas.length?entradas.map((e,ei)=>`
       <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--lav-light)">
         <div class="s-dot" style="background:${colorFor(e.pacId)};flex-shrink:0"></div>
         <div style="flex:1">
           <div style="font-size:12px;font-weight:500;color:var(--text)">${e.nombre}</div>
-          <div style="font-size:11px;color:var(--sub)">${e.hora||'Sin hora'}</div>
+          <div style="font-size:11px;color:var(--sub)">${e.hora||'Sin hora'} · ${e.lugar||''}</div>
         </div>
-        <button onclick="eliminarEntradaPlan('${dia}',${ei})"
+        <button onclick="eliminarEntradaPlan(${idx},${ei})"
           style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:11px">✕</button>
       </div>`).join(''):`<div style="font-size:11px;color:var(--lav-pale);padding:6px 0">Sin atenciones planificadas</div>`;
     return `<div class="card" style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="font-size:13px;font-weight:500;color:var(--text)">${dia}</div>
-        <button onclick="abrirAddPlan('${dia}')"
+        <button onclick="abrirAddPlan(${idx})"
           style="background:var(--lav);color:white;border:none;border-radius:12px;padding:4px 10px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px">
           <i class="fas fa-plus"></i> Agregar
         </button>
@@ -1611,15 +1535,14 @@ function renderPlan() {
   document.getElementById('plan-dias').innerHTML=diasHTML;
 }
 
-function abrirAddPlan(dia) {
-  const activos=pacientes.filter(p=>p.Estado!=='inactivo')
-    .sort((a,b)=>a.Nombre.localeCompare(b.Nombre,'es'));
+function abrirAddPlan(diaIdx) {
+  const activos=pacientes.filter(p=>p.Estado!=='inactivo');
   const pacOpts=activos.map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
-  ov.innerHTML=`<div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px">
+  ov.innerHTML=`<div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px;animation:slideUp .2s ease">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
-    <div style="font-size:15px;color:var(--text);margin-bottom:14px">Agregar a ${dia}</div>
+    <div style="font-size:15px;color:var(--text);margin-bottom:14px">Agregar a ${DIAS_PLAN[diaIdx]}</div>
     <div class="field-lbl">Niño</div>
     <select id="plan-pac-sel" style="width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;color:var(--text);margin-bottom:10px">
       <option value="">— Selecciona —</option>${pacOpts}
@@ -1627,7 +1550,7 @@ function abrirAddPlan(dia) {
     <div class="field-lbl">Hora</div>
     <input type="time" id="plan-hora-inp" value="08:00"
       style="width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;margin-bottom:16px">
-    <button onclick="confirmarAddPlan('${dia}',this.closest('[style*=fixed]'))"
+    <button onclick="confirmarAddPlan(${diaIdx},this.closest('[style*=fixed]'))"
       style="width:100%;padding:12px;background:var(--lav);color:white;border:none;border-radius:12px;font-family:Georgia,serif;font-size:14px;cursor:pointer">Agregar</button>
     <button onclick="this.closest('[style*=fixed]').remove()"
       style="width:100%;padding:10px;background:none;border:none;color:var(--sub);font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:6px">Cancelar</button>
@@ -1635,22 +1558,22 @@ function abrirAddPlan(dia) {
   document.getElementById('app').appendChild(ov);
 }
 
-function confirmarAddPlan(dia,overlay) {
+function confirmarAddPlan(diaIdx,overlay) {
   const sel=document.getElementById('plan-pac-sel');
   const hora=document.getElementById('plan-hora-inp').value;
   if(!sel.value){showToast('⚠️ Selecciona un niño');return;}
   const pac=pacientes.find(p=>p.ID===sel.value); if(!pac) return;
-  if(!planData[dia]) planData[dia]=[];
-  planData[dia].push({pacId:pac.ID,nombre:pac.Nombre,hora,lugar:pac.LugarAtencion});
-  planData[dia].sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+  if(!planData[diaIdx]) planData[diaIdx]=[];
+  planData[diaIdx].push({pacId:pac.ID,nombre:pac.Nombre,hora,lugar:pac.LugarAtencion});
+  planData[diaIdx].sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
   overlay.remove();
   renderPlan();
-  showToast('✅ Agregado a '+dia);
+  showToast('✅ Agregado a '+DIAS_PLAN[diaIdx]);
 }
 
-function eliminarEntradaPlan(dia,entradaIdx) {
-  if(planData[dia]){
-    planData[dia].splice(entradaIdx,1);
+function eliminarEntradaPlan(diaIdx,entradaIdx) {
+  if(planData[diaIdx]){
+    planData[diaIdx].splice(entradaIdx,1);
     renderPlan();
   }
 }
@@ -1658,14 +1581,13 @@ function eliminarEntradaPlan(dia,entradaIdx) {
 async function guardarPlan() {
   showToast('Guardando planificación...');
   try {
-    const r=await apiPost({action:'guardarPlanificacion',nombre:JSON.stringify(planData)});
-    if(r&&r.success) showToast('✅ Planificación guardada');
-    else showToast('⚠️ Error: '+(r&&r.error||'sin respuesta'));
+    const encoded=encodeURIComponent(JSON.stringify(planData));
+    await apiGet({action:'guardarPlanificacion',data:encoded});
+    showToast('✅ Planificación guardada en la nube');
   } catch(e){showToast('⚠️ Error: '+e.message);}
 }
 
 function limpiarPlan() {
-  if(!confirm('¿Limpiar toda la planificación?')) return;
   planData={};
   renderPlan();
   guardarPlan();
@@ -1682,21 +1604,18 @@ function closeOv(id){document.getElementById(id).classList.remove('show');}
 // ============================================================
 async function recargarDatos() {
   try {
-    const [rPac,rSes,rAg,rProg,rPlan]=await Promise.all([
+    const [rPac,rSes,rAg,rPlan]=await Promise.all([
       apiGet({action:'getPacientes'}),
       apiGet({action:'getSesiones'}),
       apiGet({action:'getAgencias'}),
-      apiGet({action:'getProgramas'}),
       apiGet({action:'getPlanificacion'})
     ]);
     if(rPac.success) pacientes=rPac.data||[];
     if(rSes.success) sesiones=rSes.data||[];
     if(rAg.success)  agencias=rAg.data||[];
-    if(rProg.success) programas=rProg.data||[];
     if(rPlan.success) planData=rPlan.data||{};
     populateSelects();
     populateAgencias();
-    populateProgramas();
     updateHeader(currentScreen);
     if(currentScreen==='hoy') renderHoy();
     else if(currentScreen==='mes') renderMes();
