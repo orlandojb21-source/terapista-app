@@ -18,10 +18,13 @@
   --pink:#D4537E;--amber:#BA7517;--amber-light:#FAEEDA;--red-light:#FAECE7;
   --red:#993C1D;--app-bg:#f8f6ff;--white:#ffffff;--border:#AFA9EC;
   --text:#3C3489;--sub:#7F77DD;--radius:14px;--radius-sm:10px;
+  --sidebar-w:220px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;font-family:Georgia,serif;background:var(--app-bg)}
-body{display:flex;justify-content:center;align-items:center}
+html,body{height:100%;font-family:Georgia,serif;background:var(--app-bg)}
+
+/* ── MOBILE LAYOUT ── */
+body{display:flex;justify-content:center;align-items:center;overflow:hidden}
 #app{width:100%;max-width:430px;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--app-bg)}
 .app-header{background:var(--lav-bg);padding:44px 18px 10px;flex-shrink:0}
 .screen{display:none;flex:1;overflow-y:auto;padding:12px 14px 80px}
@@ -33,6 +36,65 @@ body{display:flex;justify-content:center;align-items:center}
 .nav-item.active i{color:var(--lav)}
 .nav-item span{font-size:9px;color:var(--lav-pale);font-weight:500}
 .nav-item.active span{color:var(--lav)}
+.desktop-sidebar{display:none}
+
+/* ── DESKTOP LAYOUT ── */
+@media(min-width:768px){
+  body{overflow:auto;align-items:flex-start}
+  #app{max-width:100%;height:100vh;flex-direction:row;overflow:hidden}
+
+  /* Sidebar */
+  .desktop-sidebar{
+    display:flex;flex-direction:column;
+    width:var(--sidebar-w);min-width:var(--sidebar-w);
+    height:100vh;background:white;
+    border-right:0.5px solid var(--border);
+    flex-shrink:0;overflow:hidden;
+  }
+  .sidebar-logo{
+    background:var(--lav-bg);padding:28px 20px 20px;
+    border-bottom:0.5px solid var(--border);flex-shrink:0;
+  }
+  .sidebar-logo h2{font-size:14px;color:var(--text);font-weight:500;margin-bottom:2px}
+  .sidebar-logo p{font-size:11px;color:var(--sub)}
+  .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+  .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;border:none;background:none;width:100%;text-align:left}
+  .sidebar-item i{font-size:16px;color:var(--lav-pale);width:20px;text-align:center;flex-shrink:0}
+  .sidebar-item span{font-size:13px;color:var(--sub);font-weight:500}
+  .sidebar-item.active{background:var(--lav-light)}
+  .sidebar-item.active i{color:var(--lav)}
+  .sidebar-item.active span{color:var(--lav)}
+  .sidebar-item:hover:not(.active){background:var(--app-bg)}
+  .sidebar-footer{padding:14px 10px;border-top:0.5px solid var(--border);flex-shrink:0}
+  .sidebar-user{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--lav-light)}
+  .sidebar-user .avatar-xs{width:30px;height:30px;border-radius:50%;background:var(--lav);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;flex-shrink:0}
+  .sidebar-user .u-name{font-size:12px;color:var(--text);font-weight:500}
+  .sidebar-user .u-role{font-size:10px;color:var(--sub)}
+
+  /* Main area */
+  .desktop-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+  .app-header{padding:20px 28px 16px;flex-shrink:0}
+  .screens-wrap{flex:1;overflow-y:auto;padding:20px 28px 40px}
+  .screen{padding:0}
+  .screen.active{display:block}
+
+  /* Hide mobile nav */
+  .bottom-nav{display:none}
+
+  /* Wider cards on desktop */
+  .card-grid{grid-template-columns:repeat(4,1fr)}
+  .two-col{grid-template-columns:1fr 1fr}
+  .type-grid{grid-template-columns:1fr 1fr 1fr}
+  .stats-3{grid-template-columns:1fr 1fr 1fr}
+
+  /* Overlay adapts to desktop */
+  .overlay{position:fixed;inset:0;z-index:200}
+  .overlay.show{display:flex}
+  .overlay-header{padding:24px 24px 16px}
+  .overlay-body{padding:20px 24px 40px}
+}
+
+/* ── SHARED STYLES ── */
 .card{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:12px 14px;margin-bottom:8px}
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .stat-card{background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:10px 12px;text-align:center}
@@ -143,6 +205,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 .stats-3 .l{font-size:10px;color:var(--sub)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--lav-deep);color:white;padding:10px 20px;border-radius:20px;font-size:12px;white-space:nowrap;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none}
 .toast.show{opacity:1}
+@media(min-width:768px){.toast{bottom:30px}}
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:12px}
 .spinner{width:32px;height:32px;border:3px solid var(--lav-light);border-top-color:var(--lav);border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -171,159 +234,191 @@ textarea{resize:none;height:75px;line-height:1.5}
 </head>
 <body>
 <div id="app">
-  <div class="app-header" id="main-header"></div>
 
-  <!-- HOY -->
-  <div class="screen active" id="screen-hoy"></div>
-
-  <!-- REGISTRO -->
-  <div class="screen" id="screen-registro">
-    <div class="steps" id="reg-steps">
-      <div class="step-dot active" id="rdot1"></div>
-      <div class="step-dot" id="rdot2"></div>
-      <div class="step-dot" id="rdot3"></div>
+  <!-- SIDEBAR DESKTOP -->
+  <aside class="desktop-sidebar">
+    <div class="sidebar-logo">
+      <h2>Appointment Scheduling</h2>
+      <p>Speech Therapist</p>
     </div>
-    <div id="reg-step1">
-      <div class="field-lbl">Paciente(s)</div>
-      <select id="reg-paciente" onchange="onRegPaciente()">
-        <option value="">— Elige un niño —</option>
-      </select>
-      <div class="pac-chips" id="reg-pac-chips"></div>
-      <div class="p-preview" id="reg-preview">
-        <div class="p-preview-name" id="rp-name"></div>
-        <div class="info-row"><span class="k">Lugar</span><span class="v" id="rp-lugar"></span></div>
-        <div class="info-row"><span class="k">Duración</span><span class="v" id="rp-dur"></span></div>
-        <div class="info-row"><span class="k">Sesiones restantes</span><span class="v" id="rp-sessions"></span></div>
-        <div style="margin-top:8px"><div class="bar-bg"><div class="bar-fill" id="rp-bar"></div></div></div>
+    <div class="sidebar-nav">
+      <button class="sidebar-item" onclick="navTo('registro')"><i class="fas fa-clipboard-list"></i><span>Registro</span></button>
+      <button class="sidebar-item active" onclick="navTo('hoy')"><i class="fas fa-calendar-day"></i><span>Hoy</span></button>
+      <button class="sidebar-item" onclick="navTo('plan')"><i class="fas fa-tasks"></i><span>Semana</span></button>
+      <button class="sidebar-item" onclick="navTo('mes')"><i class="fas fa-calendar-alt"></i><span>Mes</span></button>
+      <button class="sidebar-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Niños</span></button>
+      <button class="sidebar-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
+      <button class="sidebar-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar-xs">SS</div>
+        <div><div class="u-name">Stacy Saavedra</div><div class="u-role">Speech Therapist</div></div>
       </div>
-      <div class="field-lbl" id="type-lbl" style="display:none;margin-top:14px">Tipo de sesión</div>
-      <div class="type-grid" id="type-grid" style="display:none">
-        <div class="type-opt sel-normal" id="topt-normal" onclick="selectTipo('normal')">
-          <div class="t-icon">📋</div><div class="t-lbl">Normal</div><div class="t-sub">Sesión regular</div>
+    </div>
+  </aside>
+
+  <!-- MAIN DESKTOP WRAPPER -->
+  <div class="desktop-main">
+
+    <div class="app-header" id="main-header"></div>
+
+    <div class="screens-wrap">
+
+      <!-- HOY -->
+      <div class="screen active" id="screen-hoy"></div>
+
+      <!-- REGISTRO -->
+      <div class="screen" id="screen-registro">
+        <div class="steps" id="reg-steps">
+          <div class="step-dot active" id="rdot1"></div>
+          <div class="step-dot" id="rdot2"></div>
+          <div class="step-dot" id="rdot3"></div>
         </div>
-        <div class="type-opt" id="topt-recovery" onclick="selectTipo('recovery')">
-          <div class="t-icon">🔄</div><div class="t-lbl">Recuperación</div><div class="t-sub">Sesión cancelada anterior</div>
+        <div id="reg-step1">
+          <div class="field-lbl">Paciente(s)</div>
+          <select id="reg-paciente" onchange="onRegPaciente()">
+            <option value="">— Elige un niño —</option>
+          </select>
+          <div class="pac-chips" id="reg-pac-chips"></div>
+          <div class="p-preview" id="reg-preview">
+            <div class="p-preview-name" id="rp-name"></div>
+            <div class="info-row"><span class="k">Lugar</span><span class="v" id="rp-lugar"></span></div>
+            <div class="info-row"><span class="k">Duración</span><span class="v" id="rp-dur"></span></div>
+            <div class="info-row"><span class="k">Sesiones restantes</span><span class="v" id="rp-sessions"></span></div>
+            <div style="margin-top:8px"><div class="bar-bg"><div class="bar-fill" id="rp-bar"></div></div></div>
+          </div>
+          <div class="field-lbl" id="type-lbl" style="display:none;margin-top:14px">Tipo de sesión</div>
+          <div class="type-grid" id="type-grid" style="display:none">
+            <div class="type-opt sel-normal" id="topt-normal" onclick="selectTipo('normal')">
+              <div class="t-icon">📋</div><div class="t-lbl">Normal</div><div class="t-sub">Sesión regular</div>
+            </div>
+            <div class="type-opt" id="topt-recovery" onclick="selectTipo('recovery')">
+              <div class="t-icon">🔄</div><div class="t-lbl">Recuperación</div><div class="t-sub">Sesión cancelada anterior</div>
+            </div>
+            <div class="type-opt" id="topt-cancel" onclick="selectTipo('cancel')" style="grid-column:span 2">
+              <div class="t-icon">❌</div><div class="t-lbl">Cancelada</div><div class="t-sub">El niño no asistió</div>
+            </div>
+          </div>
+          <div id="recovery-note" style="display:none;background:var(--mint-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:#0F6E56">
+            🔄 Esta sesión se contará como recuperación de una cancelada anterior.
+          </div>
+          <div id="cancel-note" style="display:none;background:var(--red-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--red)">
+            ❌ Esta sesión se registrará como cancelada — no contará como atención realizada.
+          </div>
+          <button class="btn-primary" onclick="regGoStep(2)">Continuar →</button>
         </div>
-        <div class="type-opt" id="topt-cancel" onclick="selectTipo('cancel')" style="grid-column:span 2">
-          <div class="t-icon">❌</div><div class="t-lbl">Cancelada</div><div class="t-sub">El niño no asistió</div>
+        <div id="reg-step2" style="display:none">
+          <div class="field-lbl">Fecha</div>
+          <input type="date" id="reg-fecha" />
+          <div class="field-lbl">Horario</div>
+          <div class="two-col">
+            <div>
+              <div style="font-size:11px;color:var(--sub);margin-bottom:4px">Inicio</div>
+              <input type="time" id="reg-inicio" value="08:00" oninput="autoFin()" />
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--sub);margin-bottom:4px">Fin</div>
+              <input type="time" id="reg-fin" value="08:30" />
+            </div>
+          </div>
+          <div class="field-lbl">Lugar de atención</div>
+          <div class="readonly-field" id="reg-lugar-show"></div>
+          <div style="font-size:11px;color:var(--sub);margin-top:4px">Autocompletado desde el perfil del paciente</div>
+          <button class="btn-primary" onclick="regGoStep(3)">Continuar →</button>
+          <button class="btn-secondary" onclick="regGoStep(1)">← Atrás</button>
+        </div>
+        <div id="reg-step3" style="display:none">
+          <div class="field-lbl">Notas de la sesión (opcional)</div>
+          <textarea id="reg-notas" placeholder="Describe brevemente lo que ocurrió..."></textarea>
+          <div class="summary-block">
+            <div class="lbl">Resumen</div>
+            <div class="info-row"><span class="k">Paciente(s)</span><span class="v" id="sum-pac">—</span></div>
+            <div class="info-row"><span class="k">Tipo</span><span class="v" id="sum-tipo">—</span></div>
+            <div class="info-row"><span class="k">Fecha</span><span class="v" id="sum-fecha">—</span></div>
+            <div class="info-row"><span class="k">Horario</span><span class="v" id="sum-hora">—</span></div>
+            <div class="info-row"><span class="k">Lugar</span><span class="v" id="sum-lugar">—</span></div>
+          </div>
+          <button class="btn-primary" onclick="guardarSesion()">💾 Guardar sesión</button>
+          <button class="btn-secondary" onclick="regGoStep(2)">← Atrás</button>
+        </div>
+        <div id="reg-success" style="display:none">
+          <div class="success-wrap">
+            <div class="success-icon"><i class="fas fa-check"></i></div>
+            <h2>Sesión registrada</h2>
+            <p id="reg-success-msg"></p>
+            <button class="btn-primary" style="margin-top:0" onclick="resetRegistro()">Registrar otra sesión</button>
+            <button class="btn-secondary" onclick="navTo('hoy')">Ver agenda de hoy</button>
+          </div>
         </div>
       </div>
-      <div id="recovery-note" style="display:none;background:var(--mint-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:#0F6E56">
-        🔄 Esta sesión se contará como recuperación de una cancelada anterior.
+
+      <!-- PLANIFICACION -->
+      <div class="screen" id="screen-plan">
+        <div class="section-lbl" style="margin-top:4px">Semana de trabajo</div>
+        <p style="font-size:11px;color:var(--sub);margin-bottom:12px">Borrador de organización — no registra sesiones reales</p>
+        <div id="plan-dias"></div>
+        <button class="btn-green" onclick="guardarPlan()" style="margin-top:8px">
+          <i class="fas fa-save"></i> Guardar planificación
+        </button>
+        <button class="btn-outline" onclick="limpiarPlan()">
+          <i class="fas fa-trash"></i> Limpiar semana
+        </button>
       </div>
-      <div id="cancel-note" style="display:none;background:var(--red-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--red)">
-        ❌ Esta sesión se registrará como cancelada — no contará como atención realizada.
-      </div>
-      <button class="btn-primary" onclick="regGoStep(2)">Continuar →</button>
-    </div>
-    <div id="reg-step2" style="display:none">
-      <div class="field-lbl">Fecha</div>
-      <input type="date" id="reg-fecha" />
-      <div class="field-lbl">Horario</div>
-      <div class="two-col">
-        <div>
-          <div style="font-size:11px;color:var(--sub);margin-bottom:4px">Inicio</div>
-          <input type="time" id="reg-inicio" value="08:00" oninput="autoFin()" />
+
+      <!-- MES -->
+      <div class="screen" id="screen-mes"></div>
+
+      <!-- NINOS -->
+      <div class="screen" id="screen-ninos">
+        <div class="search-wrap">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar por nombre..." oninput="filtrarNinos(this.value)" />
+          </div>
         </div>
-        <div>
-          <div style="font-size:11px;color:var(--sub);margin-bottom:4px">Fin</div>
-          <input type="time" id="reg-fin" value="08:30" />
+        <div class="filter-row">
+          <div class="filter-chip active" onclick="setFiltroNinos('todos',this)">Todos</div>
+          <div class="filter-chip" onclick="setFiltroNinos('ok',this)">✅ Al día</div>
+          <div class="filter-chip" onclick="setFiltroNinos('warn',this)">⚠️ Pocas sesiones</div>
+          <div class="filter-chip" onclick="setFiltroNinos('cancel',this)">❌ Con cancelación</div>
+        </div>
+        <div id="ninos-list"></div>
+      </div>
+
+      <!-- PACIENTES BD -->
+      <div class="screen" id="screen-pacientes">
+        <div class="search-wrap">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar paciente..." oninput="filtrarPacientes(this.value)" />
+          </div>
+        </div>
+        <div id="pacientes-list"></div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="screen" id="screen-reportes">
+        <div class="tabs">
+          <div class="tab active" onclick="setTabReporte('semanal',this)">📅 Semanal</div>
+          <div class="tab" onclick="setTabReporte('mensual',this)">🗓️ Mensual</div>
+          <div class="tab" onclick="setTabReporte('paciente',this)">👧 Paciente</div>
+          <div class="tab" onclick="setTabReporte('ingresos',this)">💰 Ingresos</div>
+        </div>
+        <div id="reporte-semanal"></div>
+        <div id="reporte-mensual" style="display:none"></div>
+        <div id="reporte-ingresos" style="display:none"></div>
+        <div id="reporte-paciente" style="display:none">
+          <div class="field-lbl">Selecciona un paciente</div>
+          <select id="rep-paciente" onchange="renderReportePaciente()">
+            <option value="">— Elige un niño —</option>
+          </select>
+          <div id="rep-paciente-body"></div>
         </div>
       </div>
-      <div class="field-lbl">Lugar de atención</div>
-      <div class="readonly-field" id="reg-lugar-show"></div>
-      <div style="font-size:11px;color:var(--sub);margin-top:4px">Autocompletado desde el perfil del paciente</div>
-      <button class="btn-primary" onclick="regGoStep(3)">Continuar →</button>
-      <button class="btn-secondary" onclick="regGoStep(1)">← Atrás</button>
-    </div>
-    <div id="reg-step3" style="display:none">
-      <div class="field-lbl">Notas de la sesión (opcional)</div>
-      <textarea id="reg-notas" placeholder="Describe brevemente lo que ocurrió..."></textarea>
-      <div class="summary-block">
-        <div class="lbl">Resumen</div>
-        <div class="info-row"><span class="k">Paciente(s)</span><span class="v" id="sum-pac">—</span></div>
-        <div class="info-row"><span class="k">Tipo</span><span class="v" id="sum-tipo">—</span></div>
-        <div class="info-row"><span class="k">Fecha</span><span class="v" id="sum-fecha">—</span></div>
-        <div class="info-row"><span class="k">Horario</span><span class="v" id="sum-hora">—</span></div>
-        <div class="info-row"><span class="k">Lugar</span><span class="v" id="sum-lugar">—</span></div>
-      </div>
-      <button class="btn-primary" onclick="guardarSesion()">💾 Guardar sesión</button>
-      <button class="btn-secondary" onclick="regGoStep(2)">← Atrás</button>
-    </div>
-    <div id="reg-success" style="display:none">
-      <div class="success-wrap">
-        <div class="success-icon"><i class="fas fa-check"></i></div>
-        <h2>Sesión registrada</h2>
-        <p id="reg-success-msg"></p>
-        <button class="btn-primary" style="margin-top:0" onclick="resetRegistro()">Registrar otra sesión</button>
-        <button class="btn-secondary" onclick="navTo('hoy')">Ver agenda de hoy</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- PLANIFICACION -->
-  <div class="screen" id="screen-plan">
-    <div class="section-lbl" style="margin-top:4px">Semana de trabajo</div>
-    <p style="font-size:11px;color:var(--sub);margin-bottom:12px">Borrador de organización — no registra sesiones reales</p>
-    <div id="plan-dias"></div>
-    <button class="btn-green" onclick="guardarPlan()" style="margin-top:8px">
-      <i class="fas fa-save"></i> Guardar planificación
-    </button>
-    <button class="btn-outline" onclick="limpiarPlan()">
-      <i class="fas fa-trash"></i> Limpiar semana
-    </button>
-  </div>
-
-  <!-- MES -->
-  <div class="screen" id="screen-mes"></div>
-
-  <!-- NINOS -->
-  <div class="screen" id="screen-ninos">
-    <div class="search-wrap">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" placeholder="Buscar por nombre..." oninput="filtrarNinos(this.value)" />
-      </div>
-    </div>
-    <div class="filter-row">
-      <div class="filter-chip active" onclick="setFiltroNinos('todos',this)">Todos</div>
-      <div class="filter-chip" onclick="setFiltroNinos('ok',this)">✅ Al día</div>
-      <div class="filter-chip" onclick="setFiltroNinos('warn',this)">⚠️ Pocas sesiones</div>
-      <div class="filter-chip" onclick="setFiltroNinos('cancel',this)">❌ Con cancelación</div>
-    </div>
-    <div id="ninos-list"></div>
-  </div>
-
-  <!-- PACIENTES BD -->
-  <div class="screen" id="screen-pacientes">
-    <div class="search-wrap">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" placeholder="Buscar paciente..." oninput="filtrarPacientes(this.value)" />
-      </div>
-    </div>
-    <div id="pacientes-list"></div>
-  </div>
-
-  <!-- REPORTES -->
-  <div class="screen" id="screen-reportes">
-    <div class="tabs">
-      <div class="tab active" onclick="setTabReporte('semanal',this)">📅 Semanal</div>
-      <div class="tab" onclick="setTabReporte('mensual',this)">🗓️ Mensual</div>
-      <div class="tab" onclick="setTabReporte('paciente',this)">👧 Paciente</div>
-      <div class="tab" onclick="setTabReporte('ingresos',this)">💰 Ingresos</div>
-    </div>
-    <div id="reporte-semanal"></div>
-    <div id="reporte-mensual" style="display:none"></div>
-    <div id="reporte-ingresos" style="display:none"></div>
-    <div id="reporte-paciente" style="display:none">
-      <div class="field-lbl">Selecciona un paciente</div>
-      <select id="rep-paciente" onchange="renderReportePaciente()">
-        <option value="">— Elige un niño —</option>
-      </select>
-      <div id="rep-paciente-body"></div>
-    </div>
-  </div>
+    </div><!-- /screens-wrap -->
+  </div><!-- /desktop-main -->
 
   <!-- OVERLAYS -->
   <div class="overlay" id="ov-nino">
@@ -447,7 +542,7 @@ textarea{resize:none;height:75px;line-height:1.5}
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
+  <!-- BOTTOM NAV (mobile only) -->
   <nav class="bottom-nav">
     <button class="nav-item" onclick="navTo('registro')"><i class="fas fa-clipboard-list"></i><span>Registro</span></button>
     <button class="nav-item active" onclick="navTo('hoy')"><i class="fas fa-calendar-day"></i><span>Hoy</span></button>
@@ -462,7 +557,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 
 <script>
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbzXC_k0OCX-UJpvP_T8VeQMLrkMzu8HYMSiBebo6trXfpbtzDQGG-Xuc9EpyWogGhMBVg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxcYsb9OomoLerpvlhfsBiKAUN5xj9STO1iWrxl9pI2LCuaPp61R-RokOZ1YbK82LCGwA/exec";
 
 let pacientes = [], sesiones = [], agencias = [], planData = {}, tiposConfig = [];
 let currentScreen = 'hoy';
@@ -650,7 +745,6 @@ function populateProgramas() {
 }
 
 function abrirGestionProgramas() { renderProgramasList(); openOv('ov-programas'); }
-
 function renderProgramasList() {
   const el = document.getElementById('programas-list');
   if (!tiposConfig.length) { el.innerHTML = '<div class="empty">No hay programas registrados</div>'; return; }
@@ -659,7 +753,6 @@ function renderProgramasList() {
     <button onclick="eliminarPrograma('${t}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">🗑️</button>
   </div>`).join('');
 }
-
 async function agregarPrograma() {
   const input = document.getElementById('nuevo-programa-input');
   const nombre = input.value.trim();
@@ -672,7 +765,6 @@ async function agregarPrograma() {
     renderProgramasList(); populateProgramas(); showToast('✅ Programa agregado');
   } catch(e) { showToast('⚠️ Error: ' + e.message); }
 }
-
 async function eliminarPrograma(nombre) {
   showToast('Eliminando...');
   try {
@@ -688,15 +780,18 @@ const NAV_ORDER = ['registro','hoy','plan','mes','ninos','pacientes','reportes']
 function navTo(screen) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(SCREENS[screen]).classList.add('active');
+  // Mobile nav
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',NAV_ORDER[i]===screen));
+  // Desktop sidebar
+  document.querySelectorAll('.sidebar-item').forEach((b,i)=>b.classList.toggle('active',NAV_ORDER[i]===screen));
   currentScreen = screen;
   updateHeader(screen);
-  if (screen==='hoy')       renderHoy();
-  else if (screen==='plan') renderPlan();
-  else if (screen==='mes')  renderMes();
-  else if (screen==='ninos') renderNinos();
+  if (screen==='hoy')            renderHoy();
+  else if (screen==='plan')      renderPlan();
+  else if (screen==='mes')       renderMes();
+  else if (screen==='ninos')     renderNinos();
   else if (screen==='pacientes') renderPacientes();
-  else if (screen==='reportes') renderReportes();
+  else if (screen==='reportes')  renderReportes();
   recargarDatos();
 }
 
@@ -912,7 +1007,9 @@ function renderNinos() {
   document.getElementById('ninos-list').innerHTML=list.map(p=>{
     const rem=sesionesRestantes(p);
     return `<div class="patient-row" onclick="abrirDetalleNino('${p.ID}')">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-child" style="color:var(--lav);font-size:16px"></i></div>
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-child" style="color:var(--lav);font-size:16px"></i>
+      </div>
       <div class="p-info">
         <div class="p-name">${p.Nombre}</div>
         <div class="p-sub">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
@@ -936,7 +1033,9 @@ function abrirDetalleNino(id) {
   const sesPac=sesiones.filter(s=>s.PacienteID===id).sort((a,b)=>b.Fecha.localeCompare(a.Fecha)).slice(0,8);
   document.getElementById('ov-nino-title').textContent=p.Nombre;
   document.getElementById('ov-nino-body').innerHTML=`
-    <div class="avatar avatar-lg" style="background:${colorFor(p.ID)}">${initials(p.Nombre)}</div>
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+      <i class="fas fa-child" style="color:var(--lav);font-size:24px"></i>
+    </div>
     <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${p.Nombre}</div>
     <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
     <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:10px">
@@ -951,10 +1050,8 @@ function abrirDetalleNino(id) {
       <div class="info-row"><span class="k">Contacto</span><span class="v">${p.Contacto||'—'}</span></div>
       <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
       ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
-        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
-          📞 Llamar</a>
-        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
-          💬 WhatsApp</a>
+        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">📞 Llamar</a>
+        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">💬 WhatsApp</a>
       </div>`:''}
       <div class="info-row"><span class="k">Duración sesión</span><span class="v">${p.DuracionMin} min</span></div>
     </div>
@@ -976,7 +1073,9 @@ function renderPacientes() {
   document.getElementById('pacientes-list').innerHTML=list.map(p=>{
     const rem=sesionesRestantes(p);
     return `<div class="patient-row" onclick="abrirDetallePaciente('${p.ID}')">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-child" style="color:var(--lav);font-size:16px"></i></div>
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-child" style="color:var(--lav);font-size:16px"></i>
+      </div>
       <div class="p-info">
         <div class="p-name">${p.Nombre}</div>
         <div class="p-sub">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
@@ -996,7 +1095,9 @@ function abrirDetallePaciente(id) {
   document.getElementById('ov-pac-title').textContent=p.Nombre;
   document.getElementById('ov-pac-edit-btn').style.display='block';
   document.getElementById('ov-pac-body').innerHTML=`
-    <div class="avatar avatar-lg" style="background:${colorFor(p.ID)}">${initials(p.Nombre)}</div>
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+      <i class="fas fa-child" style="color:var(--lav);font-size:24px"></i>
+    </div>
     <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${p.Nombre}</div>
     <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">${p.LugarAtencion}</div>
     <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:10px">
@@ -1021,10 +1122,8 @@ function abrirDetallePaciente(id) {
       <div class="info-row"><span class="k">Nombre</span><span class="v">${p.Contacto||'—'}</span></div>
       <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
       ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
-        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
-          📞 Llamar</a>
-        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
-          💬 WhatsApp</a>
+        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">📞 Llamar</a>
+        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">💬 WhatsApp</a>
       </div>`:''}
     </div>
     ${p.Observaciones?`<div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Observaciones</div><div style="font-size:13px;color:var(--text);line-height:1.5">${p.Observaciones}</div></div>`:''}`;
@@ -1106,8 +1205,7 @@ function onRegPaciente() {
   if(regPacientes.includes(id)){showToast('⚠️ Ya está en la lista');document.getElementById('reg-paciente').value='';return;}
   regPacientes.push(id);
   document.getElementById('reg-paciente').value='';
-  renderPacChips();
-  actualizarPreview();
+  renderPacChips(); actualizarPreview();
   document.getElementById('type-lbl').style.display='block';
   document.getElementById('type-grid').style.display='grid';
   selectTipo('normal');
@@ -1117,9 +1215,7 @@ function renderPacChips() {
   if(!regPacientes.length){el.innerHTML='';return;}
   el.innerHTML=regPacientes.map(id=>{
     const p=pacientes.find(x=>x.ID===id);
-    return `<div class="pac-chip" onclick="quitarPacChip('${id}')">
-      <span>${p?p.Nombre:'?'}</span><span class="x">×</span>
-    </div>`;
+    return `<div class="pac-chip" onclick="quitarPacChip('${id}')"><span>${p?p.Nombre:'?'}</span><span class="x">×</span></div>`;
   }).join('');
 }
 function quitarPacChip(id) {
