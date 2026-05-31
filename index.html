@@ -1556,7 +1556,7 @@ function renderPlan() {
 
 function abrirAddPlan(diaIdx) {
   const activos=pacientes.filter(p=>p.Estado!=='inactivo');
-  const pacOpts=activos.map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
+  const pacOpts=[...activos].sort((a,b)=>(a.Nombre||'').localeCompare(b.Nombre||'')).map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
   ov.innerHTML=`<div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px">
