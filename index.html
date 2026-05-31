@@ -976,7 +976,7 @@ function renderPacientes() {
   document.getElementById('pacientes-list').innerHTML=list.map(p=>{
     const rem=sesionesRestantes(p);
     return `<div class="patient-row" onclick="abrirDetallePaciente('${p.ID}')">
-      <div class="avatar avatar-sm" style="background:${colorFor(p.ID)}">${initials(p.Nombre)}</div>
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-child" style="color:var(--lav);font-size:16px"></i></div>
       <div class="p-info">
         <div class="p-name">${p.Nombre}</div>
         <div class="p-sub">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
