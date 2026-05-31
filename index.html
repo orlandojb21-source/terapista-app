@@ -462,7 +462,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 
 <script>
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbzXC_k0OCX-UJpvP_T8VeQMLrkMzu8HYMSiBebo6trXfpbtzDQGG-Xuc9EpyWogGhMBVg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxcYsb9OomoLerpvlhfsBiKAUN5xj9STO1iWrxl9pI2LCuaPp61R-RokOZ1YbK82LCGwA/exec";
 
 let pacientes = [], sesiones = [], agencias = [], planData = {}, tiposConfig = [];
 let currentScreen = 'hoy';
@@ -832,4 +832,817 @@ async function agregarAgencia() {
   if(agencias.includes(nombre)){showToast('⚠️ Ya existe');return;}
   showToast('Guardando...');
   try {
-    await apiPost({action:'agregarAgenc
+    await apiPost({action:'agregarAgencia',nombre});
+    agencias.push(nombre); input.value='';
+    renderAgenciasList(); populateAgencias(); showToast('✅ Agencia agregada');
+  } catch(e) { showToast('⚠️ Error: '+e.message); }
+}
+async function eliminarAgencia(nombre) {
+  showToast('Eliminando...');
+  try {
+    await apiPost({action:'eliminarAgencia',nombre});
+    agencias=agencias.filter(a=>a!==nombre);
+    renderAgenciasList(); populateAgencias(); showToast('✅ Agencia eliminada');
+  } catch(e) { showToast('⚠️ Error: '+e.message); }
+}
+async function recargarManual() { showToast('🔄 Recargando...'); await recargarDatos(); showToast('✅ Actualizado'); }
+
+function changeCalMonth(dir) {
+  calMonth+=dir;
+  if(calMonth<0){calMonth=11;calYear--;}
+  if(calMonth>11){calMonth=0;calYear++;}
+  document.getElementById('cal-month-lbl').textContent=`${MESES[calMonth]} ${calYear}`;
+  renderMes();
+}
+function renderMes() {
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const todayD=new Date();
+  const isThisMonth=todayD.getFullYear()===calYear&&todayD.getMonth()===calMonth;
+  let calHTML=`<div class="weekdays"><span>D</span><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span></div><div class="cal-grid">`;
+  for(let i=0;i<firstDay;i++) calHTML+=`<div class="cal-day"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const daySes=sesionesDelDia(dateStr);
+    const isToday=isThisMonth&&d===todayD.getDate();
+    const isSel=selDay===dateStr;
+    const hasCan=daySes.some(s=>s.Tipo==='Cancelada')&&!daySes.some(s=>s.Tipo!=='Cancelada');
+    let cls='cal-day';
+    if(isToday) cls+=' today'; else if(isSel) cls+=' selected'; else if(hasCan) cls+=' has-cancel';
+    const dots=daySes.slice(0,3).map(s=>`<div class="cal-dot" style="background:${isToday?'rgba(255,255,255,0.7)':dotColor(s.Tipo)}"></div>`).join('');
+    calHTML+=`<div class="${cls}" onclick="selectCalDay('${dateStr}')"><span class="dn">${d}</span><div class="cal-dots">${dots}</div></div>`;
+  }
+  calHTML+=`</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 8px;font-size:10px;color:var(--sub)">
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lav);margin-right:3px"></span>Hoy</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:3px"></span>Sesiones</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red-light);border:1px solid #E8A598;margin-right:3px"></span>Solo cancelaciones</span>
+  </div>`;
+  if(selDay){
+    const daySes=sesionesDelDia(selDay);
+    const[y,m,d]=selDay.split('-');
+    const diasSem=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const wday=diasSem[new Date(selDay).getDay()];
+    const sesHTML=daySes.length?daySes.map(s=>{
+      const pac=pacientes.find(p=>p.ID===s.PacienteID)||{};
+      return `<div class="session-item">
+        <span class="s-time">${s.HoraInicio}</span>
+        <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
+        <div class="s-info"><div class="s-name">${pac.Nombre||'—'}${s.Tipo==='Recuperacion'?' 🔄':''}</div><div class="s-sub">${s.Lugar}</div></div>
+        ${chipHTML(s.Tipo)}</div>`;
+    }).join(''):'<div class="empty" style="padding:14px">Sin sesiones</div>';
+    calHTML+=`<div class="card"><div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px">${wday} ${d}/${m}</div>${sesHTML}</div>`;
+  }
+  document.getElementById('screen-mes').innerHTML=calHTML;
+}
+function selectCalDay(dateStr){selDay=selDay===dateStr?null:dateStr;renderMes();}
+
+function renderNinos() {
+  const list=pacientes.filter(p=>{
+    if(p.Estado==='inactivo') return false;
+    const matchSearch=p.Nombre.toLowerCase().includes(searchNinos.toLowerCase());
+    const s=getStatus(p);
+    const hasCan=hasCancelaciones(p.ID);
+    const matchFilter=filtroNinos==='todos'||
+      (filtroNinos==='ok'&&s==='ok')||
+      (filtroNinos==='warn'&&(s==='warn'||s==='alert'))||
+      (filtroNinos==='cancel'&&hasCan);
+    return matchSearch&&matchFilter;
+  });
+  if(!list.length){document.getElementById('ninos-list').innerHTML='<div class="empty">No se encontraron niños</div>';return;}
+  document.getElementById('ninos-list').innerHTML=list.map(p=>{
+    const rem=sesionesRestantes(p);
+    return `<div class="patient-row" onclick="abrirDetalleNino('${p.ID}')">
+      <div class="avatar avatar-sm" style="background:${colorFor(p.ID)}">${initials(p.Nombre)}</div>
+      <div class="p-info">
+        <div class="p-name">${p.Nombre}</div>
+        <div class="p-sub">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
+        <span class="dur-badge ${parseInt(p.DuracionMin)===30?'dur-30':'dur-60'}">${parseInt(p.DuracionMin)===30?'⏱ 30 min':'🕐 1 hora'}</span>
+      </div>
+      <div class="p-sessions"><div class="num">${rem}</div><div class="lbl">restantes</div></div>
+      <i class="fas fa-chevron-right" style="color:var(--lav-pale);font-size:14px"></i>
+    </div>`;
+  }).join('');
+}
+function filtrarNinos(val){searchNinos=val;renderNinos();}
+function setFiltroNinos(f,el){
+  filtroNinos=f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active'); renderNinos();
+}
+function abrirDetalleNino(id) {
+  const p=pacientes.find(x=>x.ID===id); if(!p) return;
+  const rem=sesionesRestantes(p),total=parseInt(p.TotalSesiones)||1,done=total-rem;
+  const pct=Math.round((done/total)*100),bCls=barClass(p);
+  const sesPac=sesiones.filter(s=>s.PacienteID===id).sort((a,b)=>b.Fecha.localeCompare(a.Fecha)).slice(0,8);
+  document.getElementById('ov-nino-title').textContent=p.Nombre;
+  document.getElementById('ov-nino-body').innerHTML=`
+    <div class="avatar avatar-lg" style="background:${colorFor(p.ID)}">${initials(p.Nombre)}</div>
+    <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${p.Nombre}</div>
+    <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
+    <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:10px">
+      <div><div class="n">${total}</div><div class="l">Asignadas</div></div>
+      <div><div class="n">${done}</div><div class="l">Realizadas</div></div>
+      <div><div class="n" style="color:${rem<=5?'var(--pink)':rem<=10?'var(--amber)':'var(--mint)'}">${rem}</div><div class="l">Restantes</div></div>
+    </div>
+    <div class="bar-bg" style="margin-bottom:4px"><div class="bar-fill ${bCls}" style="width:${pct}%"></div></div>
+    <div style="font-size:11px;color:var(--sub);text-align:right;margin-bottom:12px">${pct}% completado</div>
+    <div class="card">
+      <div class="section-lbl" style="margin-top:0">Datos del paciente</div>
+      <div class="info-row"><span class="k">Contacto</span><span class="v">${p.Contacto||'—'}</span></div>
+      <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
+      ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
+        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          📞 Llamar</a>
+        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          💬 WhatsApp</a>
+      </div>`:''}
+      <div class="info-row"><span class="k">Duración sesión</span><span class="v">${p.DuracionMin} min</span></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <div class="section-lbl" style="margin-top:0">Historial reciente</div>
+      ${sesPac.length?sesPac.map(s=>`
+        <div class="session-item">
+          <span class="s-time">${fmt(s.Fecha)}</span>
+          <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
+          <div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>
+          ${chipHTML(s.Tipo)}</div>`).join(''):'<div class="empty" style="padding:10px">Sin sesiones registradas</div>'}
+    </div>`;
+  openOv('ov-nino');
+}
+
+function renderPacientes() {
+  const list=pacientes.filter(p=>p.Nombre.toLowerCase().includes(searchPacs.toLowerCase())&&p.Estado!=='inactivo');
+  if(!list.length){document.getElementById('pacientes-list').innerHTML='<div class="empty">No se encontraron pacientes</div>';return;}
+  document.getElementById('pacientes-list').innerHTML=list.map(p=>{
+    const rem=sesionesRestantes(p);
+    return `<div class="patient-row" onclick="abrirDetallePaciente('${p.ID}')">
+      <div class="avatar avatar-sm" style="background:${colorFor(p.ID)}">${initials(p.Nombre)}</div>
+      <div class="p-info">
+        <div class="p-name">${p.Nombre}</div>
+        <div class="p-sub">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
+        <span class="dur-badge ${parseInt(p.DuracionMin)===30?'dur-30':'dur-60'}">${parseInt(p.DuracionMin)===30?'⏱ 30 min':'🕐 1 hora'}</span>
+      </div>
+      <div class="p-sessions"><div class="num">${rem}</div><div class="lbl">restantes</div></div>
+      <i class="fas fa-chevron-right" style="color:var(--lav-pale);font-size:14px"></i>
+    </div>`;
+  }).join('');
+}
+function filtrarPacientes(val){searchPacs=val;renderPacientes();}
+function abrirDetallePaciente(id) {
+  editingPacId=id;
+  const p=pacientes.find(x=>x.ID===id); if(!p) return;
+  const rem=sesionesRestantes(p),total=parseInt(p.TotalSesiones)||1,done=total-rem;
+  const pct=Math.round((done/total)*100),bCls=barClass(p);
+  document.getElementById('ov-pac-title').textContent=p.Nombre;
+  document.getElementById('ov-pac-edit-btn').style.display='block';
+  document.getElementById('ov-pac-body').innerHTML=`
+    <div class="avatar avatar-lg" style="background:${colorFor(p.ID)}">${initials(p.Nombre)}</div>
+    <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${p.Nombre}</div>
+    <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">${p.LugarAtencion}</div>
+    <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:10px">
+      <div><div class="n">${total}</div><div class="l">Asignadas</div></div>
+      <div><div class="n">${done}</div><div class="l">Realizadas</div></div>
+      <div><div class="n" style="color:${rem<=5?'var(--pink)':rem<=10?'var(--amber)':'var(--mint)'}">${rem}</div><div class="l">Restantes</div></div>
+    </div>
+    <div class="bar-bg" style="margin-bottom:4px"><div class="bar-fill ${bCls}" style="width:${pct}%"></div></div>
+    <div style="font-size:11px;color:var(--sub);text-align:right;margin-bottom:12px">${pct}% completado</div>
+    <div class="card">
+      <div class="section-lbl" style="margin-top:0">Datos personales</div>
+      <div class="info-row"><span class="k">Fecha nac.</span><span class="v">${fmt(p.FechaNacimiento)}</span></div>
+      <div class="info-row"><span class="k">Edad</span><span class="v">${edad(p.FechaNacimiento)}</span></div>
+      <div class="info-row"><span class="k">Lugar</span><span class="v">${p.LugarAtencion}</span></div>
+      <div class="info-row"><span class="k">Duración</span><span class="v">${p.DuracionMin} min</span></div>
+      <div class="info-row"><span class="k">Agencia</span><span class="v">${p.Agencia||'—'}</span></div>
+      <div class="info-row"><span class="k">Programa</span><span class="v">${p.Programa||'—'}</span></div>
+      <div class="info-row"><span class="k">Precio/hora</span><span class="v">B/. ${parseFloat(p.Precio||0).toFixed(2)}</span></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <div class="section-lbl" style="margin-top:0">Contacto</div>
+      <div class="info-row"><span class="k">Nombre</span><span class="v">${p.Contacto||'—'}</span></div>
+      <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
+      ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
+        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          📞 Llamar</a>
+        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">
+          💬 WhatsApp</a>
+      </div>`:''}
+    </div>
+    ${p.Observaciones?`<div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Observaciones</div><div style="font-size:13px;color:var(--text);line-height:1.5">${p.Observaciones}</div></div>`:''}`;
+  openOv('ov-pac');
+}
+function abrirNuevoPaciente() {
+  editingPacId=null;
+  document.getElementById('ov-form-pac-title').textContent='Nuevo paciente';
+  ['fp-nombre','fp-dob','fp-lugar','fp-contacto','fp-tel','fp-total','fp-obs','fp-precio'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fp-agencia').value='';
+  document.getElementById('fp-tipo').value='';
+  document.getElementById('fp-delete-btn').style.display='none';
+  selectDur(30); openOv('ov-form-pac');
+}
+function abrirFormPaciente() {
+  const p=pacientes.find(x=>x.ID===editingPacId); if(!p) return;
+  document.getElementById('ov-form-pac-title').textContent='Editar paciente';
+  document.getElementById('fp-nombre').value=p.Nombre;
+  document.getElementById('fp-dob').value=p.FechaNacimiento;
+  document.getElementById('fp-lugar').value=p.LugarAtencion;
+  document.getElementById('fp-contacto').value=p.Contacto||'';
+  document.getElementById('fp-tel').value=p.Telefono||'';
+  document.getElementById('fp-total').value=p.TotalSesiones;
+  document.getElementById('fp-obs').value=p.Observaciones||'';
+  document.getElementById('fp-agencia').value=p.Agencia||'';
+  document.getElementById('fp-tipo').value=p.Programa||'';
+  document.getElementById('fp-precio').value=p.Precio||'';
+  document.getElementById('fp-delete-btn').style.display='block';
+  selectDur(parseInt(p.DuracionMin)||30); openOv('ov-form-pac');
+}
+function selectDur(val) {
+  selectedDur=val;
+  document.getElementById('dopt-30').className='dur-opt'+(val===30?' sel-30':'');
+  document.getElementById('dopt-60').className='dur-opt'+(val===60?' sel-60':'');
+}
+async function guardarPaciente() {
+  const nombre=document.getElementById('fp-nombre').value.trim();
+  if(!nombre){showToast('⚠️ El nombre es obligatorio');return;}
+  const data={Nombre:nombre,FechaNacimiento:document.getElementById('fp-dob').value,
+    LugarAtencion:document.getElementById('fp-lugar').value,
+    Contacto:document.getElementById('fp-contacto').value,
+    Telefono:document.getElementById('fp-tel').value,
+    TotalSesiones:document.getElementById('fp-total').value,
+    DuracionMin:selectedDur,Observaciones:document.getElementById('fp-obs').value,
+    Agencia:document.getElementById('fp-agencia').value,
+    Programa:document.getElementById('fp-tipo').value,
+    Precio:document.getElementById('fp-precio').value};
+  showToast('Guardando...');
+  try {
+    if(editingPacId){
+      data.ID=editingPacId;
+      await apiPost({action:'editarPaciente',data});
+      const idx=pacientes.findIndex(x=>x.ID===editingPacId);
+      if(idx>=0) pacientes[idx]={...pacientes[idx],...data};
+    } else {
+      const r=await apiPost({action:'agregarPaciente',data});
+      if(r.success){data.ID=r.id;pacientes.push(data);}
+    }
+    populateSelects(); renderPacientes();
+    closeOv('ov-form-pac'); closeOv('ov-pac');
+    showToast('✅ Paciente guardado'); recargarDatos();
+  } catch(e){showToast('⚠️ Error: '+e.message);}
+}
+async function desactivarPaciente() {
+  if(!editingPacId) return;
+  showToast('Archivando paciente...');
+  try {
+    await apiPost({action:'desactivarPaciente',id:editingPacId});
+    const p=pacientes.find(x=>x.ID===editingPacId);
+    if(p) p.Estado='inactivo';
+    populateSelects(); renderPacientes(); renderNinos();
+    closeOv('ov-form-pac'); closeOv('ov-pac'); showToast('✅ Paciente archivado');
+  } catch(e){showToast('⚠️ Error: '+e.message);}
+}
+
+function onRegPaciente() {
+  const id=document.getElementById('reg-paciente').value;
+  if(!id) return;
+  if(regPacientes.includes(id)){showToast('⚠️ Ya está en la lista');document.getElementById('reg-paciente').value='';return;}
+  regPacientes.push(id);
+  document.getElementById('reg-paciente').value='';
+  renderPacChips();
+  actualizarPreview();
+  document.getElementById('type-lbl').style.display='block';
+  document.getElementById('type-grid').style.display='grid';
+  selectTipo('normal');
+}
+function renderPacChips() {
+  const el=document.getElementById('reg-pac-chips');
+  if(!regPacientes.length){el.innerHTML='';return;}
+  el.innerHTML=regPacientes.map(id=>{
+    const p=pacientes.find(x=>x.ID===id);
+    return `<div class="pac-chip" onclick="quitarPacChip('${id}')">
+      <span>${p?p.Nombre:'?'}</span><span class="x">×</span>
+    </div>`;
+  }).join('');
+}
+function quitarPacChip(id) {
+  regPacientes=regPacientes.filter(x=>x!==id);
+  renderPacChips(); actualizarPreview();
+  if(!regPacientes.length){
+    document.getElementById('reg-preview').classList.remove('show');
+    document.getElementById('type-lbl').style.display='none';
+    document.getElementById('type-grid').style.display='none';
+  }
+}
+function actualizarPreview() {
+  if(!regPacientes.length) return;
+  const p=pacientes.find(x=>x.ID===regPacientes[0]); if(!p) return;
+  const rem=sesionesRestantes(p),total=parseInt(p.TotalSesiones)||1,done=total-rem;
+  const pct=Math.round((done/total)*100);
+  document.getElementById('rp-name').textContent=regPacientes.length>1?`${p.Nombre} +${regPacientes.length-1} más`:p.Nombre;
+  document.getElementById('rp-lugar').textContent=p.LugarAtencion;
+  document.getElementById('rp-dur').textContent=p.DuracionMin+' min';
+  document.getElementById('rp-sessions').textContent=rem;
+  const bar=document.getElementById('rp-bar');
+  bar.style.width=pct+'%';
+  bar.className='bar-fill'+(rem<=5?' alert':rem<=10?' warn':'');
+  document.getElementById('reg-lugar-show').textContent=p.LugarAtencion;
+  autoFin();
+  document.getElementById('reg-preview').classList.add('show');
+}
+function autoFin() {
+  const inicioStr=document.getElementById('reg-inicio').value;
+  if(!inicioStr||!regPacientes.length) return;
+  const p=pacientes.find(x=>x.ID===regPacientes[0]);
+  const dur=p?parseInt(p.DuracionMin)||30:30;
+  const[h,m]=inicioStr.split(':').map(Number);
+  const totalMin=h*60+m+dur;
+  const hFin=String(Math.floor(totalMin/60)%24).padStart(2,'0');
+  const mFin=String(totalMin%60).padStart(2,'0');
+  document.getElementById('reg-fin').value=hFin+':'+mFin;
+}
+function selectTipo(tipo) {
+  regTipo=tipo;
+  document.getElementById('topt-normal').className='type-opt'+(tipo==='normal'?' sel-normal':'');
+  document.getElementById('topt-recovery').className='type-opt'+(tipo==='recovery'?' sel-recovery':'');
+  document.getElementById('topt-cancel').className='type-opt'+(tipo==='cancel'?' sel-cancel':'');
+  document.getElementById('recovery-note').style.display=tipo==='recovery'?'block':'none';
+  document.getElementById('cancel-note').style.display=tipo==='cancel'?'block':'none';
+}
+function regGoStep(n) {
+  if(n===2&&!regPacientes.length){showToast('⚠️ Selecciona al menos un niño');return;}
+  regStep=n;
+  ['reg-step1','reg-step2','reg-step3','reg-success'].forEach((id,i)=>{
+    document.getElementById(id).style.display=i===n-1?'block':'none';
+  });
+  for(let i=1;i<=3;i++){
+    document.getElementById('rdot'+i).className='step-dot'+(i<n?' done':i===n?' active':'');
+  }
+  if(n===3) fillSummary();
+}
+function fillSummary() {
+  const nombres=regPacientes.map(id=>{const p=pacientes.find(x=>x.ID===id);return p?p.Nombre.split(' ')[0]:'?';}).join(', ');
+  const p=pacientes.find(x=>x.ID===regPacientes[0])||{};
+  const fecha=document.getElementById('reg-fecha').value;
+  const ini=document.getElementById('reg-inicio').value;
+  const fin=document.getElementById('reg-fin').value;
+  const tipoLabel=regTipo==='recovery'?'🔄 Recuperación':regTipo==='cancel'?'❌ Cancelada':'📋 Normal';
+  document.getElementById('sum-pac').textContent=nombres;
+  document.getElementById('sum-tipo').textContent=tipoLabel;
+  document.getElementById('sum-fecha').textContent=fmt(fecha);
+  document.getElementById('sum-hora').textContent=ini+' — '+fin;
+  document.getElementById('sum-lugar').textContent=p.LugarAtencion||'—';
+}
+async function guardarSesion() {
+  if(!regPacientes.length) return;
+  const fecha=document.getElementById('reg-fecha').value;
+  const horaIni=document.getElementById('reg-inicio').value;
+  const horaFin=document.getElementById('reg-fin').value;
+  const notas=document.getElementById('reg-notas').value;
+  const tipo=regTipo==='recovery'?'Recuperacion':regTipo==='cancel'?'Cancelada':'Normal';
+  showToast('Guardando sesión(es)...');
+  try {
+    const promesas=regPacientes.map(pacId=>{
+      const p=pacientes.find(x=>x.ID===pacId)||{};
+      return apiPost({action:'registrarSesion',data:{
+        PacienteID:pacId,Fecha:fecha,HoraInicio:horaIni,HoraFin:horaFin,
+        Lugar:p.LugarAtencion||'',Tipo:tipo,Notas:notas
+      }});
+    });
+    const resultados=await Promise.all(promesas);
+    const exitos=resultados.filter(r=>r.success).length;
+    if(exitos>0){
+      const nombres=regPacientes.map(id=>{const p=pacientes.find(x=>x.ID===id);return p?p.Nombre.split(' ')[0]:'?';}).join(', ');
+      document.getElementById('reg-success-msg').textContent=`${exitos} sesión(es) guardadas para: ${nombres}.`;
+      regGoStep(4); recargarDatos();
+    } else { showToast('⚠️ Error al guardar'); }
+  } catch(e){showToast('⚠️ Error: '+e.message);}
+}
+function resetRegistro() {
+  regPacientes=[];
+  renderPacChips();
+  document.getElementById('reg-paciente').value='';
+  document.getElementById('reg-preview').classList.remove('show');
+  document.getElementById('type-lbl').style.display='none';
+  document.getElementById('type-grid').style.display='none';
+  document.getElementById('recovery-note').style.display='none';
+  document.getElementById('cancel-note').style.display='none';
+  document.getElementById('reg-notas').value='';
+  regStep=1;regTipo='normal';
+  regGoStep(1);
+}
+
+function changeRepMonth(dir) {
+  repMonth+=dir;
+  if(repMonth<0){repMonth=11;repYear--;}
+  if(repMonth>11){repMonth=0;repYear++;}
+  document.getElementById('rep-month-lbl').textContent=`${MESES[repMonth]} ${repYear}`;
+  renderReportes();
+}
+function setTabReporte(tab,el) {
+  repTab=tab;
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('reporte-semanal').style.display=tab==='semanal'?'block':'none';
+  document.getElementById('reporte-mensual').style.display=tab==='mensual'?'block':'none';
+  document.getElementById('reporte-ingresos').style.display=tab==='ingresos'?'block':'none';
+  document.getElementById('reporte-paciente').style.display=tab==='paciente'?'block':'none';
+  if(tab==='semanal') renderReporteSemanal();
+  if(tab==='mensual') renderReporteMensual();
+  if(tab==='ingresos') renderReporteIngresos();
+}
+function renderReportes(){renderReporteSemanal();}
+
+function getSemanasDelMes(year,month) {
+  const semanas=[];
+  let d=new Date(year,month,1);
+  while(d.getMonth()===month){
+    const ini=new Date(d),fin=new Date(d);
+    fin.setDate(fin.getDate()+6);
+    const iniStr=ini.getFullYear()+'-'+String(ini.getMonth()+1).padStart(2,'0')+'-'+String(ini.getDate()).padStart(2,'0');
+    const finDate=new Date(Math.min(fin,new Date(year,month+1,0)));
+    const label=ini.getDate()+' – '+finDate.getDate()+' de '+MESES[month];
+    semanas.push({inicio:iniStr,fin:finDate.getFullYear()+'-'+String(finDate.getMonth()+1).padStart(2,'0')+'-'+String(finDate.getDate()).padStart(2,'0'),label});
+    d.setDate(d.getDate()+7);
+  }
+  return semanas.reverse();
+}
+function sesionesEnRango(ini,fin){return sesiones.filter(s=>s.Fecha>=ini&&s.Fecha<=fin);}
+
+function renderReporteSemanal() {
+  const el=document.getElementById('reporte-semanal');
+  const semanas=getSemanasDelMes(repYear,repMonth);
+  if(!semanas.length){el.innerHTML='<div class="empty">Sin semanas</div>';return;}
+  const idx=Math.min(repWeekOffset,semanas.length-1);
+  const sem=semanas[idx];
+  const todas=sesionesEnRango(sem.inicio,sem.fin);
+  const realizadas=todas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+  const canceladas=todas.filter(s=>s.Tipo==='Cancelada');
+  const recuperaciones=todas.filter(s=>s.Tipo==='Recuperacion');
+  const horas=calcHoras(realizadas);
+  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const porDia=[0,0,0,0,0,0,0];
+  realizadas.forEach(s=>{porDia[new Date(s.Fecha+'T12:00:00').getDay()]++;});
+  const sesHTML=todas.length?todas.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)||a.HoraInicio.localeCompare(b.HoraInicio)).map(s=>{
+    const p=pacientes.find(x=>x.ID===s.PacienteID);
+    const nombre=p?p.Nombre:(s.PacienteID?'Archivado':'—');
+    return `<div class="session-item">
+      <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
+      <div class="s-info"><div class="s-name">${nombre}${s.Tipo==='Recuperacion'?' 🔄':''}</div>
+      <div class="s-sub">${fmt(s.Fecha)} · ${s.HoraInicio}–${s.HoraFin}</div></div>
+      ${chipHTML(s.Tipo)}</div>`;
+  }).join(''):'<div class="empty">Sin sesiones esta semana</div>';
+  el.innerHTML=`
+    <div class="week-nav">
+      <button onclick="changeRepWeek(1)" ${idx>=semanas.length-1?'disabled style="opacity:0.3"':''}>‹</button>
+      <span>${sem.label}</span>
+      <button onclick="changeRepWeek(-1)" ${idx<=0?'disabled style="opacity:0.3"':''}>›</button>
+    </div>
+    ${resumenCards(realizadas.length,canceladas.length,recuperaciones.length,horas)}
+    <div class="card"><div class="section-lbl" style="margin-top:0">Por día</div>
+      ${barChart(porDia.map((v,i)=>({val:v,lbl:dias[i]})),()=>'var(--lav)')}
+    </div>
+    <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Detalle</div>${sesHTML}</div>
+    <button class="btn-green" onclick="imprimirReporte('semanal')"><i class="fas fa-file-pdf"></i> Exportar PDF semanal</button>`;
+}
+function changeRepWeek(dir){
+  const semanas=getSemanasDelMes(repYear,repMonth);
+  repWeekOffset=Math.max(0,Math.min(semanas.length-1,repWeekOffset+dir));
+  renderReporteSemanal();
+}
+
+function renderReporteMensual() {
+  const el=document.getElementById('reporte-mensual');
+  const y=repYear,m=repMonth;
+  const ini=y+'-'+String(m+1).padStart(2,'0')+'-01';
+  const fin=y+'-'+String(m+1).padStart(2,'0')+'-'+String(new Date(y,m+1,0).getDate()).padStart(2,'0');
+  const todas=sesionesEnRango(ini,fin);
+  const realizadas=todas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+  const canceladas=todas.filter(s=>s.Tipo==='Cancelada');
+  const recuperaciones=todas.filter(s=>s.Tipo==='Recuperacion');
+  const horas=calcHoras(realizadas);
+  const porSemana=[0,0,0,0];
+  realizadas.forEach(s=>{const d=new Date(s.Fecha+'T12:00:00').getDate();porSemana[Math.min(Math.floor((d-1)/7),3)]++;});
+  const porPaciente=pacientes.filter(p=>p.Estado!=='inactivo').map(p=>{
+    const cnt=realizadas.filter(s=>s.PacienteID===p.ID).length;
+    return cnt>0?`<div class="session-item">
+      <div class="s-dot" style="background:${colorFor(p.ID)}"></div>
+      <div class="s-info"><div class="s-name">${p.Nombre}</div><div class="s-sub">${p.Agencia||'Sin agencia'}</div></div>
+      <span style="font-size:12px;font-weight:500;color:var(--text)">${cnt} ses.</span></div>`:'';
+  }).filter(Boolean).join('')||'<div class="empty">Sin sesiones</div>';
+  el.innerHTML=`
+    ${resumenCards(realizadas.length,canceladas.length,recuperaciones.length,horas)}
+    <div class="card"><div class="section-lbl" style="margin-top:0">Por semana</div>
+      ${barChart([{val:porSemana[0],lbl:'S1'},{val:porSemana[1],lbl:'S2'},{val:porSemana[2],lbl:'S3'},{val:porSemana[3],lbl:'S4'}],()=>'var(--lav)')}
+    </div>
+    <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Por paciente</div>${porPaciente}</div>
+    <button class="btn-green" onclick="imprimirReporte('mensual')"><i class="fas fa-file-pdf"></i> Exportar PDF mensual</button>`;
+}
+
+async function renderReporteIngresos() {
+  const el=document.getElementById('reporte-ingresos');
+  el.innerHTML='<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Calculando...</p></div>';
+  try {
+    const y=repYear,m=repMonth;
+    const ini=y+'-'+String(m+1).padStart(2,'0')+'-01';
+    const fin=y+'-'+String(m+1).padStart(2,'0')+'-'+String(new Date(y,m+1,0).getDate()).padStart(2,'0');
+    const semanas=getSemanasDelMes(y,m);
+    const sem=semanas[Math.min(repWeekOffset,semanas.length-1)];
+    const sesSem=sesiones.filter(s=>s.Fecha>=sem.inicio&&s.Fecha<=sem.fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+    const sesMes=sesiones.filter(s=>s.Fecha>=ini&&s.Fecha<=fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+    let totalSemana=0,totalMes=0;
+    const porAgencia={},porPacienteMes=[];
+    pacientes.forEach(p=>{
+      const precio=parseFloat(p.Precio)||0,dur=parseInt(p.DuracionMin)||60;
+      const agencia=p.Agencia||'Sin agencia',pxs=dur===30?precio/2:precio;
+      totalSemana+=sesSem.filter(s=>s.PacienteID===p.ID).length*pxs;
+      const totPacMes=sesMes.filter(s=>s.PacienteID===p.ID).length*pxs;
+      totalMes+=totPacMes;
+      if(totPacMes>0){
+        if(!porAgencia[agencia]) porAgencia[agencia]=0;
+        porAgencia[agencia]+=totPacMes;
+        porPacienteMes.push({nombre:p.Nombre,agencia,sesiones:sesMes.filter(s=>s.PacienteID===p.ID).length,pxs,total:totPacMes});
+      }
+    });
+    const agenciaHTML=Object.entries(porAgencia).map(([a,t])=>`
+      <div class="session-item"><div class="s-info"><div class="s-name">${a}</div></div>
+      <span style="font-size:13px;font-weight:500;color:var(--mint)">B/. ${t.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
+    const pacienteHTML=porPacienteMes.map(p=>`
+      <div class="session-item">
+        <div class="s-info"><div class="s-name">${p.nombre}</div><div class="s-sub">${p.agencia} · ${p.sesiones} ses. × B/. ${p.pxs.toFixed(2)}</div></div>
+        <span style="font-size:13px;font-weight:500;color:var(--text)">B/. ${p.total.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
+    el.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="stat-card"><div class="num" style="color:var(--mint)">B/. ${totalSemana.toFixed(2)}</div><div class="lbl">Esta semana</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--mint)">B/. ${totalMes.toFixed(2)}</div><div class="lbl">Este mes</div></div>
+      </div>
+      <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por agencia — ${MESES[m]} ${y}</div>${agenciaHTML}</div>
+      <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por paciente — ${MESES[m]} ${y}</div>${pacienteHTML}</div>
+      <button class="btn-green" onclick="imprimirReporte('ingresos')"><i class="fas fa-file-pdf"></i> Exportar PDF de ingresos</button>`;
+  } catch(e){el.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
+}
+
+function renderReportePaciente() {
+  const id=document.getElementById('rep-paciente').value;
+  const body=document.getElementById('rep-paciente-body');
+  if(!id){body.innerHTML='';return;}
+  const p=pacientes.find(x=>x.ID===id);
+  const y=repYear,m=repMonth;
+  const ini=y+'-'+String(m+1).padStart(2,'0')+'-01';
+  const fin=y+'-'+String(m+1).padStart(2,'0')+'-'+String(new Date(y,m+1,0).getDate()).padStart(2,'0');
+  const sesMes=sesiones.filter(s=>s.PacienteID===id&&s.Fecha>=ini&&s.Fecha<=fin);
+  const realizadasMes=sesMes.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+  const canceladasMes=sesMes.filter(s=>s.Tipo==='Cancelada');
+  const todoHistorial=sesiones.filter(s=>s.PacienteID===id).sort((a,b)=>b.Fecha.localeCompare(a.Fecha));
+  const totalRealizadas=todoHistorial.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion').length;
+  let progresoHTML='';
+  if(p){
+    const total=parseInt(p.TotalSesiones)||1,rem=Math.max(0,total-totalRealizadas);
+    const pct=Math.round((totalRealizadas/total)*100),bCls=rem<=5?'alert':rem<=10?'warn':'';
+    progresoHTML=`
+      <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:8px;text-align:center">
+        <div><div class="n">${total}</div><div class="l">Asignadas</div></div>
+        <div><div class="n">${totalRealizadas}</div><div class="l">Realizadas</div></div>
+        <div><div class="n" style="color:${rem<=5?'var(--pink)':rem<=10?'var(--amber)':'var(--mint)'}">${rem}</div><div class="l">Restantes</div></div>
+      </div>
+      <div class="bar-bg" style="margin-bottom:4px"><div class="bar-fill ${bCls}" style="width:${pct}%"></div></div>
+      <div style="font-size:11px;color:var(--sub);text-align:right;margin-bottom:12px">${pct}% completado</div>`;
+  }
+  const mesHTML=sesMes.length?sesMes.map(s=>`
+    <div class="session-item">
+      <span class="s-time">${s.HoraInicio}</span>
+      <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
+      <div class="s-info"><div class="s-name">${fmt(s.Fecha)}</div></div>
+      ${chipHTML(s.Tipo)}</div>`).join(''):'<div class="empty">Sin sesiones este mes</div>';
+  const histHTML=todoHistorial.slice(0,20).map(s=>`
+    <div class="session-item">
+      <span class="s-time">${fmt(s.Fecha)}</span>
+      <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
+      <div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>
+      ${chipHTML(s.Tipo)}</div>`).join('')||'<div class="empty">Sin historial</div>';
+  body.innerHTML=`
+    ${progresoHTML}
+    <div class="card" style="margin-bottom:8px">
+      <div class="section-lbl" style="margin-top:0">Sesiones en ${MESES[m]} ${y}</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div class="stat-card" style="flex:1"><div class="num">${realizadasMes.length}</div><div class="lbl">Realizadas</div></div>
+        <div class="stat-card" style="flex:1"><div class="num">${canceladasMes.length}</div><div class="lbl">Canceladas</div></div>
+      </div>
+      ${mesHTML}</div>
+    <div class="card" style="margin-bottom:8px">
+      <div class="section-lbl" style="margin-top:0">Historial completo (últimas 20)</div>
+      ${histHTML}</div>
+    <button class="btn-green" onclick="imprimirReporte('paciente')"><i class="fas fa-file-pdf"></i> Exportar PDF del paciente</button>`;
+}
+
+function imprimirReporte(tipo) {
+  const meses=MESES;
+  const titulos={semanal:'Reporte Semanal',mensual:'Reporte Mensual',ingresos:'Reporte de Ingresos',paciente:'Reporte del Paciente'};
+  const titulo=titulos[tipo];
+  let htmlReporte='';
+  if(tipo==='semanal'||tipo==='mensual'){
+    const esSemanal=tipo==='semanal';
+    const semanas=getSemanasDelMes(repYear,repMonth);
+    const sem=semanas[Math.min(repWeekOffset,semanas.length-1)];
+    const ini=esSemanal?sem.inicio:repYear+'-'+String(repMonth+1).padStart(2,'0')+'-01';
+    const fin=esSemanal?sem.fin:repYear+'-'+String(repMonth+1).padStart(2,'0')+'-'+String(new Date(repYear,repMonth+1,0).getDate()).padStart(2,'0');
+    const todas=sesiones.filter(s=>s.Fecha>=ini&&s.Fecha<=fin);
+    const realizadas=todas.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion');
+    const canceladas=todas.filter(s=>s.Tipo==='Cancelada');
+    const recuperaciones=todas.filter(s=>s.Tipo==='Recuperacion');
+    const horas=calcHoras(realizadas);
+    const periodo=esSemanal?sem.label:meses[repMonth]+' '+repYear;
+    const filas=todas.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)||a.HoraInicio.localeCompare(b.HoraInicio)).map(s=>{
+      const pac=pacientes.find(x=>x.ID===s.PacienteID);
+      const nombre=pac?pac.Nombre:'Archivado';
+      const tipoLabel=s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperación':'Cancelada';
+      return `<tr><td>${fmt(s.Fecha)}</td><td>${s.HoraInicio} – ${s.HoraFin}</td><td>${nombre}</td><td>${pac?(pac.Agencia||'—'):'—'}</td><td>${tipoLabel}</td><td>${s.Notas||''}</td></tr>`;
+    }).join('');
+    htmlReporte=`<div class="resumen">
+      <div class="stat-box"><div class="snum">${realizadas.length}</div><div class="slbl">Realizadas</div></div>
+      <div class="stat-box"><div class="snum">${canceladas.length}</div><div class="slbl">Cancelaciones</div></div>
+      <div class="stat-box"><div class="snum">${recuperaciones.length}</div><div class="slbl">Recuperaciones</div></div>
+      <div class="stat-box"><div class="snum">${horas}h</div><div class="slbl">Horas trabajadas</div></div></div>
+      <h2>Detalle — ${periodo}</h2>
+      <table><thead><tr><th>Fecha</th><th>Horario</th><th>Paciente</th><th>Agencia</th><th>Tipo</th><th>Notas</th></tr></thead>
+      <tbody>${filas||'<tr><td colspan="6">Sin sesiones</td></tr>'}</tbody></table>`;
+  } else if(tipo==='ingresos'){
+    const ini=repYear+'-'+String(repMonth+1).padStart(2,'0')+'-01';
+    const fin=repYear+'-'+String(repMonth+1).padStart(2,'0')+'-'+String(new Date(repYear,repMonth+1,0).getDate()).padStart(2,'0');
+    const sesMes=sesiones.filter(s=>s.Fecha>=ini&&s.Fecha<=fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+    let totalMes=0;const porAgencia={},filasPac=[];
+    pacientes.forEach(p=>{
+      const precio=parseFloat(p.Precio)||0,dur=parseInt(p.DuracionMin)||60;
+      const pxs=dur===30?precio/2:precio,agencia=p.Agencia||'Sin agencia';
+      const cnt=sesMes.filter(s=>s.PacienteID===p.ID).length;
+      if(cnt>0){const total=cnt*pxs;totalMes+=total;
+        if(!porAgencia[agencia]) porAgencia[agencia]=0; porAgencia[agencia]+=total;
+        filasPac.push(`<tr><td>${p.Nombre}</td><td>${agencia}</td><td>${cnt}</td><td>B/. ${pxs.toFixed(2)}</td><td><strong>B/. ${total.toFixed(2)}</strong></td></tr>`);}
+    });
+    const filasAg=Object.entries(porAgencia).map(([a,t])=>`<tr><td>${a}</td><td><strong>B/. ${t.toFixed(2)}</strong></td></tr>`).join('');
+    htmlReporte=`<div class="total-grande"><div>TOTAL DEL MES</div>
+      <div style="font-size:36px;color:#1D9E75;font-weight:bold">B/. ${totalMes.toFixed(2)}</div>
+      <div>${meses[repMonth]} ${repYear}</div></div>
+      <h2>Por agencia</h2>
+      <table><thead><tr><th>Agencia</th><th>Total</th></tr></thead><tbody>${filasAg||'<tr><td colspan="2">Sin datos</td></tr>'}</tbody></table>
+      <h2>Por paciente</h2>
+      <table><thead><tr><th>Paciente</th><th>Agencia</th><th>Sesiones</th><th>Precio/ses.</th><th>Total</th></tr></thead>
+      <tbody>${filasPac.join('')||'<tr><td colspan="5">Sin datos</td></tr>'}</tbody></table>`;
+  } else if(tipo==='paciente'){
+    const id=document.getElementById('rep-paciente').value;
+    const p=pacientes.find(x=>x.ID===id);
+    if(!p){showToast('⚠️ Selecciona un paciente');return;}
+    const ini=repYear+'-'+String(repMonth+1).padStart(2,'0')+'-01';
+    const fin=repYear+'-'+String(repMonth+1).padStart(2,'0')+'-'+String(new Date(repYear,repMonth+1,0).getDate()).padStart(2,'0');
+    const sesMes=sesiones.filter(s=>s.PacienteID===id&&s.Fecha>=ini&&s.Fecha<=fin);
+    const total=parseInt(p.TotalSesiones)||1;
+    const realizadasTotal=sesiones.filter(s=>s.PacienteID===id&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion')).length;
+    const rem=Math.max(0,total-realizadasTotal);
+    const filas=sesMes.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)).map(s=>
+      `<tr><td>${fmt(s.Fecha)}</td><td>${s.HoraInicio} – ${s.HoraFin}</td><td>${s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperación':'Cancelada'}</td><td>${s.Notas||''}</td></tr>`).join('');
+    htmlReporte=`<div class="resumen">
+      <div class="stat-box"><div class="snum">${total}</div><div class="slbl">Total asignadas</div></div>
+      <div class="stat-box"><div class="snum">${realizadasTotal}</div><div class="slbl">Realizadas</div></div>
+      <div class="stat-box"><div class="snum">${rem}</div><div class="slbl">Restantes</div></div></div>
+      <h2>Sesiones de ${meses[repMonth]} ${repYear}</h2>
+      <table><thead><tr><th>Fecha</th><th>Horario</th><th>Tipo</th><th>Notas</th></tr></thead>
+      <tbody>${filas||'<tr><td colspan="4">Sin sesiones este mes</td></tr>'}</tbody></table>`;
+  }
+  const ventana=window.open('','_blank');
+  ventana.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo} — TerapistaApp</title>
+<style>*{box-sizing:border-box}body{font-family:Georgia,serif;color:#3C3489;padding:24px;max-width:700px;margin:0 auto;font-size:13px}
+h1{font-size:22px;color:#534AB7;margin-bottom:2px}h2{font-size:14px;color:#534AB7;margin:16px 0 8px}
+.sub{font-size:11px;color:#7F77DD;margin-bottom:20px}.resumen{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.stat-box{border:1px solid #AFA9EC;border-radius:8px;padding:10px 14px;text-align:center;min-width:100px}
+.snum{font-size:22px;color:#3C3489}.slbl{font-size:10px;color:#7F77DD}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}
+th{background:#EEEDFE;color:#534AB7;padding:8px;text-align:left;font-size:11px}
+td{padding:7px 8px;border-bottom:1px solid #EEEDFE;font-size:12px}tr:last-child td{border-bottom:none}
+.total-grande{text-align:center;background:#EEEDFE;border-radius:10px;padding:20px;margin-bottom:16px}
+@media print{body{padding:10px}@page{margin:1.5cm}}</style>
+</head><body>
+<h1>TerapistaApp — ${titulo}</h1>
+<div class="sub">Generado el ${new Date().toLocaleDateString('es-PA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+${htmlReporte}
+<script>setTimeout(()=>window.print(),500)<\/script>
+</body></html>`);
+  ventana.document.close();
+}
+
+const DIAS_PLAN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+function renderPlan() {
+  const diasHTML=DIAS_PLAN.map((dia,idx)=>{
+    const entradas=planData[idx]||[];
+    const entradasHTML=entradas.length?entradas.map((e,ei)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--lav-light)">
+        <div class="s-dot" style="background:${colorFor(e.pacId)};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:500;color:var(--text)">${e.nombre}</div>
+          <div style="font-size:11px;color:var(--sub)">${e.hora||'Sin hora'} · ${e.lugar||''}</div>
+        </div>
+        <button onclick="eliminarEntradaPlan(${idx},${ei})"
+          style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:11px">✕</button>
+      </div>`).join(''):`<div style="font-size:11px;color:var(--lav-pale);padding:6px 0">Sin atenciones planificadas</div>`;
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:500;color:var(--text)">${dia}</div>
+        <button onclick="abrirAddPlan(${idx})"
+          style="background:var(--lav);color:white;border:none;border-radius:12px;padding:4px 10px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px">
+          <i class="fas fa-plus"></i> Agregar
+        </button>
+      </div>
+      ${entradasHTML}</div>`;
+  }).join('');
+  document.getElementById('plan-dias').innerHTML=diasHTML;
+}
+
+function abrirAddPlan(diaIdx) {
+  const activos=pacientes.filter(p=>p.Estado!=='inactivo');
+  const pacOpts=activos.map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
+  ov.innerHTML=`<div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px">
+    <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-size:15px;color:var(--text);margin-bottom:14px">Agregar a ${DIAS_PLAN[diaIdx]}</div>
+    <div class="field-lbl">Niño</div>
+    <select id="plan-pac-sel" style="width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;color:var(--text);margin-bottom:10px">
+      <option value="">— Selecciona —</option>${pacOpts}
+    </select>
+    <div class="field-lbl">Hora</div>
+    <input type="time" id="plan-hora-inp" value="08:00"
+      style="width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;margin-bottom:16px">
+    <button onclick="confirmarAddPlan(${diaIdx},this.closest('[style*=fixed]'))"
+      style="width:100%;padding:12px;background:var(--lav);color:white;border:none;border-radius:12px;font-family:Georgia,serif;font-size:14px;cursor:pointer">Agregar</button>
+    <button onclick="this.closest('[style*=fixed]').remove()"
+      style="width:100%;padding:10px;background:none;border:none;color:var(--sub);font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:6px">Cancelar</button>
+  </div>`;
+  document.getElementById('app').appendChild(ov);
+}
+
+function confirmarAddPlan(diaIdx,overlay) {
+  const sel=document.getElementById('plan-pac-sel');
+  const hora=document.getElementById('plan-hora-inp').value;
+  if(!sel.value){showToast('⚠️ Selecciona un niño');return;}
+  const pac=pacientes.find(p=>p.ID===sel.value); if(!pac) return;
+  if(!planData[diaIdx]) planData[diaIdx]=[];
+  planData[diaIdx].push({pacId:pac.ID,nombre:pac.Nombre,hora,lugar:pac.LugarAtencion});
+  planData[diaIdx].sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+  overlay.remove();
+  renderPlan();
+  showToast('✅ Agregado a '+DIAS_PLAN[diaIdx]);
+}
+
+function eliminarEntradaPlan(diaIdx,entradaIdx) {
+  if(planData[diaIdx]){ planData[diaIdx].splice(entradaIdx,1); renderPlan(); }
+}
+
+async function guardarPlan() {
+  showToast('Guardando planificación...');
+  try {
+    const r=await apiGet({action:'guardarPlanificacion',data:JSON.stringify(planData)});
+    if(r&&r.success) showToast('✅ Planificación guardada');
+    else showToast('⚠️ Error: '+(r&&r.error||'sin respuesta'));
+  } catch(e){showToast('⚠️ Error: '+e.message);}
+}
+
+function limpiarPlan() { planData={}; renderPlan(); guardarPlan(); }
+
+function openOv(id){document.getElementById(id).classList.add('show');}
+function closeOv(id){document.getElementById(id).classList.remove('show');}
+
+async function recargarDatos() {
+  try {
+    const [rPac,rSes,rAg,rPlan,rConf2]=await Promise.all([
+      apiGet({action:'getPacientes'}),
+      apiGet({action:'getSesiones'}),
+      apiGet({action:'getAgencias'}),
+      apiGet({action:'getPlanificacion'}),
+      apiGet({action:'getConfig2'})
+    ]);
+    if(rPac.success)  pacientes=rPac.data||[];
+    if(rSes.success)  sesiones=rSes.data||[];
+    if(rAg.success)   agencias=rAg.data||[];
+    if(rPlan.success) planData=rPlan.data||{};
+    if(rConf2&&rConf2.success) tiposConfig=rConf2.data||[];
+    populateSelects();
+    populateAgencias();
+    populateProgramas();
+    updateHeader(currentScreen);
+    if(currentScreen==='hoy') renderHoy();
+    else if(currentScreen==='mes') renderMes();
+    else if(currentScreen==='ninos') renderNinos();
+    else if(currentScreen==='pacientes') renderPacientes();
+    else if(currentScreen==='reportes') renderReportes();
+    else if(currentScreen==='plan') renderPlan();
+  } catch(e){console.log('Recarga silenciosa falló:',e.message);}
+}
+
+document.getElementById('reg-fecha').value=today();
+init();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(e=>console.log('SW:',e));
+  });
+}
+</script>
+</body>
+</html>
