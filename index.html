@@ -24,8 +24,8 @@
 html,body{height:100%;font-family:Georgia,serif;background:var(--app-bg)}
 
 /* ── MOBILE LAYOUT ── */
-body{display:flex;justify-content:center;align-items:center;overflow:hidden}
-#app{width:100%;max-width:430px;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--app-bg)}
+body{display:flex;justify-content:center;align-items:center;overflow:auto}
+#app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--app-bg)}
 .app-header{background:var(--lav-bg);padding:44px 18px 10px;flex-shrink:0}
 .screen{display:none;flex:1;overflow-y:auto;padding:12px 14px 80px}
 .screen.active{display:block}
