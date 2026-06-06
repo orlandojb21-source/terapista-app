@@ -1,4 +1,4 @@
-var CACHE_NAME = 'terapista-app-v2';
+var CACHE_NAME = 'terapista-app-v3';
 var urlsToCache = ['/', '/index.html'];
 
 self.addEventListener('install', function(event) {
