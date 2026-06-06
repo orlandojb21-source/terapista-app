@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -24,12 +24,14 @@
 html,body{height:100%;font-family:Georgia,serif;background:var(--app-bg)}
 
 /* ── MOBILE LAYOUT ── */
-body{display:flex;justify-content:center;align-items:center;overflow:auto}
-#app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--app-bg)}
-.app-header{background:var(--lav-bg);padding:44px 18px 10px;flex-shrink:0}
-.screen{display:none;flex:1;overflow-y:auto;padding:12px 14px 80px}
+body{display:flex;justify-content:center;align-items:center;overflow:hidden}
+#app{width:100%;max-width:430px;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--app-bg)}
+.app-header{background:var(--lav-bg);padding:44px 18px 10px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.screen{display:none;padding:12px 14px 120px}
+.desktop-main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.screens-wrap{flex:1;overflow-y:auto}
 .screen.active{display:block}
-.bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:0.5px solid var(--border);display:flex;padding:8px 4px 20px;flex-shrink:0;z-index:100}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:0.5px solid var(--border);display:flex;padding:8px 4px 20px;flex-shrink:0;z-index:100}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 2px;border-radius:10px;border:none;background:none}
 .nav-item.active{background:var(--lav-light)}
 .nav-item i{font-size:18px;color:var(--lav-pale)}
@@ -73,7 +75,7 @@ body{display:flex;justify-content:center;align-items:center;overflow:auto}
 
   /* Main area */
   .desktop-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-  .app-header{padding:20px 28px 16px;flex-shrink:0}
+  .app-header{padding:20px 28px 16px;flex-shrink:0;position:relative}
   .screens-wrap{flex:1;overflow-y:auto;padding:20px 28px 40px}
   .screen{padding:0}
   .screen.active{display:block}
@@ -195,6 +197,8 @@ textarea{resize:none;height:75px;line-height:1.5}
 .cal-day.selected{background:var(--lav-light)}
 .cal-day.has-cancel{background:var(--red-light)}
 .cal-day.has-cancel .dn{color:var(--red)}
+.cal-day.has-libre{background:var(--amber-light)}
+.cal-day.has-libre .dn{color:var(--amber)}
 .cal-dots{display:flex;gap:2px;margin-top:1px}
 .cal-dot{width:4px;height:4px;border-radius:50%}
 .tabs{display:flex;gap:6px;margin-bottom:10px}
@@ -562,7 +566,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 
 <script>
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbxMKAzt3VytNfBUC4XewJQLzu2O1jBbUMUlZYJvKx_wzqrKwkfxzqEJuJuq8AoQC7Bj/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwecbUKCStSUdOYe6E0gHOCzYZPzhH8OImIJXBMCwt2UwCAUVSdQqS6JJ-GvXKCiToO/exec";
 
 let pacientes = [], sesiones = [], agencias = [], planData = {}, tiposConfig = [];
 let currentScreen = 'hoy';
@@ -573,6 +577,7 @@ let editingPacId = null, selectedDur = 30;
 let regStep = 1, regTipo = 'normal';
 let regPacientes = [];
 let filtroNinos = 'todos', searchNinos = '', searchPacs = '';
+let diasLibres = [];
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -596,18 +601,20 @@ async function init() {
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   updateHeader('hoy');
   try {
-    const [rPac, rSes, rAg, rPlan, rConf2] = await Promise.all([
+    const [rPac, rSes, rAg, rPlan, rConf2, rDL] = await Promise.all([
       apiGet({ action:'getPacientes' }),
       apiGet({ action:'getSesiones' }),
       apiGet({ action:'getAgencias' }),
       apiGet({ action:'getPlanificacion' }),
-      apiGet({ action:'getConfig2' })
+      apiGet({ action:'getConfig2' }),
+      apiGet({ action:'getDiasLibres' })
     ]);
     if (rPac.success)  pacientes   = rPac.data  || [];
     if (rSes.success)  sesiones    = rSes.data  || [];
     if (rAg.success)   agencias    = rAg.data   || [];
     if (rPlan.success) planData    = rPlan.data  || {};
     if (rConf2 && rConf2.success) tiposConfig = rConf2.data || [];
+    if (rDL && rDL.success) diasLibres = rDL.data || [];
     populateSelects();
     populateAgencias();
     populateProgramas();
@@ -852,15 +859,25 @@ function renderHoy() {
   const alertas = pacientes.filter(p=>p.Estado!=='inactivo'&&sesionesRestantes(p)<=5).map(p=>
     `<div class="alert-card">⚠️ <strong>${p.Nombre.split(' ')[0]}</strong> le quedan solo ${sesionesRestantes(p)} sesiones</div>`
   ).join('');
+  const diaLibreHoy = diasLibres.find(d=>d.Fecha===t);
+  const diaLibreHTML = diaLibreHoy
+    ? `<div style="background:#FFF3CD;border:0.5px solid #FAC775;border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">${diaLibreHoy.Tipo==='Feriado'?'🎉':diaLibreHoy.Tipo==='Incapacidad'?'🤒':'🏖️'}</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#633806">${diaLibreHoy.Tipo}</div>
+          ${diaLibreHoy.Notas?`<div style="font-size:11px;color:#633806;margin-top:2px">${diaLibreHoy.Notas}</div>`:''}
+        </div>
+      </div>` : '';
   const sesHTML = sesDia.length ? sesDia.map(s=>{
     const pac=pacientes.find(p=>p.ID===s.PacienteID)||{};
     const nombre=pac.Nombre||'Paciente desconocido';
+    const notasResumen=s.Notas?(s.Notas.length>60?s.Notas.substring(0,60)+'...':s.Notas):'';
     return `<div class="session-item" onclick="abrirEditarSesion('${s.ID}')" style="cursor:pointer">
       <span class="s-time">${s.HoraInicio}</span>
       <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
       <div class="s-info">
         <div class="s-name">${nombre}${s.Tipo==='Recuperacion'?' 🔄':''}</div>
-        <div class="s-sub">${s.Lugar} · ${pac.DuracionMin||'?'} min</div>
+        ${notasResumen?`<div class="s-sub">${notasResumen}</div>`:''}
       </div>
       ${chipHTML(s.Tipo)}
       <i class="fas fa-pen" style="font-size:11px;color:var(--lav-pale);margin-left:4px"></i>
@@ -874,11 +891,14 @@ function renderHoy() {
       <div class="stat-card"><div class="num">${canceladas}</div><div class="lbl">Canceladas</div></div>
       <div class="stat-card"><div class="num">${recuperaciones}</div><div class="lbl">Recuperaciones</div></div>
     </div>
+    ${diaLibreHTML}
     ${alertas}
-    <div class="section-lbl">Agenda del día</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="section-lbl" style="margin:0">Agenda del día</div>
+      <button onclick="abrirModalDiaLibre()" style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:20px;padding:5px 12px;font-size:11px;color:#633806;cursor:pointer;font-family:Georgia,serif">🏖️ Día libre</button>
+    </div>
     <div class="card">${sesHTML}</div>`;
 }
-
 function abrirEditarSesion(id) {
   const s=sesiones.find(x=>x.ID===id); if(!s) return;
   const pac=pacientes.find(x=>x.ID===s.PacienteID);
@@ -967,8 +987,9 @@ function renderMes() {
     const isToday=isThisMonth&&d===todayD.getDate();
     const isSel=selDay===dateStr;
     const hasCan=daySes.some(s=>s.Tipo==='Cancelada')&&!daySes.some(s=>s.Tipo!=='Cancelada');
+    const diaLibre=diasLibres.find(d=>d.Fecha===dateStr);
     let cls='cal-day';
-    if(isToday) cls+=' today'; else if(isSel) cls+=' selected'; else if(hasCan) cls+=' has-cancel';
+    if(isToday) cls+=' today'; else if(isSel) cls+=' selected'; else if(diaLibre) cls+=' has-libre'; else if(hasCan) cls+=' has-cancel';
     const dots=daySes.slice(0,3).map(s=>`<div class="cal-dot" style="background:${isToday?'rgba(255,255,255,0.7)':dotColor(s.Tipo)}"></div>`).join('');
     calHTML+=`<div class="${cls}" onclick="selectCalDay('${dateStr}')"><span class="dn">${d}</span><div class="cal-dots">${dots}</div></div>`;
   }
@@ -976,12 +997,19 @@ function renderMes() {
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lav);margin-right:3px"></span>Hoy</span>
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:3px"></span>Sesiones</span>
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red-light);border:1px solid #E8A598;margin-right:3px"></span>Solo cancelaciones</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber-light);border:1px solid #FAC775;margin-right:3px"></span>Día libre</span>
   </div>`;
   if(selDay){
     const daySes=sesionesDelDia(selDay);
     const[y,m,d]=selDay.split('-');
     const diasSem=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
     const wday=diasSem[new Date(selDay).getDay()];
+    const diaLibreSel=diasLibres.find(d=>d.Fecha===selDay);
+    const diaLibreSelHTML=diaLibreSel?`<div style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:16px">${diaLibreSel.Tipo==='Feriado'?'🎉':diaLibreSel.Tipo==='Incapacidad'?'🤒':'🏖️'}</span>
+      <div><div style="font-size:12px;font-weight:500;color:#633806">${diaLibreSel.Tipo}</div>
+      ${diaLibreSel.Notas?`<div style="font-size:11px;color:#633806">${diaLibreSel.Notas}</div>`:''}</div>
+      </div>`:'';
     const sesHTML=daySes.length?daySes.map(s=>{
       const pac=pacientes.find(p=>p.ID===s.PacienteID)||{};
       return `<div class="session-item">
@@ -990,7 +1018,10 @@ function renderMes() {
         <div class="s-info"><div class="s-name">${pac.Nombre||'—'}${s.Tipo==='Recuperacion'?' 🔄':''}</div><div class="s-sub">${s.Lugar}</div></div>
         ${chipHTML(s.Tipo)}</div>`;
     }).join(''):'<div class="empty" style="padding:14px">Sin sesiones</div>';
-    calHTML+=`<div class="card"><div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px">${wday} ${d}/${m}</div>${sesHTML}</div>`;
+    calHTML+=`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:500;color:var(--text)">${wday} ${d}/${m}</div>
+      <button onclick="abrirModalDiaLibre('${selDay}')" style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:20px;padding:4px 10px;font-size:11px;color:#633806;cursor:pointer;font-family:Georgia,serif">🏖️ Día libre</button>
+      </div>${diaLibreSelHTML}${sesHTML}</div>`;
   }
   document.getElementById('screen-mes').innerHTML=calHTML;
 }
@@ -1736,6 +1767,69 @@ async function recargarDatos() {
   } catch(e){console.log('Recarga silenciosa falló:',e.message);}
 }
 
+  function abrirModalDiaLibre(fechaPreseleccionada) {
+  const ov = document.createElement('div');
+  ov.id = 'ov-dia-libre';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
+  ov.innerHTML = `
+    <div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:16px;color:var(--text);margin-bottom:14px;font-family:Georgia,serif">🏖️ Marcar día libre</div>
+      <div class="field-lbl">Fecha</div>
+      <input type="date" id="dl-fecha" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;margin-bottom:12px" />
+      <div class="field-lbl">Tipo</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+        <div id="dl-opt-libre" onclick="selectDLTipo('Libre')" style="padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--lav);background:var(--lav-light);text-align:center;cursor:pointer">
+          <div style="font-size:18px">🏖️</div><div style="font-size:11px;color:var(--text);font-weight:500">Libre</div>
+        </div>
+        <div id="dl-opt-feriado" onclick="selectDLTipo('Feriado')" style="padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer">
+          <div style="font-size:18px">🎉</div><div style="font-size:11px;color:var(--text);font-weight:500">Feriado</div>
+        </div>
+        <div id="dl-opt-incapacidad" onclick="selectDLTipo('Incapacidad')" style="padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer">
+          <div style="font-size:18px">🤒</div><div style="font-size:11px;color:var(--text);font-weight:500">Incapacidad</div>
+        </div>
+      </div>
+      <div class="field-lbl">Notas / Motivo</div>
+      <textarea id="dl-notas" placeholder="Ej: Feriado nacional, gripe, cita médica..." style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;resize:none;height:80px;margin-bottom:12px"></textarea>
+      <button onclick="guardarDiaLibre()" style="width:100%;padding:13px;border-radius:var(--radius);background:var(--lav);color:white;font-size:14px;border:none;cursor:pointer;font-family:Georgia,serif">💾 Guardar</button>
+      <button onclick="document.getElementById('ov-dia-libre').remove()" style="width:100%;padding:11px;background:none;border:none;color:var(--sub);font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:6px">Cancelar</button>
+    </div>`;
+  document.getElementById('app').appendChild(ov);
+  window._dlTipo = 'Libre';
+}
+
+function selectDLTipo(tipo) {
+  window._dlTipo = tipo;
+  ['Libre','Feriado','Incapacidad'].forEach(t => {
+    const el = document.getElementById('dl-opt-'+t.toLowerCase());
+    if (!el) return;
+    el.style.border = t===tipo ? '1.5px solid var(--lav)' : '1.5px solid var(--border)';
+    el.style.background = t===tipo ? 'var(--lav-light)' : 'white';
+  });
+}
+
+async function guardarDiaLibre() {
+  const fecha = document.getElementById('dl-fecha').value;
+  const notas = document.getElementById('dl-notas').value;
+  const tipo  = window._dlTipo || 'Libre';
+  if (!fecha) { showToast('⚠️ Selecciona una fecha'); return; }
+  showToast('Guardando...');
+  try {
+    const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas });
+    if (r.success) {
+      diasLibres.push({ ID: r.id, Fecha:fecha, Tipo:tipo, Notas:notas });
+      document.getElementById('ov-dia-libre').remove();
+      showToast('✅ Día libre guardado');
+      renderHoy();
+      renderMes();
+    } else {
+      showToast('⚠️ Error: ' + (r.error || 'sin respuesta'));
+    }
+  } catch(e) {
+    showToast('⚠️ Error: '+e.message);
+  }
+}
+  
 document.getElementById('reg-fecha').value=today();
 init();
 
