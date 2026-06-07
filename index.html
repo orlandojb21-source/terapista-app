@@ -1862,7 +1862,7 @@ function checkAuth() {
   if (saved) {
     currentUser = JSON.parse(saved);
     showApp();
-    checkBiometrico();
+    checkBiometricoDisponible();
   } else {
     showLogin();
   }
