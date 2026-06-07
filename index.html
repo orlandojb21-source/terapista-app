@@ -1859,10 +1859,26 @@ let currentUser = null;
 
 function checkAuth() {
   const saved = localStorage.getItem('terapista_user');
+  const esMobil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
   if (saved) {
     currentUser = JSON.parse(saved);
-    showApp();
-    checkBiometricoDisponible();
+    if (esMobil) {
+      // En móvil siempre pide autenticación
+      const bioRegistrado = localStorage.getItem('terapista_bio');
+      if (bioRegistrado && window.PublicKeyCredential) {
+        showLogin(); // Muestra pantalla con botón biométrico
+      } else {
+        // No hay bio registrado, pide Google
+        localStorage.removeItem('terapista_user');
+        currentUser = null;
+        showLogin();
+      }
+    } else {
+      // En desktop entra directo
+      showApp();
+      checkBiometricoDisponible();
+    }
   } else {
     showLogin();
   }
