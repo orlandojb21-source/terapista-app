@@ -1853,6 +1853,131 @@ async function guardarDiaLibre() {
     showToast('⚠️ Error: '+e.message);
   }
 }
+
+  // ── AUTENTICACIÓN ──
+let currentUser = null;
+
+function checkAuth() {
+  const saved = localStorage.getItem('terapista_user');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    showApp();
+    checkBiometrico();
+  } else {
+    showLogin();
+  }
+}
+
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  checkBiometricoDisponible();
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+}
+
+function loginConGoogle() {
+  google.accounts.oauth2.initTokenClient({
+    client_id: '277871918112-625bnihugl53fqdcqmvqi4vb2e1t7m64.apps.googleusercontent.com',
+    scope: 'profile email',
+    callback: async (response) => {
+      if (response.access_token) {
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: 'Bearer ' + response.access_token }
+        });
+        const user = await res.json();
+        currentUser = { name: user.name, email: user.email, picture: user.picture };
+        localStorage.setItem('terapista_user', JSON.stringify(currentUser));
+        showApp();
+        init();
+        ofrecerBiometrico();
+      }
+    }
+  }).requestAccessToken();
+}
+
+function logout() {
+  localStorage.removeItem('terapista_user');
+  localStorage.removeItem('terapista_bio');
+  currentUser = null;
+  showLogin();
+}
+
+async function checkBiometricoDisponible() {
+  const bioRegistrado = localStorage.getItem('terapista_bio');
+  if (bioRegistrado && window.PublicKeyCredential) {
+    document.getElementById('bio-btn').style.display = 'flex';
+  }
+}
+
+async function ofrecerBiometrico() {
+  if (!window.PublicKeyCredential) return;
+  const yaRegistrado = localStorage.getItem('terapista_bio');
+  if (yaRegistrado) return;
+  setTimeout(() => {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
+    ov.innerHTML = `
+      <div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:24px 20px 40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:12px">🔐</div>
+        <div style="font-size:18px;color:var(--text);margin-bottom:8px;font-family:Georgia,serif">¿Activar acceso biométrico?</div>
+        <div style="font-size:13px;color:var(--sub);margin-bottom:24px">Usa tu huella o Face ID para entrar más rápido la próxima vez</div>
+        <button onclick="registrarBiometrico(this.closest('[style*=fixed]'))" style="width:100%;padding:13px;background:var(--lav);color:white;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-bottom:8px">🔐 Activar biométrico</button>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;padding:11px;background:none;border:none;color:var(--sub);font-size:13px;cursor:pointer;font-family:Georgia,serif">Ahora no</button>
+      </div>`;
+    document.body.appendChild(ov);
+  }, 1500);
+}
+
+async function registrarBiometrico(overlay) {
+  try {
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    const credential = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'TerapistaApp' },
+        user: { id: new Uint8Array(16), name: currentUser.email, displayName: currentUser.name },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000
+      }
+    });
+    if (credential) {
+      localStorage.setItem('terapista_bio', JSON.stringify({ id: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))) }));
+      overlay.remove();
+      showToast('✅ Biométrico activado');
+    }
+  } catch(e) {
+    overlay.remove();
+    showToast('⚠️ No se pudo activar: ' + e.message);
+  }
+}
+
+async function loginConBiometrico() {
+  try {
+    const bioData = JSON.parse(localStorage.getItem('terapista_bio'));
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        allowCredentials: [{ type: 'public-key', id: Uint8Array.from(atob(bioData.id), c => c.charCodeAt(0)) }],
+        userVerification: 'required',
+        timeout: 60000
+      }
+    });
+    if (assertion) {
+      showApp();
+      init();
+    }
+  } catch(e) {
+    showToast('⚠️ Error biométrico: ' + e.message);
+  }
+}
   
 document.getElementById('reg-fecha').value=today();
 init();
