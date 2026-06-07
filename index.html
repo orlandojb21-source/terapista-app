@@ -2004,9 +2004,9 @@ async function loginConBiometrico() {
   const input = document.getElementById('fp-lugar');
   if (!input || !window.google) return;
   const autocomplete = new google.maps.places.Autocomplete(input, {
-    types: ['establishment', 'geocode'],
-    componentRestrictions: { country: 'pa' }
-  });
+  // sin componentRestrictions — todos los países
+  types: ["address"],
+});
   autocomplete.addListener('place_changed', function() {
     const place = autocomplete.getPlace();
     if (place && place.formatted_address) {
