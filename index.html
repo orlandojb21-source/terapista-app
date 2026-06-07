@@ -1980,7 +1980,7 @@ async function loginConBiometrico() {
 }
   
 document.getElementById('reg-fecha').value=today();
-init();
+checkAuth();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
