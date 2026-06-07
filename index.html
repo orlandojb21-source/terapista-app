@@ -1877,6 +1877,10 @@ function showLogin() {
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
+  if (currentUser) {
+    const el = document.getElementById('sidebar-username');
+    if (el) el.textContent = currentUser.name;
+  }
 }
 
 function loginConGoogle() {
