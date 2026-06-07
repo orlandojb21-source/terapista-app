@@ -1999,6 +1999,30 @@ async function loginConBiometrico() {
     showToast('⚠️ Error biométrico: ' + e.message);
   }
 }
+
+  function initMapsAutocomplete() {
+  const input = document.getElementById('fp-lugar');
+  if (!input || !window.google) return;
+  const autocomplete = new google.maps.places.Autocomplete(input, {
+    types: ['establishment', 'geocode'],
+    componentRestrictions: { country: 'pa' }
+  });
+  autocomplete.addListener('place_changed', function() {
+    const place = autocomplete.getPlace();
+    if (place && place.formatted_address) {
+      input.value = place.name || place.formatted_address;
+    }
+  });
+}
+
+window.addEventListener('load', function() {
+  const interval = setInterval(function() {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      initMapsAutocomplete();
+      clearInterval(interval);
+    }
+  }, 500);
+});
   
 document.getElementById('reg-fecha').value=today();
 checkAuth();
