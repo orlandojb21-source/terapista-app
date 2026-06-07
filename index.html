@@ -1171,7 +1171,7 @@ function abrirDetallePaciente(id) {
       <div class="section-lbl" style="margin-top:0">Datos personales</div>
       <div class="info-row"><span class="k">Fecha nac.</span><span class="v">${fmt(p.FechaNacimiento)}</span></div>
       <div class="info-row"><span class="k">Edad</span><span class="v">${edad(p.FechaNacimiento)}</span></div>
-      <div class="info-row"><span class="k">Lugar</span><span class="v">${p.LugarAtencion}</span></div>
+      <div class="info-row"><span class="k">Lugar</span><span class="v"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.LugarAtencion)}" target="_blank" style="color:var(--lav);text-decoration:none">${p.LugarAtencion} 📍</a></span></div>
       <div class="info-row"><span class="k">Duración</span><span class="v">${p.DuracionMin} min</span></div>
       <div class="info-row"><span class="k">Agencia</span><span class="v">${p.Agencia||'—'}</span></div>
       <div class="info-row"><span class="k">Programa</span><span class="v">${p.Programa||'—'}</span></div>
