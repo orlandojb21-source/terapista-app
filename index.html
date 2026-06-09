@@ -591,7 +591,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 
 <script>
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbzBcqp0mU6UvxhbrTG51OJQSeGT3sPROrmRsK-bCfTpE5f7ARwTdhaPkPeERgnzp4MGJw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwecbUKCStSUdOYe6E0gHOCzYZPzhH8OImIJXBMCwt2UwCAUVSdQqS6JJ-GvXKCiToO/exec";
 
 let pacientes = [], sesiones = [], agencias = [], planData = {}, tiposConfig = [];
 let currentScreen = 'hoy';
@@ -625,14 +625,20 @@ function apiPost(body) {
 async function init() {
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   updateHeader('hoy');
+  
+  // Determinar email del terapista activo
+  const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) 
+    ? terapistaActiva 
+    : currentUser.email;
+
   try {
     const [rPac, rSes, rAg, rPlan, rConf2, rDL] = await Promise.all([
-      apiGet({ action:'getPacientes' }),
-      apiGet({ action:'getSesiones' }),
+      apiGet({ action:'getPacientes', email: emailTerapista }),
+      apiGet({ action:'getSesiones', email: emailTerapista }),
       apiGet({ action:'getAgencias' }),
-      apiGet({ action:'getPlanificacion' }),
+      apiGet({ action:'getPlanificacion', email: emailTerapista }),
       apiGet({ action:'getConfig2' }),
-      apiGet({ action:'getDiasLibres' })
+      apiGet({ action:'getDiasLibres', email: emailTerapista })
     ]);
     if (rPac.success)  pacientes   = rPac.data  || [];
     if (rSes.success)  sesiones    = rSes.data  || [];
@@ -1231,7 +1237,8 @@ async function guardarPaciente() {
     DuracionMin:selectedDur,Observaciones:document.getElementById('fp-obs').value,
     Agencia:document.getElementById('fp-agencia').value,
     Programa:document.getElementById('fp-tipo').value,
-    Precio:document.getElementById('fp-precio').value};
+    Precio:document.getElementById('fp-precio').value,
+    TerapistaEmail: currentUser.email};
   showToast('Guardando...');
   try {
     if(editingPacId){
@@ -1359,8 +1366,9 @@ async function guardarSesion() {
     const promesas=regPacientes.map(pacId=>{
       const p=pacientes.find(x=>x.ID===pacId)||{};
       return apiPost({action:'registrarSesion',data:{
-        PacienteID:pacId,Fecha:fecha,HoraInicio:horaIni,HoraFin:horaFin,
-        Lugar:p.LugarAtencion||'',Tipo:tipo,Notas:notas
+        PacienteID:pacId, Fecha:fecha, HoraInicio:horaIni, HoraFin:horaFin,
+        Lugar:p.LugarAtencion||'', Tipo:tipo, Notas:notas,
+        TerapistaEmail: currentUser.email
       }});
     });
     const resultados=await Promise.all(promesas);
@@ -1754,7 +1762,10 @@ function eliminarEntradaPlan(diaIdx,entradaIdx) {
 async function guardarPlan() {
   showToast('Guardando planificación...');
   try {
-    const r = await apiGet({ action:'guardarPlanificacion', data:JSON.stringify(planData) });
+    const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva)
+      ? terapistaActiva
+      : currentUser.email;
+    const r = await apiGet({ action:'guardarPlanificacion', data:JSON.stringify(planData), email: emailTerapista });
     if (r && r.success) {
       showToast('✅ Planificación guardada');
       await sincronizarCalendario();
@@ -1869,7 +1880,7 @@ async function guardarDiaLibre() {
   try {
     const resultados = [];
 for (const fecha of fechas) {
-  const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas });
+  const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas, TerapistaEmail: currentUser.email });
   resultados.push(r);
 }
 const exitos = resultados.filter(r => r.success);
@@ -1927,6 +1938,11 @@ function showApp() {
   if (currentUser) {
     const el = document.getElementById('sidebar-username');
     if (el) el.textContent = currentUser.name;
+    if (currentUser.rol === 'admin') {
+      initAdmin();
+    } else {
+      init();
+    }
   }
 }
 
@@ -1936,13 +1952,25 @@ function loginConGoogle() {
     scope: 'profile email https://www.googleapis.com/auth/calendar.events',
     callback: async (response) => {
       if (response.access_token) {
-        // guarda el token para usarlo después
         window._calendarToken = response.access_token;
         const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: 'Bearer ' + response.access_token }
         });
         const user = await res.json();
-        currentUser = { name: user.name, email: user.email, picture: user.picture };
+
+        // Verificar rol
+        const rUsuario = await apiGet({ action: 'getUsuario', email: user.email });
+        if (!rUsuario.success) {
+          alert('⚠️ Tu cuenta no está autorizada para acceder a esta app.');
+          return;
+        }
+
+        currentUser = {
+          name: user.name,
+          email: user.email,
+          picture: user.picture,
+          rol: rUsuario.data.rol
+        };
         localStorage.setItem('terapista_user', JSON.stringify(currentUser));
         showApp();
         init();
@@ -2171,6 +2199,41 @@ async function sincronizarCalendario() {
   } catch(e) {
     showToast('⚠️ Error: ' + e.message);
   }
+}
+
+  // ── ADMIN ──
+let terapistaActiva = null;
+
+async function initAdmin() {
+  const r = await apiGet({ action: 'getTerapistas' });
+  if (!r.success || !r.data.length) { showToast('⚠️ No hay terapistas registradas'); return; }
+  
+  const opts = r.data.map(t => `<option value="${t.email}">${t.nombre || t.email}</option>`).join('');
+  
+  const selector = document.createElement('div');
+  selector.id = 'admin-bar';
+  selector.style.cssText = 'background:var(--lav);color:white;padding:8px 16px;display:flex;align-items:center;gap:10px;font-size:13px;flex-shrink:0';
+  selector.innerHTML = `
+    <span>👁️ Viendo como:</span>
+    <select id="admin-terapista-sel" style="flex:1;padding:6px 10px;border-radius:8px;border:none;font-family:Georgia,serif;font-size:13px;color:var(--text)">
+      ${opts}
+    </select>
+    <button onclick="cambiarTerapista()" style="background:white;color:var(--lav);border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:500">Ver</button>
+  `;
+  
+  // Insertar antes del contenido principal
+  document.querySelector('.desktop-main').prepend(selector);
+  
+  // Cargar la primera terapista por defecto
+  terapistaActiva = r.data[0].email;
+  await init();
+}
+
+async function cambiarTerapista() {
+  const sel = document.getElementById('admin-terapista-sel');
+  terapistaActiva = sel.value;
+  showToast('🔄 Cargando datos de ' + sel.options[sel.selectedIndex].text);
+  await init();
 }
 </script>
 </body>
