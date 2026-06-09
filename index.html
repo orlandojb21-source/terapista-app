@@ -1863,11 +1863,12 @@ async function guardarDiaLibre() {
 
   showToast(`Guardando ${fechas.length} día(s)...`);
   try {
-    const promesas = fechas.map(fecha =>
-      apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas })
-    );
-    const resultados = await Promise.all(promesas);
-    const exitos = resultados.filter(r => r.success);
+    const resultados = [];
+for (const fecha of fechas) {
+  const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas });
+  resultados.push(r);
+}
+const exitos = resultados.filter(r => r.success);
     exitos.forEach((r, i) => {
       diasLibres.push({ ID: r.id, Fecha: fechas[i], Tipo: tipo, Notas: notas });
     });
