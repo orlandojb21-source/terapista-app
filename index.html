@@ -1631,11 +1631,11 @@ function imprimirReporte(tipo) {
       const cnt=sesMes.filter(s=>s.PacienteID===p.ID).length;
       if(cnt>0){const total=cnt*pxs;totalMes+=total;
         if(!porAgencia[agencia]) porAgencia[agencia]=0; porAgencia[agencia]+=total;
-        filasPac.push(`<tr><td>${p.Nombre}</td><td>${agencia}</td><td>${cnt}</td><td>B/. ${pxs.toFixed(2)}</td><td><strong>B/. ${total.toFixed(2)}</strong></td></tr>`);}
+        filasPac.push(`<tr><td>${p.Nombre}</td><td>${agencia}</td><td>${cnt}</td><td>$ ${pxs.toFixed(2)}</td><td><strong>$ ${total.toFixed(2)}</strong></td></tr>`);}
     });
-    const filasAg=Object.entries(porAgencia).map(([a,t])=>`<tr><td>${a}</td><td><strong>B/. ${t.toFixed(2)}</strong></td></tr>`).join('');
+    const filasAg=Object.entries(porAgencia).map(([a,t])=>`<tr><td>${a}</td><td><strong>$ ${t.toFixed(2)}</strong></td></tr>`).join('');
     htmlReporte=`<div class="total-grande"><div>TOTAL DEL MES</div>
-      <div style="font-size:36px;color:#1D9E75;font-weight:bold">B/. ${totalMes.toFixed(2)}</div>
+      <div style="font-size:36px;color:#1D9E75;font-weight:bold">$ ${totalMes.toFixed(2)}</div>
       <div>${meses[repMonth]} ${repYear}</div></div>
       <h2>Por agencia</h2>
       <table><thead><tr><th>Agencia</th><th>Total</th></tr></thead><tbody>${filasAg||'<tr><td colspan="2">Sin datos</td></tr>'}</tbody></table>
