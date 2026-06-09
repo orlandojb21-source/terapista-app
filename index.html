@@ -1520,15 +1520,15 @@ async function renderReporteIngresos() {
     });
     const agenciaHTML=Object.entries(porAgencia).map(([a,t])=>`
       <div class="session-item"><div class="s-info"><div class="s-name">${a}</div></div>
-      <span style="font-size:13px;font-weight:500;color:var(--mint)">B/. ${t.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
+      <span style="font-size:13px;font-weight:500;color:var(--mint)">$ ${t.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
     const pacienteHTML=porPacienteMes.map(p=>`
       <div class="session-item">
-        <div class="s-info"><div class="s-name">${p.nombre}</div><div class="s-sub">${p.agencia} · ${p.sesiones} ses. × B/. ${p.pxs.toFixed(2)}</div></div>
-        <span style="font-size:13px;font-weight:500;color:var(--text)">B/. ${p.total.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
+        <div class="s-info"><div class="s-name">${p.nombre}</div><div class="s-sub">${p.agencia} · ${p.sesiones} ses. × $ ${p.pxs.toFixed(2)}</div></div>
+        <span style="font-size:13px;font-weight:500;color:var(--text)">$ ${p.total.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
     el.innerHTML=`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div class="stat-card"><div class="num" style="color:var(--mint)">B/. ${totalSemana.toFixed(2)}</div><div class="lbl">Esta semana</div></div>
-        <div class="stat-card"><div class="num" style="color:var(--mint)">B/. ${totalMes.toFixed(2)}</div><div class="lbl">Este mes</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--mint)">$ ${totalSemana.toFixed(2)}</div><div class="lbl">Esta semana</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--mint)">$ ${totalMes.toFixed(2)}</div><div class="lbl">Este mes</div></div>
       </div>
       <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por agencia — ${MESES[m]} ${y}</div>${agenciaHTML}</div>
       <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por paciente — ${MESES[m]} ${y}</div>${pacienteHTML}</div>
