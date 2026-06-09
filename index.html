@@ -591,7 +591,7 @@ textarea{resize:none;height:75px;line-height:1.5}
 
 <script>
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
-const API_URL = "https://script.google.com/macros/s/AKfycbzBcqp0mU6UvxhbrTG51OJQSeGT3sPROrmRsK-bCfTpE5f7ARwTdhaPkPeERgnzp4MGJw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwecbUKCStSUdOYe6E0gHOCzYZPzhH8OImIJXBMCwt2UwCAUVSdQqS6JJ-GvXKCiToO/exec";
 
 let pacientes = [], sesiones = [], agencias = [], planData = {}, tiposConfig = [];
 let currentScreen = 'hoy';
@@ -1754,10 +1754,14 @@ function eliminarEntradaPlan(diaIdx,entradaIdx) {
 async function guardarPlan() {
   showToast('Guardando planificación...');
   try {
-    const r=await apiGet({action:'guardarPlanificacion',data:JSON.stringify(planData)});
-    if(r&&r.success) showToast('✅ Planificación guardada');
-    else showToast('⚠️ Error: '+(r&&r.error||'sin respuesta'));
-  } catch(e){showToast('⚠️ Error: '+e.message);}
+    const r = await apiGet({ action:'guardarPlanificacion', data:JSON.stringify(planData) });
+    if (r && r.success) {
+      showToast('✅ Planificación guardada');
+      await sincronizarCalendario();
+    } else {
+      showToast('⚠️ Error: ' + (r && r.error || 'sin respuesta'));
+    }
+  } catch(e) { showToast('⚠️ Error: ' + e.message); }
 }
 
 function limpiarPlan() { planData={}; renderPlan(); guardarPlan(); }
@@ -1928,10 +1932,12 @@ function showApp() {
 
 function loginConGoogle() {
   google.accounts.oauth2.initTokenClient({
-    client_id: '277871918112-625bnihugl53fqdcqmvqi4vb2e1t7m64.apps.googleusercontent.com',
-    scope: 'profile email',
+    client_id: '797891683379-jffbs16mg21v587g22vaev4f9u0c0kh7.apps.googleusercontent.com',
+    scope: 'profile email https://www.googleapis.com/auth/calendar.events',
     callback: async (response) => {
       if (response.access_token) {
+        // guarda el token para usarlo después
+        window._calendarToken = response.access_token;
         const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: 'Bearer ' + response.access_token }
         });
@@ -1945,7 +1951,6 @@ function loginConGoogle() {
     }
   }).requestAccessToken();
 }
-
 function logout() {
   localStorage.removeItem('terapista_user');
   localStorage.removeItem('terapista_bio');
@@ -2057,6 +2062,115 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('sw.js').catch(e=>console.log('SW:',e));
   });
+}
+
+  // ── GOOGLE CALENDAR SYNC ──
+const CAL_API = 'https://www.googleapis.com/calendar/v3';
+
+function getFechaFinEscolar() {
+  const hoy = new Date();
+  const anio = hoy.getMonth() >= 6 ? hoy.getFullYear() + 1 : hoy.getFullYear();
+  return new Date(anio, 5, 30, 23, 59, 59); // 30 de junio
+}
+
+async function borrarEventosFuturos(accessToken) {
+  const hoy = new Date().toISOString();
+  const fin = getFechaFinEscolar().toISOString();
+  let pageToken = null;
+  const idsABorrar = [];
+
+  do {
+    let url = `${CAL_API}/calendars/primary/events?timeMin=${hoy}&timeMax=${fin}&privateExtendedProperty=source%3DTerapistaApp&maxResults=250`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+    const data = await res.json();
+    (data.items || []).forEach(e => idsABorrar.push(e.id));
+    pageToken = data.nextPageToken || null;
+  } while (pageToken);
+
+  for (const id of idsABorrar) {
+    await fetch(`${CAL_API}/calendars/primary/events/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+  }
+  return idsABorrar.length;
+}
+
+async function crearEventosDesdePlan(accessToken) {
+  const hoy = new Date();
+  const finEscolar = getFechaFinEscolar();
+  const DIAS_SEMANA = [1, 2, 3, 4, 5, 6]; // Lun=1 ... Sab=6
+  const creados = [];
+  console.log('planData:', JSON.stringify(planData));
+  console.log('pacientes:', pacientes.length);
+
+  // Para cada entrada del plan, proyectar cada semana desde hoy hasta fin escolar
+  for (const [diaIdx, entradas] of Object.entries(planData)) {
+    const diaSemana = DIAS_SEMANA[parseInt(diaIdx)]; // 0=Lunes→1, etc.
+    if (!entradas || !entradas.length) continue;
+
+    for (const entrada of entradas) {
+      if (!entrada.hora) continue;
+      const [hh, mm] = entrada.hora.split(':').map(Number);
+
+      // Encontrar el próximo día de esa semana desde hoy
+      let fechaBase = new Date(hoy);
+      const diaActual = fechaBase.getDay() === 0 ? 7 : fechaBase.getDay(); // Dom=7
+      let diff = diaSemana - diaActual;
+      if (diff < 0) diff += 7;
+      if (diff === 0 && (hoy.getHours() > hh || (hoy.getHours() === hh && hoy.getMinutes() >= mm))) diff = 7;
+      fechaBase.setDate(fechaBase.getDate() + diff);
+
+      // Proyectar semana a semana
+      let fechaEvento = new Date(fechaBase);
+      while (fechaEvento <= finEscolar) {
+        const inicio = new Date(fechaEvento);
+        inicio.setHours(hh, mm, 0, 0);
+
+        // Calcular duración desde el paciente
+        const pac = pacientes.find(p => p.ID === entrada.pacId);
+        const durMin = pac ? (parseInt(pac.DuracionMin) || 30) : 30;
+        const fin = new Date(inicio.getTime() + durMin * 60000);
+
+        const evento = {
+          summary: `🧒 ${entrada.nombre}`,
+          location: entrada.lugar || '',
+          description: `Sesión de terapia del habla\nLugar: ${entrada.lugar || '—'}`,
+          start: { dateTime: inicio.toISOString(), timeZone: 'America/Panama' },
+          end:   { dateTime: fin.toISOString(),   timeZone: 'America/Panama' },
+          extendedProperties: { private: { source: 'TerapistaApp' } },
+          colorId: '1'
+        };
+
+        await fetch(`${CAL_API}/calendars/primary/events`, {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + accessToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(evento)
+        });
+
+        creados.push(entrada.nombre);
+        fechaEvento.setDate(fechaEvento.getDate() + 7);
+      }
+    }
+  }
+  return creados.length;
+}
+
+async function sincronizarCalendario() {
+  if (!currentUser) { showToast('⚠️ Debes estar autenticado'); return; }
+  if (!window._calendarToken) { showToast('⚠️ Vuelve a iniciar sesión para sincronizar'); return; }
+  showToast('🗓️ Sincronizando calendario...');
+  try {
+    const borrados = await borrarEventosFuturos(window._calendarToken);
+    const creados  = await crearEventosDesdePlan(window._calendarToken);
+    showToast(`✅ Calendario actualizado — ${creados} eventos creados`);
+  } catch(e) {
+    showToast('⚠️ Error: ' + e.message);
+  }
 }
 </script>
 </body>
