@@ -1842,24 +1842,41 @@ function selectDLTipo(tipo) {
 }
 
 async function guardarDiaLibre() {
-  const fecha = document.getElementById('dl-fecha').value;
+  const fechaInicio = document.getElementById('dl-fecha').value;
+  const fechaFin    = document.getElementById('dl-fecha-fin').value || fechaInicio;
   const notas = document.getElementById('dl-notas').value;
   const tipo  = window._dlTipo || 'Libre';
-  if (!fecha) { showToast('⚠️ Selecciona una fecha'); return; }
-  showToast('Guardando...');
+  if (!fechaInicio) { showToast('⚠️ Selecciona una fecha'); return; }
+  if (fechaFin < fechaInicio) { showToast('⚠️ La fecha fin no puede ser anterior al inicio'); return; }
+
+  // Generar todas las fechas del rango
+  const fechas = [];
+  let current = new Date(fechaInicio + 'T12:00:00');
+  const end    = new Date(fechaFin    + 'T12:00:00');
+  while (current <= end) {
+    const y = current.getFullYear();
+    const m = String(current.getMonth()+1).padStart(2,'0');
+    const d = String(current.getDate()).padStart(2,'0');
+    fechas.push(`${y}-${m}-${d}`);
+    current.setDate(current.getDate() + 1);
+  }
+
+  showToast(`Guardando ${fechas.length} día(s)...`);
   try {
-    const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas });
-    if (r.success) {
-      diasLibres.push({ ID: r.id, Fecha:fecha, Tipo:tipo, Notas:notas });
-      document.getElementById('ov-dia-libre').remove();
-      showToast('✅ Día libre guardado');
-      renderHoy();
-      renderMes();
-    } else {
-      showToast('⚠️ Error: ' + (r.error || 'sin respuesta'));
-    }
+    const promesas = fechas.map(fecha =>
+      apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas })
+    );
+    const resultados = await Promise.all(promesas);
+    const exitos = resultados.filter(r => r.success);
+    exitos.forEach((r, i) => {
+      diasLibres.push({ ID: r.id, Fecha: fechas[i], Tipo: tipo, Notas: notas });
+    });
+    document.getElementById('ov-dia-libre').remove();
+    showToast(`✅ ${exitos.length} día(s) guardado(s)`);
+    renderHoy();
+    renderMes();
   } catch(e) {
-    showToast('⚠️ Error: '+e.message);
+    showToast('⚠️ Error: ' + e.message);
   }
 }
 
