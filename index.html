@@ -1799,9 +1799,17 @@ async function recargarDatos() {
   ov.innerHTML = `
     <div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px">
       <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
-      <div style="font-size:16px;color:var(--text);margin-bottom:14px;font-family:Georgia,serif">🏖️ Marcar día libre</div>
-      <div class="field-lbl">Fecha</div>
-      <input type="date" id="dl-fecha" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;margin-bottom:12px" />
+      <div style="font-size:16px;color:var(--text);margin-bottom:14px;font-family:Georgia,serif">🏖️ Marcar día(s) libre(s)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <div class="field-lbl">Desde</div>
+          <input type="date" id="dl-fecha" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px" />
+        </div>
+        <div>
+          <div class="field-lbl">Hasta <span style="font-size:10px;color:var(--lav-pale)">(opcional)</span></div>
+          <input type="date" id="dl-fecha-fin" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px" />
+        </div>
+      </div>
       <div class="field-lbl">Tipo</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
         <div id="dl-opt-libre" onclick="selectDLTipo('Libre')" style="padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--lav);background:var(--lav-light);text-align:center;cursor:pointer">
