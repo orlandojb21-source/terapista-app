@@ -1686,11 +1686,15 @@ function closeOv(id){document.getElementById(id).classList.remove('show');}
 
 async function recargarDatos() {
   try {
+    // C3: pass terapistaActiva email so admin sees correct terapista's data
+    const emailTerapista = (currentUser && currentUser.rol === 'admin' && terapistaActiva)
+      ? terapistaActiva
+      : (currentUser ? currentUser.email : '');
     const [rPac,rSes,rAg,rPlan,rConf2]=await Promise.all([
-      apiGet({action:'getPacientes'}),
-      apiGet({action:'getSesiones'}),
+      apiGet({action:'getPacientes', email: emailTerapista}),
+      apiGet({action:'getSesiones', email: emailTerapista}),
       apiGet({action:'getAgencias'}),
-      apiGet({action:'getPlanificacion'}),
+      apiGet({action:'getPlanificacion', email: emailTerapista}),
       apiGet({action:'getConfig2'})
     ]);
     if(rPac.success)  pacientes=rPac.data||[];
