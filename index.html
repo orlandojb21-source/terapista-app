@@ -1837,14 +1837,17 @@ function loginConGoogle() {
     callback: async (response) => {
       if (response.access_token) {
         _calendarToken = response.access_token; // A1: module var, not window
-        _idToken = response.id_token || null;    // C1: capture idToken
+        // C1: use access_token as the verifiable credential.
+        // initTokenClient does not return id_token reliably; we send the
+        // access_token and the backend verifies it via Google tokeninfo.
+        _idToken = response.access_token;
 
         const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: 'Bearer ' + response.access_token }
         });
         const user = await res.json();
 
-        // C1: backend will verify idToken — pass it via apiGet
+        // C1: backend will verify the access_token via tokeninfo
         const rUsuario = await apiGet({ action: 'getUsuario', email: user.email });
         if (!rUsuario.success) {
           alert('\u26a0\ufe0f Tu cuenta no est\u00e1 autorizada para acceder a esta app.');
