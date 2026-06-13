@@ -1490,8 +1490,12 @@ window.addEventListener('load', function() {
   }, 500);
 });
 
-document.getElementById('reg-fecha').value=today();
-checkAuth();
+// Init after DOM ready
+window.addEventListener('DOMContentLoaded', function() {
+  const rf = document.getElementById('reg-fecha');
+  if (rf) rf.value = today();
+  checkAuth();
+});
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
