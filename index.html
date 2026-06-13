@@ -1,5 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AppointmentApp">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzUzNEFCNyIvPgogIDxyZWN0IHg9IjgwIiB5PSIxMjAiIHdpZHRoPSIzNTIiIGhlaWdodD0iMzAwIiByeD0iMjQiIGZpbGw9IiNFRUVERkUiLz4KICA8dGV4dCB4PSIyNTYiIHk9IjI4MCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzUzNEFCNyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QVM8L3RleHQ+Cjwvc3ZnPgo=">
+<title>Appointment Scheduling</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1LxAZheQWNTyLd6h0WSpKh26H6bDviGA&libraries=places" async defer></script>
+<style>
+:root {
+  --lav:#534AB7;--lav-light:#EEEDFE;--lav-deep:#3C3489;--lav-mid:#7F77DD;
+  --lav-pale:#AFA9EC;--lav-bg:#e8e3ff;--mint:#1D9E75;--mint-light:#E1F5EE;
+  --pink:#D4537E;--amber:#BA7517;--amber-light:#FAEEDA;--red-light:#FAECE7;
+  --red:#993C1D;--app-bg:#f8f6ff;--white:#ffffff;--border:#AFA9EC;
+  --text:#3C3489;--sub:#7F77DD;--radius:14px;--radius-sm:10px;
+  --sidebar-w:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:Georgia,serif;background:var(--app-bg)}
+body{display:flex;justify-content:center;align-items:center;overflow:hidden}
+#app{width:100%;max-width:430px;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--app-bg)}
+.app-header{background:var(--lav-bg);padding:44px 18px 10px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.screen{display:none;padding:12px 14px 120px}
+.desktop-main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.screens-wrap{flex:1;overflow-y:auto}
+.screen.active{display:block}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:0.5px solid var(--border);display:flex;padding:8px 4px 20px;flex-shrink:0;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 2px;border-radius:10px;border:none;background:none}
+.nav-item.active{background:var(--lav-light)}
+.nav-item i{font-size:18px;color:var(--lav-pale)}
+.nav-item.active i{color:var(--lav)}
+.nav-item span{font-size:9px;color:var(--lav-pale);font-weight:500}
+.nav-item.active span{color:var(--lav)}
+.desktop-sidebar{display:none}
+@media(min-width:768px){
+  body{overflow:auto;align-items:flex-start}
+  #app{max-width:100%;height:100vh;flex-direction:row;overflow:hidden}
+  .desktop-sidebar{display:flex;flex-direction:column;width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;background:white;border-right:0.5px solid var(--border);flex-shrink:0;overflow:hidden;}
+  .sidebar-logo{background:var(--lav-bg);padding:28px 20px 20px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
+  .sidebar-logo h2{font-size:14px;color:var(--text);font-weight:500;margin-bottom:2px}
+  .sidebar-logo p{font-size:11px;color:var(--sub)}
+  .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+  .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;border:none;background:none;width:100%;text-align:left}
+  .sidebar-item i{font-size:16px;color:var(--lav-pale);width:20px;text-align:center;flex-shrink:0}
+  .sidebar-item span{font-size:13px;color:var(--sub);font-weight:500}
+  .sidebar-item.active{background:var(--lav-light)}
+  .sidebar-item.active i{color:var(--lav)}
+  .sidebar-item.active span{color:var(--lav)}
+  .sidebar-item:hover:not(.active){background:var(--app-bg)}
+  .sidebar-footer{padding:14px 10px;border-top:0.5px solid var(--border);flex-shrink:0}
+  .sidebar-user{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--lav-light)}
+  .sidebar-user .avatar-xs{width:30px;height:30px;border-radius:50%;background:var(--lav);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;flex-shrink:0}
+  .sidebar-user .u-name{font-size:12px;color:var(--text);font-weight:500}
+  .sidebar-user .u-role{font-size:10px;color:var(--sub)}
+  .desktop-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+  .app-header{padding:20px 28px 16px;flex-shrink:0;position:relative}
+  .screens-wrap{flex:1;overflow-y:auto;padding:20px 28px 40px}
+  .screen{padding:0}
+  .screen.active{display:block}
+  .bottom-nav{display:none}
+  .cal-grid{max-width:600px}
+  .weekdays{max-width:600px}
+  .cal-day{max-width:85px}
+  .card-grid{grid-template-columns:repeat(4,1fr)}
+  .two-col{grid-template-columns:1fr 1fr}
+  .type-grid{grid-template-columns:1fr 1fr 1fr}
+  .stats-3{grid-template-columns:1fr 1fr 1fr}
+  .overlay{position:fixed;inset:0;z-index:200}
+  .overlay.show{display:flex}
+  .overlay-header{padding:24px 24px 16px}
+  .overlay-body{padding:20px 24px 40px}
+}
+.card{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:12px 14px;margin-bottom:8px}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat-card{background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:10px 12px;text-align:center}
+.stat-card .num{font-size:24px;color:var(--text)}
+.stat-card .lbl{font-size:10px;color:var(--sub);margin-top:2px}
+.section-lbl{font-size:10px;font-weight:bold;color:var(--sub);text-transform:uppercase;letter-spacing:0.6px;margin:12px 0 6px}
+.section-lbl:first-child{margin-top:0}
+.alert-card{background:var(--amber-light);border-radius:var(--radius-sm);border:0.5px solid #FAC775;padding:10px 12px;display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;color:#633806}
+.session-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--lav-light)}
+.session-item:last-child{border-bottom:none;padding-bottom:0}
+.s-time{font-size:11px;color:var(--sub);min-width:40px;font-weight:500}
+.s-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.s-info{flex:1}
+.s-name{font-size:13px;color:var(--text);font-weight:500}
+.s-sub{font-size:11px;color:var(--sub);margin-top:1px}
+.chip{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.chip-done{background:var(--mint-light);color:#0F6E56}
+.chip-cancel{background:var(--red-light);color:var(--red)}
+.chip-recovery{background:var(--mint-light);color:#0F6E56;border:1px solid #7DCFB0}
+.chip-next{background:var(--lav-light);color:var(--lav)}
+.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;flex-shrink:0}
+.avatar-sm{width:36px;height:36px;font-size:13px}
+.avatar-lg{width:56px;height:56px;font-size:20px;margin:0 auto 8px}
+.patient-row{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-sub{font-size:11px;color:var(--sub);margin-top:1px}
+.dur-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;display:inline-block;margin-top:2px}
+.dur-30{background:#E8F4FD;color:#1A6FA3}
+.dur-60{background:var(--lav-light);color:var(--lav)}
+.p-sessions{text-align:right;flex-shrink:0}
+.p-sessions .num{font-size:13px;color:var(--text);font-weight:500}
+.p-sessions .lbl{font-size:10px;color:var(--sub)}
+.bar-bg{height:6px;background:var(--lav-light);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:var(--mint)}
+.bar-fill.warn{background:var(--amber)}
+.bar-fill.alert{background:var(--pink)}
+.info-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--lav-light)}
+.info-row:last-child{border-bottom:none}
+.info-row .k{color:var(--sub)}
+.info-row .v{color:var(--text);font-weight:500}
+.field-lbl{font-size:12px;color:var(--sub);font-weight:500;margin-bottom:5px;margin-top:12px}
+.field-lbl:first-child{margin-top:0}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:white;font-size:13px;color:var(--text);font-family:Georgia,serif;appearance:none;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--lav)}
+textarea{resize:none;height:75px;line-height:1.5}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.readonly-field{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:var(--lav-light);font-size:13px;color:var(--text);font-family:Georgia,serif}
+.btn-primary{width:100%;padding:13px;border-radius:var(--radius);background:var(--lav);color:white;font-size:14px;border:none;cursor:pointer;font-family:Georgia,serif;margin-top:12px}
+.btn-secondary{width:100%;padding:11px;border-radius:var(--radius);background:white;color:var(--lav);font-size:14px;border:0.5px solid var(--border);cursor:pointer;font-family:Georgia,serif;margin-top:6px}
+.btn-danger{width:100%;padding:11px;border-radius:var(--radius);background:white;color:var(--red);font-size:13px;border:0.5px solid #E8A598;cursor:pointer;font-family:Georgia,serif;margin-top:6px}
+.btn-green{width:100%;padding:12px;border-radius:var(--radius);background:var(--mint);color:white;font-size:13px;border:none;cursor:pointer;font-family:Georgia,serif;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-outline{width:100%;padding:11px;border-radius:var(--radius);background:white;color:var(--lav);font-size:13px;border:0.5px solid var(--border);cursor:pointer;font-family:Georgia,serif;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px}
+.month-nav{display:flex;align-items:center;gap:6px}
+.month-nav button{background:white;border:0.5px solid var(--border);border-radius:8px;width:28px;height:28px;cursor:pointer;color:var(--lav);font-size:15px;display:flex;align-items:center;justify-content:center}
+.month-nav span{font-size:12px;font-weight:bold;color:var(--text);min-width:82px;text-align:center}
+.btn-add{background:var(--lav);color:white;border:none;border-radius:20px;padding:7px 14px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:Georgia,serif;white-space:nowrap}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type-opt{padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer}
+.type-opt.sel-normal{border-color:var(--lav);background:var(--lav-light)}
+.type-opt.sel-recovery{border-color:var(--mint);background:var(--mint-light)}
+.type-opt.sel-cancel{border-color:var(--pink);background:var(--red-light)}
+.type-opt .t-icon{font-size:18px;margin-bottom:4px}
+.type-opt .t-lbl{font-size:12px;color:var(--text);font-weight:500}
+.type-opt .t-sub{font-size:10px;color:var(--sub)}
+.dur-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dur-opt{padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer}
+.dur-opt.sel-30{border-color:#1A6FA3;background:#E8F4FD}
+.dur-opt.sel-60{border-color:var(--lav);background:var(--lav-light)}
+.dur-opt .d-icon{font-size:18px;margin-bottom:4px}
+.dur-opt .d-lbl{font-size:12px;color:var(--text);font-weight:500}
+.dur-opt .d-sub{font-size:10px;color:var(--sub)}
+.steps{display:flex;gap:5px;margin-bottom:14px}
+.step-dot{height:4px;flex:1;border-radius:2px;background:var(--lav-pale)}
+.step-dot.active{background:var(--lav)}
+.step-dot.done{background:var(--mint)}
+.p-preview{background:white;border-radius:var(--radius);border:1.5px solid var(--lav);padding:12px 14px;margin-top:10px;display:none}
+.p-preview.show{display:block}
+.p-preview-name{font-size:14px;color:var(--text);font-weight:500;margin-bottom:8px}
+.overlay{position:fixed;inset:0;background:var(--app-bg);display:none;flex-direction:column;z-index:150;overflow:hidden}
+.overlay.show{display:flex}
+.overlay-header{background:var(--lav-bg);padding:16px 16px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.back-btn{background:white;border:0.5px solid var(--border);border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--lav);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.overlay-title{font-size:16px;color:var(--text);flex:1}
+.overlay-body{flex:1;overflow-y:auto;padding:14px 14px 80px}
+.weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.weekdays span{text-align:center;font-size:10px;color:var(--sub);padding:3px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.cal-day .dn{font-size:12px;color:var(--text);font-weight:500}
+.cal-day.today{background:var(--lav)}
+.cal-day.today .dn{color:white}
+.cal-day.selected{background:var(--lav-light)}
+.cal-day.has-cancel{background:var(--red-light)}
+.cal-day.has-cancel .dn{color:var(--red)}
+.cal-day.has-libre{background:var(--amber-light)}
+.cal-day.has-libre .dn{color:var(--amber)}
+.cal-dots{display:flex;gap:2px;margin-top:1px}
+.cal-dot{width:4px;height:4px;border-radius:50%}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tab{flex:1;padding:7px 4px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;text-align:center;cursor:pointer;border:0.5px solid var(--border);background:white;color:var(--sub)}
+.tab.active{background:var(--lav);color:white;border-color:var(--lav)}
+.week-nav{display:flex;align-items:center;justify-content:space-between;background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:8px 12px;margin-bottom:10px}
+.week-nav button{background:none;border:none;color:var(--lav);font-size:16px;cursor:pointer}
+.week-nav span{font-size:12px;color:var(--text);font-weight:500}
+.summary-block{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:12px 14px;margin-top:12px}
+.summary-block .lbl{font-size:11px;color:var(--sub);font-weight:500;margin-bottom:8px}
+.stats-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;margin-bottom:10px}
+.stats-3 .n{font-size:22px;color:var(--text)}
+.stats-3 .l{font-size:10px;color:var(--sub)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--lav-deep);color:white;padding:10px 20px;border-radius:20px;font-size:12px;white-space:nowrap;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none}
+.toast.show{opacity:1}
+@media(min-width:768px){.toast{bottom:30px}}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:12px}
+.spinner{width:32px;height:32px;border:3px solid var(--lav-light);border-top-color:var(--lav);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:30px;font-size:13px;color:var(--sub)}
+.success-wrap{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center}
+.success-icon{width:68px;height:68px;border-radius:50%;background:var(--mint-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.success-icon i{font-size:32px;color:#0F6E56}
+.success-wrap h2{font-size:20px;color:var(--text);margin-bottom:6px;font-weight:normal}
+.success-wrap p{font-size:13px;color:var(--sub);margin-bottom:20px}
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
+.filter-chip{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;border:0.5px solid var(--border);background:white;color:var(--sub);flex-shrink:0}
+.filter-chip.active{background:var(--lav);color:white;border-color:var(--lav)}
+.search-wrap{padding:0 0 8px}
+.search-box{display:flex;align-items:center;gap:8px;background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:8px 12px}
+.search-box i{color:var(--lav-pale)}
+.search-box input{border:none;background:transparent;font-size:13px;padding:0}
+.bar-chart{display:flex;align-items:flex-end;gap:5px;height:60px}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bc-fill{border-radius:3px 3px 0 0;width:100%}
+.bc-lbl{font-size:9px;color:var(--sub)}
+.bc-num{font-size:9px;color:var(--text);font-weight:500}
+.pac-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:36px}
+.pac-chip{display:flex;align-items:center;gap:5px;background:var(--lav-light);border:1px solid var(--lav-pale);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--lav);cursor:pointer}
+.pac-chip .x{color:var(--lav);font-weight:bold;margin-left:2px}
+.login-screen{position:fixed;inset:0;background:var(--lav-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;padding:40px 24px}
+.login-logo{width:80px;height:80px;background:var(--lav);border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+.login-logo i{font-size:36px;color:white}
+.login-title{font-size:24px;color:var(--text);text-align:center;margin-bottom:8px}
+.login-sub{font-size:13px;color:var(--sub);text-align:center;margin-bottom:40px}
+.login-btn-google{display:flex;align-items:center;gap:12px;background:white;border:0.5px solid var(--border);border-radius:12px;padding:14px 24px;font-size:15px;color:var(--text);cursor:pointer;font-family:Georgia,serif;box-shadow:0 2px 8px rgba(83,74,183,0.1)}
+.login-btn-google img{width:20px;height:20px}
+.login-bio-btn{margin-top:16px;background:var(--lav);color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;cursor:pointer;font-family:Georgia,serif;display:flex;align-items:center;gap:10px;width:100%;justify-content:center}
+.login-bio-btn i{font-size:20px}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="login-screen">
+  <div class="login-logo"><i class="fas fa-child"></i></div>
+  <h1 class="login-title">TerapistaApp</h1>
+  <p class="login-sub">Inicia sesi&oacute;n para continuar</p>
+  <button class="login-btn-google" onclick="loginConGoogle()">
+    <img src="https://www.google.com/favicon.ico" />
+    Continuar con Google
+  </button>
+  <button class="login-bio-btn" id="bio-btn" style="display:none" onclick="loginConBiometrico()">
+    <i class="fas fa-fingerprint"></i> Usar huella / Face ID
+  </button>
+</div>
+
+<div id="app">
+  <aside class="desktop-sidebar">
+    <div class="sidebar-logo">
+      <h2>Appointment Scheduling</h2>
+      <p>Speech Therapist</p>
+    </div>
+    <div class="sidebar-nav">
+      <button class="sidebar-item" onclick="navTo('registro')"><i class="fas fa-clipboard-list"></i><span>Registro</span></button>
+      <button class="sidebar-item active" onclick="navTo('hoy')"><i class="fas fa-calendar-day"></i><span>Hoy</span></button>
+      <button class="sidebar-item" onclick="navTo('plan')"><i class="fas fa-tasks"></i><span>Semana</span></button>
+      <button class="sidebar-item" onclick="navTo('mes')"><i class="fas fa-calendar-alt"></i><span>Mes</span></button>
+      <button class="sidebar-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Ni&ntilde;os</span></button>
+      <button class="sidebar-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
+      <button class="sidebar-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar-xs">SS</div>
+        <div><div class="u-name" id="sidebar-username">Stacy Saavedra</div><div class="u-role">Speech Therapist</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="desktop-main">
+    <div class="app-header" id="main-header"></div>
+    <div class="screens-wrap">
+      <div class="screen active" id="screen-hoy"></div>
+      <div class="screen" id="screen-registro">
+        <div class="steps" id="reg-steps">
+          <div class="step-dot active" id="rdot1"></div>
+          <div class="step-dot" id="rdot2"></div>
+          <div class="step-dot" id="rdot3"></div>
+        </div>
+        <div id="reg-step1">
+          <div class="field-lbl">Paciente(s)</div>
+          <select id="reg-paciente" onchange="onRegPaciente()"><option value="">&#8212; Elige un ni&ntilde;o &#8212;</option></select>
+          <div class="pac-chips" id="reg-pac-chips"></div>
+          <div class="p-preview" id="reg-preview">
+            <div class="p-preview-name" id="rp-name"></div>
+            <div class="info-row"><span class="k">Lugar</span><span class="v" id="rp-lugar"></span></div>
+            <div class="info-row"><span class="k">Duraci&oacute;n</span><span class="v" id="rp-dur"></span></div>
+            <div class="info-row"><span class="k">Sesiones restantes</span><span class="v" id="rp-sessions"></span></div>
+            <div style="margin-top:8px"><div class="bar-bg"><div class="bar-fill" id="rp-bar"></div></div></div>
+          </div>
+          <div class="field-lbl" id="type-lbl" style="display:none;margin-top:14px">Tipo de sesi&oacute;n</div>
+          <div class="type-grid" id="type-grid" style="display:none">
+            <div class="type-opt sel-normal" id="topt-normal" onclick="selectTipo('normal')"><div class="t-icon">&#128203;</div><div class="t-lbl">Normal</div><div class="t-sub">Sesi&oacute;n regular</div></div>
+            <div class="type-opt" id="topt-recovery" onclick="selectTipo('recovery')"><div class="t-icon">&#128260;</div><div class="t-lbl">Recuperaci&oacute;n</div><div class="t-sub">Sesi&oacute;n cancelada anterior</div></div>
+            <div class="type-opt" id="topt-cancel" onclick="selectTipo('cancel')" style="grid-column:span 2"><div class="t-icon">&#10060;</div><div class="t-lbl">Cancelada</div><div class="t-sub">El ni&ntilde;o no asisti&oacute;</div></div>
+          </div>
+          <div id="recovery-note" style="display:none;background:var(--mint-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:#0F6E56">&#128260; Esta sesi&oacute;n se contar&aacute; como recuperaci&oacute;n de una cancelada anterior.</div>
+          <div id="cancel-note" style="display:none;background:var(--red-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--red)">&#10060; Esta sesi&oacute;n se registrar&aacute; como cancelada &#8212; no contar&aacute; como atenci&oacute;n realizada.</div>
+          <button class="btn-primary" onclick="regGoStep(2)">Continuar &rarr;</button>
+        </div>
+        <div id="reg-step2" style="display:none">
+          <div class="field-lbl">Fecha</div><input type="date" id="reg-fecha" />
+          <div class="field-lbl">Horario</div>
+          <div class="two-col">
+            <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Inicio</div><input type="time" id="reg-inicio" value="08:00" oninput="autoFin()" /></div>
+            <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Fin</div><input type="time" id="reg-fin" value="08:30" /></div>
+          </div>
+          <div class="field-lbl">Lugar de atenci&oacute;n</div>
+          <div class="readonly-field" id="reg-lugar-show"></div>
+          <div style="font-size:11px;color:var(--sub);margin-top:4px">Autocompletado desde el perfil del paciente</div>
+          <button class="btn-primary" onclick="regGoStep(3)">Continuar &rarr;</button>
+          <button class="btn-secondary" onclick="regGoStep(1)">&larr; Atr&aacute;s</button>
+        </div>
+        <div id="reg-step3" style="display:none">
+          <div class="field-lbl">Notas de la sesi&oacute;n (opcional)</div>
+          <textarea id="reg-notas" placeholder="Describe brevemente lo que ocurri&oacute;..."></textarea>
+          <div class="summary-block">
+            <div class="lbl">Resumen</div>
+            <div class="info-row"><span class="k">Paciente(s)</span><span class="v" id="sum-pac">&#8212;</span></div>
+            <div class="info-row"><span class="k">Tipo</span><span class="v" id="sum-tipo">&#8212;</span></div>
+            <div class="info-row"><span class="k">Fecha</span><span class="v" id="sum-fecha">&#8212;</span></div>
+            <div class="info-row"><span class="k">Horario</span><span class="v" id="sum-hora">&#8212;</span></div>
+            <div class="info-row"><span class="k">Lugar</span><span class="v" id="sum-lugar">&#8212;</span></div>
+          </div>
+          <button class="btn-primary" onclick="guardarSesion()">&#128190; Guardar sesi&oacute;n</button>
+          <button class="btn-secondary" onclick="regGoStep(2)">&larr; Atr&aacute;s</button>
+        </div>
+        <div id="reg-success" style="display:none">
+          <div class="success-wrap">
+            <div class="success-icon"><i class="fas fa-check"></i></div>
+            <h2>Sesi&oacute;n registrada</h2>
+            <p id="reg-success-msg"></p>
+            <button class="btn-primary" style="margin-top:0" onclick="resetRegistro()">Registrar otra sesi&oacute;n</button>
+            <button class="btn-secondary" onclick="navTo('hoy')">Ver agenda de hoy</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen" id="screen-plan">
+        <div class="section-lbl" style="margin-top:4px">Semana de trabajo</div>
+        <p style="font-size:11px;color:var(--sub);margin-bottom:12px">Borrador de organizaci&oacute;n &#8212; no registra sesiones reales</p>
+        <div id="plan-dias"></div>
+        <button class="btn-green" onclick="guardarPlan()" style="margin-top:8px"><i class="fas fa-save"></i> Guardar planificaci&oacute;n</button>
+        <button class="btn-outline" onclick="limpiarPlan()"><i class="fas fa-trash"></i> Limpiar semana</button>
+      </div>
+      <div class="screen" id="screen-mes"></div>
+      <div class="screen" id="screen-ninos">
+        <div class="search-wrap"><div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Buscar por nombre..." oninput="filtrarNinos(this.value)" /></div></div>
+        <div class="filter-row">
+          <div class="filter-chip active" onclick="setFiltroNinos('todos',this)">Todos</div>
+          <div class="filter-chip" onclick="setFiltroNinos('ok',this)">&#10003; Al d&iacute;a</div>
+          <div class="filter-chip" onclick="setFiltroNinos('warn',this)">&#9888; Pocas sesiones</div>
+          <div class="filter-chip" onclick="setFiltroNinos('cancel',this)">&#10060; Con cancelaci&oacute;n</div>
+        </div>
+        <div id="ninos-list"></div>
+      </div>
+      <div class="screen" id="screen-pacientes">
+        <div class="search-wrap"><div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Buscar paciente..." oninput="filtrarPacientes(this.value)" /></div></div>
+        <div id="pacientes-list"></div>
+      </div>
+      <div class="screen" id="screen-reportes">
+        <div class="tabs">
+          <div class="tab active" onclick="setTabReporte('semanal',this)">&#128197; Semanal</div>
+          <div class="tab" onclick="setTabReporte('mensual',this)">&#128467; Mensual</div>
+          <div class="tab" onclick="setTabReporte('paciente',this)">&#128103; Paciente</div>
+          <div class="tab" onclick="setTabReporte('ingresos',this)">&#128176; Ingresos</div>
+        </div>
+        <div id="reporte-semanal"></div>
+        <div id="reporte-mensual" style="display:none"></div>
+        <div id="reporte-ingresos" style="display:none"></div>
+        <div id="reporte-paciente" style="display:none">
+          <div class="field-lbl">Selecciona un paciente</div>
+          <select id="rep-paciente" onchange="renderReportePaciente()"><option value="">&#8212; Elige un ni&ntilde;o &#8212;</option></select>
+          <div id="rep-paciente-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-nino">
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-nino')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title" id="ov-nino-title"></span>
+    </div>
+    <div class="overlay-body" id="ov-nino-body"></div>
+  </div>
+  <div class="overlay" id="ov-pac">
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-pac')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title" id="ov-pac-title">Ficha</span>
+      <button id="ov-pac-edit-btn" style="background:none;border:none;color:var(--lav);cursor:pointer;font-size:13px;margin-left:auto" onclick="abrirFormPaciente()">&#9999; Editar</button>
+    </div>
+    <div class="overlay-body" id="ov-pac-body"></div>
+  </div>
+  <div class="overlay" id="ov-form-pac">
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-form-pac')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title" id="ov-form-pac-title">Nuevo paciente</span>
+    </div>
+    <div class="overlay-body">
+      <div class="field-lbl">Nombre completo</div><input type="text" id="fp-nombre" placeholder="Ej: Mateo Rodr&iacute;guez" />
+      <div class="field-lbl">Fecha de nacimiento</div><input type="date" id="fp-dob" />
+      <div class="field-lbl">Lugar de atenci&oacute;n</div><input type="text" id="fp-lugar" placeholder="Ej: Escuela Las Palmas" autocomplete="off" />
+      <div class="two-col">
+        <div><div class="field-lbl">Contacto</div><input type="text" id="fp-contacto" placeholder="Mam&aacute;/Pap&aacute;" /></div>
+        <div><div class="field-lbl">Tel&eacute;fono</div><input type="tel" id="fp-tel" placeholder="Ej: +1 305 000 0000" /></div>
+      </div>
+      <div class="field-lbl">Total de sesiones asignadas</div><input type="number" id="fp-total" placeholder="Ej: 70" min="1" />
+      <div class="field-lbl">Duraci&oacute;n de cada sesi&oacute;n</div>
+      <div class="dur-grid">
+        <div class="dur-opt sel-30" id="dopt-30" onclick="selectDur(30)"><div class="d-icon">&#9201;</div><div class="d-lbl">30 minutos</div></div>
+        <div class="dur-opt" id="dopt-60" onclick="selectDur(60)"><div class="d-icon">&#128336;</div><div class="d-lbl">1 hora</div></div>
+      </div>
+      <div class="field-lbl">Agencia</div><select id="fp-agencia"></select>
+      <div class="field-lbl">Programa</div><select id="fp-tipo"></select>
+      <div class="field-lbl">Precio por hora ($)</div><input type="number" id="fp-precio" placeholder="Ej: 45" min="0" step="0.50" />
+      <div class="field-lbl">Observaciones</div><textarea id="fp-obs" placeholder="Notas relevantes del paciente..."></textarea>
+      <button class="btn-primary" onclick="guardarPaciente()">&#128190; Guardar paciente</button>
+      <button class="btn-danger" id="fp-delete-btn" style="display:none" onclick="desactivarPaciente()">&#128230; Archivar paciente</button>
+    </div>
+  </div>
+  <div class="overlay" id="ov-edit-sesion">
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-edit-sesion')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title">Editar sesi&oacute;n</span>
+    </div>
+    <div class="overlay-body">
+      <input type="hidden" id="edit-ses-id" />
+      <div class="field-lbl">Paciente</div><div class="readonly-field" id="edit-ses-pac">&#8212;</div>
+      <div class="field-lbl">Fecha</div><input type="date" id="edit-ses-fecha" />
+      <div class="field-lbl">Horario</div>
+      <div class="two-col">
+        <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Inicio</div><input type="time" id="edit-ses-inicio" /></div>
+        <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Fin</div><input type="time" id="edit-ses-fin" /></div>
+      </div>
+      <div class="field-lbl">Tipo</div>
+      <select id="edit-ses-tipo">
+        <option value="Normal">&#128203; Normal</option>
+        <option value="Recuperacion">&#128260; Recuperaci&oacute;n</option>
+        <option value="Cancelada">&#10060; Cancelada</option>
+      </select>
+      <div class="field-lbl">Notas</div>
+      <textarea id="edit-ses-notas" placeholder="Notas de la sesi&oacute;n..."></textarea>
+      <button class="btn-primary" onclick="guardarEdicionSesion()">&#128190; Guardar cambios</button>
+      <button class="btn-danger" onclick="eliminarSesion()" style="margin-top:6px">&#128465; Eliminar sesi&oacute;n</button>
+    </div>
+  </div>
+  <div class="overlay" id="ov-agencias">
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-agencias')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title">Agencias</span>
+    </div>
+    <div class="overlay-body">
+      <div class="field-lbl">Nueva agencia</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="nueva-agencia-input" placeholder="Nombre de la agencia" style="flex:1" />
+        <button onclick="agregarAgencia()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
+      </div>
+      <div class="section-lbl" style="margin-top:14px">Agencias registradas</div>
+      <div id="agencias-list"></div>
+    </div>
+  </div>
+  <div class="overlay" id="ov-programas">
+    <div class="overlay-header">
+      <button class="back-btn" onclick="closeOv('ov-programas')"><i class="fas fa-chevron-left"></i></button>
+      <span class="overlay-title">Programas</span>
+    </div>
+    <div class="overlay-body">
+      <div class="field-lbl">Nuevo programa</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="nuevo-programa-input" placeholder="Nombre del programa" style="flex:1" />
+        <button onclick="agregarPrograma()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
+      </div>
+      <div class="section-lbl" style="margin-top:14px">Programas registrados</div>
+      <div id="programas-list"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="navTo('registro')"><i class="fas fa-clipboard-list"></i><span>Registro</span></button>
+    <button class="nav-item active" onclick="navTo('hoy')"><i class="fas fa-calendar-day"></i><span>Hoy</span></button>
+    <button class="nav-item" onclick="navTo('plan')"><i class="fas fa-tasks"></i><span>Semana</span></button>
+    <button class="nav-item" onclick="navTo('mes')"><i class="fas fa-calendar-alt"></i><span>Mes</span></button>
+    <button class="nav-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Ni&ntilde;os</span></button>
+    <button class="nav-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
+    <button class="nav-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div>
 
 <script>
+
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
 const API_URL = "https://script.google.com/macros/s/AKfycbzBcqp0mU6UvxhbrTG51OJQSeGT3sPROrmRsK-bCfTpE5f7ARwTdhaPkPeERgnzp4MGJw/exec";
 
@@ -1622,6 +2107,7 @@ async function cambiarTerapista() {
   showToast('\ud83d\udd04 Cargando datos...');
   await init();
 }
+
 </script>
 </body>
 </html>
