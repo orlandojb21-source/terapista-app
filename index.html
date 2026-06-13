@@ -1,593 +1,3 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="AppointmentApp">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzUzNEFCNyIvPgogIDxyZWN0IHg9IjgwIiB5PSIxMjAiIHdpZHRoPSIzNTIiIGhlaWdodD0iMzAwIiByeD0iMjQiIGZpbGw9IiNFRUVERkUiLz4KICA8dGV4dCB4PSIyNTYiIHk9IjI4MCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTQwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzUzNEFCNyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QVM8L3RleHQ+Cjwvc3ZnPgo=">
-<title>Appointment Scheduling</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB1LxAZheQWNTyLd6h0WSpKh26H6bDviGA&libraries=places" async defer></script>
-<style>
-:root {
-  --lav:#534AB7;--lav-light:#EEEDFE;--lav-deep:#3C3489;--lav-mid:#7F77DD;
-  --lav-pale:#AFA9EC;--lav-bg:#e8e3ff;--mint:#1D9E75;--mint-light:#E1F5EE;
-  --pink:#D4537E;--amber:#BA7517;--amber-light:#FAEEDA;--red-light:#FAECE7;
-  --red:#993C1D;--app-bg:#f8f6ff;--white:#ffffff;--border:#AFA9EC;
-  --text:#3C3489;--sub:#7F77DD;--radius:14px;--radius-sm:10px;
-  --sidebar-w:220px;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:Georgia,serif;background:var(--app-bg)}
-
-/* ── MOBILE LAYOUT ── */
-body{display:flex;justify-content:center;align-items:center;overflow:hidden}
-#app{width:100%;max-width:430px;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--app-bg)}
-.app-header{background:var(--lav-bg);padding:44px 18px 10px;flex-shrink:0;position:sticky;top:0;z-index:100}
-.screen{display:none;padding:12px 14px 120px}
-.desktop-main{display:flex;flex-direction:column;flex:1;overflow:hidden}
-.screens-wrap{flex:1;overflow-y:auto}
-.screen.active{display:block}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:0.5px solid var(--border);display:flex;padding:8px 4px 20px;flex-shrink:0;z-index:100}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 2px;border-radius:10px;border:none;background:none}
-.nav-item.active{background:var(--lav-light)}
-.nav-item i{font-size:18px;color:var(--lav-pale)}
-.nav-item.active i{color:var(--lav)}
-.nav-item span{font-size:9px;color:var(--lav-pale);font-weight:500}
-.nav-item.active span{color:var(--lav)}
-.desktop-sidebar{display:none}
-
-/* ── DESKTOP LAYOUT ── */
-@media(min-width:768px){
-  body{overflow:auto;align-items:flex-start}
-  #app{max-width:100%;height:100vh;flex-direction:row;overflow:hidden}
-
-  /* Sidebar */
-  .desktop-sidebar{
-    display:flex;flex-direction:column;
-    width:var(--sidebar-w);min-width:var(--sidebar-w);
-    height:100vh;background:white;
-    border-right:0.5px solid var(--border);
-    flex-shrink:0;overflow:hidden;
-  }
-  .sidebar-logo{
-    background:var(--lav-bg);padding:28px 20px 20px;
-    border-bottom:0.5px solid var(--border);flex-shrink:0;
-  }
-  .sidebar-logo h2{font-size:14px;color:var(--text);font-weight:500;margin-bottom:2px}
-  .sidebar-logo p{font-size:11px;color:var(--sub)}
-  .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
-  .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;border:none;background:none;width:100%;text-align:left}
-  .sidebar-item i{font-size:16px;color:var(--lav-pale);width:20px;text-align:center;flex-shrink:0}
-  .sidebar-item span{font-size:13px;color:var(--sub);font-weight:500}
-  .sidebar-item.active{background:var(--lav-light)}
-  .sidebar-item.active i{color:var(--lav)}
-  .sidebar-item.active span{color:var(--lav)}
-  .sidebar-item:hover:not(.active){background:var(--app-bg)}
-  .sidebar-footer{padding:14px 10px;border-top:0.5px solid var(--border);flex-shrink:0}
-  .sidebar-user{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--lav-light)}
-  .sidebar-user .avatar-xs{width:30px;height:30px;border-radius:50%;background:var(--lav);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;flex-shrink:0}
-  .sidebar-user .u-name{font-size:12px;color:var(--text);font-weight:500}
-  .sidebar-user .u-role{font-size:10px;color:var(--sub)}
-
-  /* Main area */
-  .desktop-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-  .app-header{padding:20px 28px 16px;flex-shrink:0;position:relative}
-  .screens-wrap{flex:1;overflow-y:auto;padding:20px 28px 40px}
-  .screen{padding:0}
-  .screen.active{display:block}
-
-  /* Hide mobile nav */
-  .bottom-nav{display:none}
-
-  /* Calendario desktop */
-  .cal-grid{max-width:600px}
-  .weekdays{max-width:600px}
-  .cal-day{max-width:85px}
-
-  /* Wider cards on desktop */
-  .card-grid{grid-template-columns:repeat(4,1fr)}
-  .two-col{grid-template-columns:1fr 1fr}
-  .type-grid{grid-template-columns:1fr 1fr 1fr}
-  .stats-3{grid-template-columns:1fr 1fr 1fr}
-
-  /* Overlay adapts to desktop */
-  .overlay{position:fixed;inset:0;z-index:200}
-  .overlay.show{display:flex}
-  .overlay-header{padding:24px 24px 16px}
-  .overlay-body{padding:20px 24px 40px}
-}
-
-/* ── SHARED STYLES ── */
-.card{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:12px 14px;margin-bottom:8px}
-.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.stat-card{background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:10px 12px;text-align:center}
-.stat-card .num{font-size:24px;color:var(--text)}
-.stat-card .lbl{font-size:10px;color:var(--sub);margin-top:2px}
-.section-lbl{font-size:10px;font-weight:bold;color:var(--sub);text-transform:uppercase;letter-spacing:0.6px;margin:12px 0 6px}
-.section-lbl:first-child{margin-top:0}
-.alert-card{background:var(--amber-light);border-radius:var(--radius-sm);border:0.5px solid #FAC775;padding:10px 12px;display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;color:#633806}
-.session-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--lav-light)}
-.session-item:last-child{border-bottom:none;padding-bottom:0}
-.s-time{font-size:11px;color:var(--sub);min-width:40px;font-weight:500}
-.s-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.s-info{flex:1}
-.s-name{font-size:13px;color:var(--text);font-weight:500}
-.s-sub{font-size:11px;color:var(--sub);margin-top:1px}
-.chip{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
-.chip-done{background:var(--mint-light);color:#0F6E56}
-.chip-cancel{background:var(--red-light);color:var(--red)}
-.chip-recovery{background:var(--mint-light);color:#0F6E56;border:1px solid #7DCFB0}
-.chip-next{background:var(--lav-light);color:var(--lav)}
-.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;flex-shrink:0}
-.avatar-sm{width:36px;height:36px;font-size:13px}
-.avatar-lg{width:56px;height:56px;font-size:20px;margin:0 auto 8px}
-.patient-row{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer}
-.p-info{flex:1;min-width:0}
-.p-name{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.p-sub{font-size:11px;color:var(--sub);margin-top:1px}
-.dur-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;display:inline-block;margin-top:2px}
-.dur-30{background:#E8F4FD;color:#1A6FA3}
-.dur-60{background:var(--lav-light);color:var(--lav)}
-.p-sessions{text-align:right;flex-shrink:0}
-.p-sessions .num{font-size:13px;color:var(--text);font-weight:500}
-.p-sessions .lbl{font-size:10px;color:var(--sub)}
-.bar-bg{height:6px;background:var(--lav-light);border-radius:3px;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;background:var(--mint)}
-.bar-fill.warn{background:var(--amber)}
-.bar-fill.alert{background:var(--pink)}
-.info-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--lav-light)}
-.info-row:last-child{border-bottom:none}
-.info-row .k{color:var(--sub)}
-.info-row .v{color:var(--text);font-weight:500}
-.field-lbl{font-size:12px;color:var(--sub);font-weight:500;margin-bottom:5px;margin-top:12px}
-.field-lbl:first-child{margin-top:0}
-input,select,textarea{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:white;font-size:13px;color:var(--text);font-family:Georgia,serif;appearance:none;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--lav)}
-textarea{resize:none;height:75px;line-height:1.5}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.readonly-field{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:var(--lav-light);font-size:13px;color:var(--text);font-family:Georgia,serif}
-.btn-primary{width:100%;padding:13px;border-radius:var(--radius);background:var(--lav);color:white;font-size:14px;border:none;cursor:pointer;font-family:Georgia,serif;margin-top:12px}
-.btn-secondary{width:100%;padding:11px;border-radius:var(--radius);background:white;color:var(--lav);font-size:14px;border:0.5px solid var(--border);cursor:pointer;font-family:Georgia,serif;margin-top:6px}
-.btn-danger{width:100%;padding:11px;border-radius:var(--radius);background:white;color:var(--red);font-size:13px;border:0.5px solid #E8A598;cursor:pointer;font-family:Georgia,serif;margin-top:6px}
-.btn-green{width:100%;padding:12px;border-radius:var(--radius);background:var(--mint);color:white;font-size:13px;border:none;cursor:pointer;font-family:Georgia,serif;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px}
-.btn-outline{width:100%;padding:11px;border-radius:var(--radius);background:white;color:var(--lav);font-size:13px;border:0.5px solid var(--border);cursor:pointer;font-family:Georgia,serif;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px}
-.month-nav{display:flex;align-items:center;gap:6px}
-.month-nav button{background:white;border:0.5px solid var(--border);border-radius:8px;width:28px;height:28px;cursor:pointer;color:var(--lav);font-size:15px;display:flex;align-items:center;justify-content:center}
-.month-nav span{font-size:12px;font-weight:bold;color:var(--text);min-width:82px;text-align:center}
-.btn-add{background:var(--lav);color:white;border:none;border-radius:20px;padding:7px 14px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:Georgia,serif;white-space:nowrap}
-.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.type-opt{padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer}
-.type-opt.sel-normal{border-color:var(--lav);background:var(--lav-light)}
-.type-opt.sel-recovery{border-color:var(--mint);background:var(--mint-light)}
-.type-opt.sel-cancel{border-color:var(--pink);background:var(--red-light)}
-.type-opt .t-icon{font-size:18px;margin-bottom:4px}
-.type-opt .t-lbl{font-size:12px;color:var(--text);font-weight:500}
-.type-opt .t-sub{font-size:10px;color:var(--sub)}
-.dur-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dur-opt{padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer}
-.dur-opt.sel-30{border-color:#1A6FA3;background:#E8F4FD}
-.dur-opt.sel-60{border-color:var(--lav);background:var(--lav-light)}
-.dur-opt .d-icon{font-size:18px;margin-bottom:4px}
-.dur-opt .d-lbl{font-size:12px;color:var(--text);font-weight:500}
-.dur-opt .d-sub{font-size:10px;color:var(--sub)}
-.steps{display:flex;gap:5px;margin-bottom:14px}
-.step-dot{height:4px;flex:1;border-radius:2px;background:var(--lav-pale)}
-.step-dot.active{background:var(--lav)}
-.step-dot.done{background:var(--mint)}
-.p-preview{background:white;border-radius:var(--radius);border:1.5px solid var(--lav);padding:12px 14px;margin-top:10px;display:none}
-.p-preview.show{display:block}
-.p-preview-name{font-size:14px;color:var(--text);font-weight:500;margin-bottom:8px}
-.overlay{position:fixed;inset:0;background:var(--app-bg);display:none;flex-direction:column;z-index:150;overflow:hidden}
-.overlay.show{display:flex}
-.overlay-header{background:var(--lav-bg);padding:16px 16px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.back-btn{background:white;border:0.5px solid var(--border);border-radius:8px;width:30px;height:30px;cursor:pointer;color:var(--lav);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.overlay-title{font-size:16px;color:var(--text);flex:1}
-.overlay-body{flex:1;overflow-y:auto;padding:14px 14px 80px}
-.weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
-.weekdays span{text-align:center;font-size:10px;color:var(--sub);padding:3px 0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative}
-.cal-day .dn{font-size:12px;color:var(--text);font-weight:500}
-.cal-day.today{background:var(--lav)}
-.cal-day.today .dn{color:white}
-.cal-day.selected{background:var(--lav-light)}
-.cal-day.has-cancel{background:var(--red-light)}
-.cal-day.has-cancel .dn{color:var(--red)}
-.cal-day.has-libre{background:var(--amber-light)}
-.cal-day.has-libre .dn{color:var(--amber)}
-.cal-dots{display:flex;gap:2px;margin-top:1px}
-.cal-dot{width:4px;height:4px;border-radius:50%}
-.tabs{display:flex;gap:6px;margin-bottom:10px}
-.tab{flex:1;padding:7px 4px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;text-align:center;cursor:pointer;border:0.5px solid var(--border);background:white;color:var(--sub)}
-.tab.active{background:var(--lav);color:white;border-color:var(--lav)}
-.week-nav{display:flex;align-items:center;justify-content:space-between;background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:8px 12px;margin-bottom:10px}
-.week-nav button{background:none;border:none;color:var(--lav);font-size:16px;cursor:pointer}
-.week-nav span{font-size:12px;color:var(--text);font-weight:500}
-.summary-block{background:white;border-radius:var(--radius);border:0.5px solid var(--border);padding:12px 14px;margin-top:12px}
-.summary-block .lbl{font-size:11px;color:var(--sub);font-weight:500;margin-bottom:8px}
-.stats-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;margin-bottom:10px}
-.stats-3 .n{font-size:22px;color:var(--text)}
-.stats-3 .l{font-size:10px;color:var(--sub)}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--lav-deep);color:white;padding:10px 20px;border-radius:20px;font-size:12px;white-space:nowrap;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none}
-.toast.show{opacity:1}
-@media(min-width:768px){.toast{bottom:30px}}
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:12px}
-.spinner{width:32px;height:32px;border:3px solid var(--lav-light);border-top-color:var(--lav);border-radius:50%;animation:spin 0.8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:30px;font-size:13px;color:var(--sub)}
-.success-wrap{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center}
-.success-icon{width:68px;height:68px;border-radius:50%;background:var(--mint-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-.success-icon i{font-size:32px;color:#0F6E56}
-.success-wrap h2{font-size:20px;color:var(--text);margin-bottom:6px;font-weight:normal}
-.success-wrap p{font-size:13px;color:var(--sub);margin-bottom:20px}
-.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
-.filter-chip{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;border:0.5px solid var(--border);background:white;color:var(--sub);flex-shrink:0}
-.filter-chip.active{background:var(--lav);color:white;border-color:var(--lav)}
-.search-wrap{padding:0 0 8px}
-.search-box{display:flex;align-items:center;gap:8px;background:white;border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:8px 12px}
-.search-box i{color:var(--lav-pale)}
-.search-box input{border:none;background:transparent;font-size:13px;padding:0}
-.bar-chart{display:flex;align-items:flex-end;gap:5px;height:60px}
-.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
-.bc-fill{border-radius:3px 3px 0 0;width:100%}
-.bc-lbl{font-size:9px;color:var(--sub)}
-.bc-num{font-size:9px;color:var(--text);font-weight:500}
-.pac-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:36px}
-.pac-chip{display:flex;align-items:center;gap:5px;background:var(--lav-light);border:1px solid var(--lav-pale);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--lav);cursor:pointer}
-.pac-chip .x{color:var(--lav);font-weight:bold;margin-left:2px}
-.login-screen{position:fixed;inset:0;background:var(--lav-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;padding:40px 24px}
-.login-logo{width:80px;height:80px;background:var(--lav);border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:24px}
-.login-logo i{font-size:36px;color:white}
-.login-title{font-size:24px;color:var(--text);text-align:center;margin-bottom:8px}
-.login-sub{font-size:13px;color:var(--sub);text-align:center;margin-bottom:40px}
-.login-btn-google{display:flex;align-items:center;gap:12px;background:white;border:0.5px solid var(--border);border-radius:12px;padding:14px 24px;font-size:15px;color:var(--text);cursor:pointer;font-family:Georgia,serif;box-shadow:0 2px 8px rgba(83,74,183,0.1)}
-.login-btn-google img{width:20px;height:20px}
-.login-bio-btn{margin-top:16px;background:var(--lav);color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;cursor:pointer;font-family:Georgia,serif;display:flex;align-items:center;gap:10px;width:100%;justify-content:center}
-.login-bio-btn i{font-size:20px}
-</style>
-</head>
-<body>
-
-<!-- PANTALLA DE LOGIN -->
-<div class="login-screen" id="login-screen">
-  <div class="login-logo"><i class="fas fa-child"></i></div>
-  <h1 class="login-title">TerapistaApp</h1>
-  <p class="login-sub">Inicia sesión para continuar</p>
-  <button class="login-btn-google" onclick="loginConGoogle()">
-    <img src="https://www.google.com/favicon.ico" />
-    Continuar con Google
-  </button>
-  <button class="login-bio-btn" id="bio-btn" style="display:none" onclick="loginConBiometrico()">
-    <i class="fas fa-fingerprint"></i> Usar huella / Face ID
-  </button>
-</div>
-<div id="app">
-  
-  <!-- SIDEBAR DESKTOP -->
-  <aside class="desktop-sidebar">
-    <div class="sidebar-logo">
-      <h2>Appointment Scheduling</h2>
-      <p>Speech Therapist</p>
-    </div>
-    <div class="sidebar-nav">
-      <button class="sidebar-item" onclick="navTo('registro')"><i class="fas fa-clipboard-list"></i><span>Registro</span></button>
-      <button class="sidebar-item active" onclick="navTo('hoy')"><i class="fas fa-calendar-day"></i><span>Hoy</span></button>
-      <button class="sidebar-item" onclick="navTo('plan')"><i class="fas fa-tasks"></i><span>Semana</span></button>
-      <button class="sidebar-item" onclick="navTo('mes')"><i class="fas fa-calendar-alt"></i><span>Mes</span></button>
-      <button class="sidebar-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Niños</span></button>
-      <button class="sidebar-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
-      <button class="sidebar-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
-    </div>
-    <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="avatar-xs">SS</div>
-        <div><div class="u-name" id="sidebar-username">Stacy Saavedra</div><div class="u-role">Speech Therapist</div></div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN DESKTOP WRAPPER -->
-  <div class="desktop-main">
-
-    <div class="app-header" id="main-header"></div>
-
-    <div class="screens-wrap">
-
-      <!-- HOY -->
-      <div class="screen active" id="screen-hoy"></div>
-
-      <!-- REGISTRO -->
-      <div class="screen" id="screen-registro">
-        <div class="steps" id="reg-steps">
-          <div class="step-dot active" id="rdot1"></div>
-          <div class="step-dot" id="rdot2"></div>
-          <div class="step-dot" id="rdot3"></div>
-        </div>
-        <div id="reg-step1">
-          <div class="field-lbl">Paciente(s)</div>
-          <select id="reg-paciente" onchange="onRegPaciente()">
-            <option value="">— Elige un niño —</option>
-          </select>
-          <div class="pac-chips" id="reg-pac-chips"></div>
-          <div class="p-preview" id="reg-preview">
-            <div class="p-preview-name" id="rp-name"></div>
-            <div class="info-row"><span class="k">Lugar</span><span class="v" id="rp-lugar"></span></div>
-            <div class="info-row"><span class="k">Duración</span><span class="v" id="rp-dur"></span></div>
-            <div class="info-row"><span class="k">Sesiones restantes</span><span class="v" id="rp-sessions"></span></div>
-            <div style="margin-top:8px"><div class="bar-bg"><div class="bar-fill" id="rp-bar"></div></div></div>
-          </div>
-          <div class="field-lbl" id="type-lbl" style="display:none;margin-top:14px">Tipo de sesión</div>
-          <div class="type-grid" id="type-grid" style="display:none">
-            <div class="type-opt sel-normal" id="topt-normal" onclick="selectTipo('normal')">
-              <div class="t-icon">📋</div><div class="t-lbl">Normal</div><div class="t-sub">Sesión regular</div>
-            </div>
-            <div class="type-opt" id="topt-recovery" onclick="selectTipo('recovery')">
-              <div class="t-icon">🔄</div><div class="t-lbl">Recuperación</div><div class="t-sub">Sesión cancelada anterior</div>
-            </div>
-            <div class="type-opt" id="topt-cancel" onclick="selectTipo('cancel')" style="grid-column:span 2">
-              <div class="t-icon">❌</div><div class="t-lbl">Cancelada</div><div class="t-sub">El niño no asistió</div>
-            </div>
-          </div>
-          <div id="recovery-note" style="display:none;background:var(--mint-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:#0F6E56">
-            🔄 Esta sesión se contará como recuperación de una cancelada anterior.
-          </div>
-          <div id="cancel-note" style="display:none;background:var(--red-light);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--red)">
-            ❌ Esta sesión se registrará como cancelada — no contará como atención realizada.
-          </div>
-          <button class="btn-primary" onclick="regGoStep(2)">Continuar →</button>
-        </div>
-        <div id="reg-step2" style="display:none">
-          <div class="field-lbl">Fecha</div>
-          <input type="date" id="reg-fecha" />
-          <div class="field-lbl">Horario</div>
-          <div class="two-col">
-            <div>
-              <div style="font-size:11px;color:var(--sub);margin-bottom:4px">Inicio</div>
-              <input type="time" id="reg-inicio" value="08:00" oninput="autoFin()" />
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--sub);margin-bottom:4px">Fin</div>
-              <input type="time" id="reg-fin" value="08:30" />
-            </div>
-          </div>
-          <div class="field-lbl">Lugar de atención</div>
-          <div class="readonly-field" id="reg-lugar-show"></div>
-          <div style="font-size:11px;color:var(--sub);margin-top:4px">Autocompletado desde el perfil del paciente</div>
-          <button class="btn-primary" onclick="regGoStep(3)">Continuar →</button>
-          <button class="btn-secondary" onclick="regGoStep(1)">← Atrás</button>
-        </div>
-        <div id="reg-step3" style="display:none">
-          <div class="field-lbl">Notas de la sesión (opcional)</div>
-          <textarea id="reg-notas" placeholder="Describe brevemente lo que ocurrió..."></textarea>
-          <div class="summary-block">
-            <div class="lbl">Resumen</div>
-            <div class="info-row"><span class="k">Paciente(s)</span><span class="v" id="sum-pac">—</span></div>
-            <div class="info-row"><span class="k">Tipo</span><span class="v" id="sum-tipo">—</span></div>
-            <div class="info-row"><span class="k">Fecha</span><span class="v" id="sum-fecha">—</span></div>
-            <div class="info-row"><span class="k">Horario</span><span class="v" id="sum-hora">—</span></div>
-            <div class="info-row"><span class="k">Lugar</span><span class="v" id="sum-lugar">—</span></div>
-          </div>
-          <button class="btn-primary" onclick="guardarSesion()">💾 Guardar sesión</button>
-          <button class="btn-secondary" onclick="regGoStep(2)">← Atrás</button>
-        </div>
-        <div id="reg-success" style="display:none">
-          <div class="success-wrap">
-            <div class="success-icon"><i class="fas fa-check"></i></div>
-            <h2>Sesión registrada</h2>
-            <p id="reg-success-msg"></p>
-            <button class="btn-primary" style="margin-top:0" onclick="resetRegistro()">Registrar otra sesión</button>
-            <button class="btn-secondary" onclick="navTo('hoy')">Ver agenda de hoy</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- PLANIFICACION -->
-      <div class="screen" id="screen-plan">
-        <div class="section-lbl" style="margin-top:4px">Semana de trabajo</div>
-        <p style="font-size:11px;color:var(--sub);margin-bottom:12px">Borrador de organización — no registra sesiones reales</p>
-        <div id="plan-dias"></div>
-        <button class="btn-green" onclick="guardarPlan()" style="margin-top:8px">
-          <i class="fas fa-save"></i> Guardar planificación
-        </button>
-        <button class="btn-outline" onclick="limpiarPlan()">
-          <i class="fas fa-trash"></i> Limpiar semana
-        </button>
-      </div>
-
-      <!-- MES -->
-      <div class="screen" id="screen-mes"></div>
-
-      <!-- NINOS -->
-      <div class="screen" id="screen-ninos">
-        <div class="search-wrap">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Buscar por nombre..." oninput="filtrarNinos(this.value)" />
-          </div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-chip active" onclick="setFiltroNinos('todos',this)">Todos</div>
-          <div class="filter-chip" onclick="setFiltroNinos('ok',this)">✅ Al día</div>
-          <div class="filter-chip" onclick="setFiltroNinos('warn',this)">⚠️ Pocas sesiones</div>
-          <div class="filter-chip" onclick="setFiltroNinos('cancel',this)">❌ Con cancelación</div>
-        </div>
-        <div id="ninos-list"></div>
-      </div>
-
-      <!-- PACIENTES BD -->
-      <div class="screen" id="screen-pacientes">
-        <div class="search-wrap">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Buscar paciente..." oninput="filtrarPacientes(this.value)" />
-          </div>
-        </div>
-        <div id="pacientes-list"></div>
-      </div>
-
-      <!-- REPORTES -->
-      <div class="screen" id="screen-reportes">
-        <div class="tabs">
-          <div class="tab active" onclick="setTabReporte('semanal',this)">📅 Semanal</div>
-          <div class="tab" onclick="setTabReporte('mensual',this)">🗓️ Mensual</div>
-          <div class="tab" onclick="setTabReporte('paciente',this)">👧 Paciente</div>
-          <div class="tab" onclick="setTabReporte('ingresos',this)">💰 Ingresos</div>
-        </div>
-        <div id="reporte-semanal"></div>
-        <div id="reporte-mensual" style="display:none"></div>
-        <div id="reporte-ingresos" style="display:none"></div>
-        <div id="reporte-paciente" style="display:none">
-          <div class="field-lbl">Selecciona un paciente</div>
-          <select id="rep-paciente" onchange="renderReportePaciente()">
-            <option value="">— Elige un niño —</option>
-          </select>
-          <div id="rep-paciente-body"></div>
-        </div>
-      </div>
-
-    </div><!-- /screens-wrap -->
-  </div><!-- /desktop-main -->
-
-  <!-- OVERLAYS -->
-  <div class="overlay" id="ov-nino">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-nino')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title" id="ov-nino-title"></span>
-    </div>
-    <div class="overlay-body" id="ov-nino-body"></div>
-  </div>
-
-  <div class="overlay" id="ov-pac">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-pac')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title" id="ov-pac-title">Ficha</span>
-      <button id="ov-pac-edit-btn" style="background:none;border:none;color:var(--lav);cursor:pointer;font-size:13px;margin-left:auto" onclick="abrirFormPaciente()">✏️ Editar</button>
-    </div>
-    <div class="overlay-body" id="ov-pac-body"></div>
-  </div>
-
-  <div class="overlay" id="ov-form-pac">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-form-pac')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title" id="ov-form-pac-title">Nuevo paciente</span>
-    </div>
-    <div class="overlay-body">
-      <div class="field-lbl">Nombre completo</div>
-      <input type="text" id="fp-nombre" placeholder="Ej: Mateo Rodríguez" />
-      <div class="field-lbl">Fecha de nacimiento</div>
-      <input type="date" id="fp-dob" />
-      <div class="field-lbl">Lugar de atención</div>
-      <input type="text" id="fp-lugar" placeholder="Ej: Escuela Las Palmas" autocomplete="off" />
-      <div class="two-col">
-        <div><div class="field-lbl">Contacto</div><input type="text" id="fp-contacto" placeholder="Mamá/Papá" /></div>
-        <div><div class="field-lbl">Teléfono</div><input type="tel" id="fp-tel" placeholder="Ej: +1 305 000 0000" /></div>
-      </div>
-      <div class="field-lbl">Total de sesiones asignadas</div>
-      <input type="number" id="fp-total" placeholder="Ej: 70" min="1" />
-      <div class="field-lbl">Duración de cada sesión</div>
-      <div class="dur-grid">
-        <div class="dur-opt sel-30" id="dopt-30" onclick="selectDur(30)">
-          <div class="d-icon">⏱️</div><div class="d-lbl">30 minutos</div>
-        </div>
-        <div class="dur-opt" id="dopt-60" onclick="selectDur(60)">
-          <div class="d-icon">🕐</div><div class="d-lbl">1 hora</div>
-        </div>
-      </div>
-      <div class="field-lbl">Agencia</div>
-      <select id="fp-agencia"></select>
-      <div class="field-lbl">Programa</div>
-      <select id="fp-tipo"></select>
-      <div class="field-lbl">Precio por hora ($)</div>
-      <input type="number" id="fp-precio" placeholder="Ej: 45" min="0" step="0.50" />
-      <div class="field-lbl">Observaciones</div>
-      <textarea id="fp-obs" placeholder="Notas relevantes del paciente..."></textarea>
-      <button class="btn-primary" onclick="guardarPaciente()">💾 Guardar paciente</button>
-      <button class="btn-danger" id="fp-delete-btn" style="display:none" onclick="desactivarPaciente()">📦 Archivar paciente</button>
-    </div>
-  </div>
-
-  <!-- EDITAR SESIÓN -->
-  <div class="overlay" id="ov-edit-sesion">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-edit-sesion')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title">Editar sesión</span>
-    </div>
-    <div class="overlay-body">
-      <input type="hidden" id="edit-ses-id" />
-      <div class="field-lbl">Paciente</div>
-      <div class="readonly-field" id="edit-ses-pac">—</div>
-      <div class="field-lbl">Fecha</div>
-      <input type="date" id="edit-ses-fecha" />
-      <div class="field-lbl">Horario</div>
-      <div class="two-col">
-        <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Inicio</div><input type="time" id="edit-ses-inicio" /></div>
-        <div><div style="font-size:11px;color:var(--sub);margin-bottom:4px">Fin</div><input type="time" id="edit-ses-fin" /></div>
-      </div>
-      <div class="field-lbl">Tipo</div>
-      <select id="edit-ses-tipo">
-        <option value="Normal">📋 Normal</option>
-        <option value="Recuperacion">🔄 Recuperación</option>
-        <option value="Cancelada">❌ Cancelada</option>
-      </select>
-      <div class="field-lbl">Notas</div>
-      <textarea id="edit-ses-notas" placeholder="Notas de la sesión..."></textarea>
-      <button class="btn-primary" onclick="guardarEdicionSesion()">💾 Guardar cambios</button>
-      <button class="btn-danger" onclick="eliminarSesion()" style="margin-top:6px">🗑️ Eliminar sesión</button>
-    </div>
-  </div>
-
-  <!-- GESTIÓN AGENCIAS -->
-  <div class="overlay" id="ov-agencias">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-agencias')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title">Agencias</span>
-    </div>
-    <div class="overlay-body">
-      <div class="field-lbl">Nueva agencia</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="nueva-agencia-input" placeholder="Nombre de la agencia" style="flex:1" />
-        <button onclick="agregarAgencia()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
-      </div>
-      <div class="section-lbl" style="margin-top:14px">Agencias registradas</div>
-      <div id="agencias-list"></div>
-    </div>
-  </div>
-
-  <!-- GESTIÓN PROGRAMAS -->
-  <div class="overlay" id="ov-programas">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-programas')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title">Programas</span>
-    </div>
-    <div class="overlay-body">
-      <div class="field-lbl">Nuevo programa</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="nuevo-programa-input" placeholder="Nombre del programa" style="flex:1" />
-        <button onclick="agregarPrograma()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
-      </div>
-      <div class="section-lbl" style="margin-top:14px">Programas registrados</div>
-      <div id="programas-list"></div>
-    </div>
-  </div>
-
-  <!-- BOTTOM NAV (mobile only) -->
-  <nav class="bottom-nav">
-    <button class="nav-item" onclick="navTo('registro')"><i class="fas fa-clipboard-list"></i><span>Registro</span></button>
-    <button class="nav-item active" onclick="navTo('hoy')"><i class="fas fa-calendar-day"></i><span>Hoy</span></button>
-    <button class="nav-item" onclick="navTo('plan')"><i class="fas fa-tasks"></i><span>Semana</span></button>
-    <button class="nav-item" onclick="navTo('mes')"><i class="fas fa-calendar-alt"></i><span>Mes</span></button>
-    <button class="nav-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Niños</span></button>
-    <button class="nav-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
-    <button class="nav-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
-  </nav>
-  <div class="toast" id="toast"></div>
-</div>
 
 <script>
 const COLORS = ['#534AB7','#1D9E75','#D4537E','#BA7517','#3B82F6','#7C3AED','#059669','#DC2626'];
@@ -606,17 +16,30 @@ let diasLibres = [];
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
+// ── C5: XSS prevention — escape all Sheet data before innerHTML ──
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = str === null || str === undefined ? '' : String(str);
+  return d.innerHTML;
+}
+
+// ── C1: module-level token vars (not window) ──
+let _idToken = null;
+let _calendarToken = null; // A1 fix: was window._calendarToken
+
 function apiGet(params) {
   const url = new URL(API_URL);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  if (_idToken) url.searchParams.set('idToken', _idToken); // C1
   return fetch(url.toString()).then(r => r.json());
 }
 function apiPost(body) {
   const flat = { action: body.action };
-  if (body.data)   Object.assign(flat, body.data);
-  if (body.id)     flat.id = body.id;
-  if (body.nombre) flat.nombre = body.nombre;
+  if (body.data)     Object.assign(flat, body.data);
+  if (body.id)       flat.id = body.id;
+  if (body.nombre)   flat.nombre = body.nombre;
   if (body.data_str) flat.data = body.data_str;
+  if (_idToken) flat.idToken = _idToken; // C1
   const url = new URL(API_URL);
   Object.entries(flat).forEach(([k,v]) => url.searchParams.set(k, String(v)));
   return fetch(url.toString()).then(r => r.json());
@@ -625,12 +48,7 @@ function apiPost(body) {
 async function init() {
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   updateHeader('hoy');
-  
-  // Determinar email del terapista activo
-  const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) 
-    ? terapistaActiva 
-    : currentUser.email;
-
+  const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) ? terapistaActiva : currentUser.email;
   try {
     const [rPac, rSes, rAg, rPlan, rConf2, rDL] = await Promise.all([
       apiGet({ action:'getPacientes', email: emailTerapista }),
@@ -646,12 +64,10 @@ async function init() {
     if (rPlan.success) planData    = rPlan.data  || {};
     if (rConf2 && rConf2.success) tiposConfig = rConf2.data || [];
     if (rDL && rDL.success) diasLibres = rDL.data || [];
-    populateSelects();
-    populateAgencias();
-    populateProgramas();
-    showToast('✅ Datos cargados');
+    populateSelects(); populateAgencias(); populateProgramas();
+    showToast('\u2705 Datos cargados');
   } catch(e) {
-    showToast('⚠️ Error: ' + e.message);
+    showToast('\u26a0\ufe0f Error: ' + e.message);
     pacientes = []; sesiones = [];
     populateSelects();
   }
@@ -663,16 +79,16 @@ function today() {
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function fmt(s) {
-  if (!s) return '—';
+  if (!s) return '\u2014';
   const [y,m,d] = s.split('-');
   return d+'/'+m+'/'+y;
 }
 function edad(dob) {
-  if (!dob) return '—';
+  if (!dob) return '\u2014';
   const d = new Date(dob), now = new Date();
   let y = now.getFullYear()-d.getFullYear();
   if (now < new Date(now.getFullYear(),d.getMonth(),d.getDate())) y--;
-  return y+' año'+(y!==1?'s':'');
+  return y+' a\u00f1o'+(y!==1?'s':'');
 }
 function initials(n) { return (n||'').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase(); }
 function colorFor(id) {
@@ -689,22 +105,13 @@ function dotColor(tipo) {
 function sesionesRealizadas(pacId) {
   return sesiones.filter(s=>s.PacienteID===pacId&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion')).length;
 }
-function sesionesRestantes(pac) {
-  return Math.max(0, parseInt(pac.TotalSesiones)-sesionesRealizadas(pac.ID));
-}
-function getStatus(pac) {
-  const r = sesionesRestantes(pac);
-  return r<=5?'alert':r<=10?'warn':'ok';
-}
-function hasCancelaciones(pacId) {
-  return sesiones.some(s=>s.PacienteID===pacId&&s.Tipo==='Cancelada');
-}
-function sesionesDelDia(dateStr) {
-  return sesiones.filter(s=>s.Fecha===dateStr).sort((a,b)=>a.HoraInicio.localeCompare(b.HoraInicio));
-}
+function sesionesRestantes(pac) { return Math.max(0, parseInt(pac.TotalSesiones)-sesionesRealizadas(pac.ID)); }
+function getStatus(pac) { const r=sesionesRestantes(pac); return r<=5?'alert':r<=10?'warn':'ok'; }
+function hasCancelaciones(pacId) { return sesiones.some(s=>s.PacienteID===pacId&&s.Tipo==='Cancelada'); }
+function sesionesDelDia(dateStr) { return sesiones.filter(s=>s.Fecha===dateStr).sort((a,b)=>a.HoraInicio.localeCompare(b.HoraInicio)); }
 function chipHTML(tipo) {
   if (tipo==='Normal')       return '<span class="chip chip-done">Realizada</span>';
-  if (tipo==='Recuperacion') return '<span class="chip chip-recovery">🔄 Recuperación</span>';
+  if (tipo==='Recuperacion') return '<span class="chip chip-recovery">\ud83d\udd04 Recuperaci\u00f3n</span>';
   if (tipo==='Cancelada')    return '<span class="chip chip-cancel">Cancelada</span>';
   return '';
 }
@@ -739,14 +146,15 @@ function barChart(datos,colorFn) {
   return '<div class="bar-chart">'+datos.map(d=>`<div class="bc">
     <div class="bc-num">${d.val||''}</div>
     <div class="bc-fill" style="height:${Math.round((d.val/max)*50)+5}px;background:${d.val?colorFn(d):'var(--lav-light)'}"></div>
-    <div class="bc-lbl">${d.lbl}</div></div>`).join('')+'</div>';
+    <div class="bc-lbl">${esc(d.lbl)}</div></div>`).join('')+'</div>';
 }
 
 function populateSelects() {
   const activos = [...pacientes].filter(p=>p.Estado!=='inactivo').sort((a,b)=>(a.Nombre||'').localeCompare(b.Nombre||''));
-  const opts = activos.map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
-  document.getElementById('reg-paciente').innerHTML = '<option value="">— Elige un niño —</option>'+opts;
-  document.getElementById('rep-paciente').innerHTML = '<option value="">— Elige un niño —</option>'+opts;
+  // C5: esc() on IDs and names in option values
+  const opts = activos.map(p=>`<option value="${esc(p.ID)}">${esc(p.Nombre)}</option>`).join('');
+  document.getElementById('reg-paciente').innerHTML = '<option value="">— Elige un ni\u00f1o —</option>'+opts;
+  document.getElementById('rep-paciente').innerHTML = '<option value="">— Elige un ni\u00f1o —</option>'+opts;
 }
 
 function populateAgencias() {
@@ -761,13 +169,12 @@ function populateAgencias() {
     sel.appendChild(opt);
   });
   const opt = document.createElement('option');
-  opt.value='__gestionar__'; opt.textContent='⚙️ Gestionar agencias...';
+  opt.value='__gestionar__'; opt.textContent='\u2699\ufe0f Gestionar agencias...';
   sel.appendChild(opt);
   sel.onchange = function() {
     if (this.value==='__gestionar__') { this.value=current; abrirGestionAgencias(); }
   };
 }
-
 function populateProgramas() {
   const sel = document.getElementById('fp-tipo');
   if (!sel) return;
@@ -780,7 +187,7 @@ function populateProgramas() {
     sel.appendChild(opt);
   });
   const opt = document.createElement('option');
-  opt.value = '__gestionar__'; opt.textContent = '⚙️ Gestionar programas...';
+  opt.value = '__gestionar__'; opt.textContent = '\u2699\ufe0f Gestionar programas...';
   sel.appendChild(opt);
   sel.onchange = function() {
     if (this.value === '__gestionar__') { this.value = current; abrirGestionProgramas(); }
@@ -791,30 +198,31 @@ function abrirGestionProgramas() { renderProgramasList(); openOv('ov-programas')
 function renderProgramasList() {
   const el = document.getElementById('programas-list');
   if (!tiposConfig.length) { el.innerHTML = '<div class="empty">No hay programas registrados</div>'; return; }
+  // C5: esc() on program names
   el.innerHTML = tiposConfig.map(t => `<div class="patient-row" style="padding:10px 14px">
-    <div class="p-info"><div class="p-name">${t}</div></div>
-    <button onclick="eliminarPrograma('${t}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">🗑️</button>
+    <div class="p-info"><div class="p-name">${esc(t)}</div></div>
+    <button onclick="eliminarPrograma('${esc(t)}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">\ud83d\uddd1\ufe0f</button>
   </div>`).join('');
 }
 async function agregarPrograma() {
   const input = document.getElementById('nuevo-programa-input');
   const nombre = input.value.trim();
-  if (!nombre) { showToast('⚠️ Escribe el nombre'); return; }
-  if (tiposConfig.includes(nombre)) { showToast('⚠️ Ya existe'); return; }
+  if (!nombre) { showToast('\u26a0\ufe0f Escribe el nombre'); return; }
+  if (tiposConfig.includes(nombre)) { showToast('\u26a0\ufe0f Ya existe'); return; }
   showToast('Guardando...');
   try {
     await apiGet({ action: 'agregarPrograma', nombre });
     tiposConfig.push(nombre); input.value = '';
-    renderProgramasList(); populateProgramas(); showToast('✅ Programa agregado');
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
+    renderProgramasList(); populateProgramas(); showToast('\u2705 Programa agregado');
+  } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
 }
 async function eliminarPrograma(nombre) {
   showToast('Eliminando...');
   try {
     await apiGet({ action: 'eliminarPrograma', nombre });
     tiposConfig = tiposConfig.filter(t => t !== nombre);
-    renderProgramasList(); populateProgramas(); showToast('✅ Programa eliminado');
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
+    renderProgramasList(); populateProgramas(); showToast('\u2705 Programa eliminado');
+  } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
 }
 
 const SCREENS = {hoy:'screen-hoy',registro:'screen-registro',plan:'screen-plan',mes:'screen-mes',ninos:'screen-ninos',pacientes:'screen-pacientes',reportes:'screen-reportes'};
@@ -823,9 +231,7 @@ const NAV_ORDER = ['registro','hoy','plan','mes','ninos','pacientes','reportes']
 function navTo(screen) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(SCREENS[screen]).classList.add('active');
-  // Mobile nav
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',NAV_ORDER[i]===screen));
-  // Desktop sidebar
   document.querySelectorAll('.sidebar-item').forEach((b,i)=>b.classList.toggle('active',NAV_ORDER[i]===screen));
   currentScreen = screen;
   updateHeader(screen);
@@ -842,42 +248,41 @@ function updateHeader(screen) {
   const el = document.getElementById('main-header');
   if (!el) return;
   const now = new Date();
-  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const dias = ['Domingo','Lunes','Martes','Mi\u00e9rcoles','Jueves','Viernes','S\u00e1bado'];
   if (screen==='hoy') {
     el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between">
       <div>
-        <p style="font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">${dias[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]} ${now.getFullYear()}</p>
+        <p style="font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">${esc(dias[now.getDay()])}, ${now.getDate()} de ${esc(MESES[now.getMonth()])} ${now.getFullYear()}</p>
         <h1 style="font-size:17px;color:var(--text);font-weight:500;margin-top:2px">Appointment Scheduling</h1>
         <p style="font-size:12px;color:var(--sub);margin-top:1px">Speech Therapist</p>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-        <span style="font-size:14px;font-weight:500;color:var(--lav)">${currentUser?currentUser.name:'Stacy Saavedra'}</span>
-        <button onclick="recargarManual()" style="background:var(--lav-light);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--lav);display:flex;align-items:center;justify-content:center">↻</button>
+        <span style="font-size:14px;font-weight:500;color:var(--lav)">${esc(currentUser?currentUser.name:'Stacy Saavedra')}</span>
+        <button onclick="recargarManual()" style="background:var(--lav-light);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--lav);display:flex;align-items:center;justify-content:center">\u21bb</button>
       </div></div>`;
   } else if (screen==='mes') {
     el.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
       <h1 style="font-size:18px;color:var(--text);flex:1">Calendario</h1>
       <div class="month-nav">
-        <button onclick="changeCalMonth(-1)">‹</button>
-        <span id="cal-month-lbl">${MESES[calMonth]} ${calYear}</span>
-        <button onclick="changeCalMonth(1)">›</button>
+        <button onclick="changeCalMonth(-1)">\u2039</button>
+        <span id="cal-month-lbl">${esc(MESES[calMonth])} ${calYear}</span>
+        <button onclick="changeCalMonth(1)">\u203a</button>
       </div></div>`;
   } else if (screen==='pacientes') {
     el.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
       <h1 style="font-size:18px;color:var(--text);flex:1">Pacientes</h1>
-      <button class="btn-add" onclick="abrirNuevoPaciente()"><i class="fas fa-plus"></i> Nuevo</button>
-      </div>`;
+      <button class="btn-add" onclick="abrirNuevoPaciente()"><i class="fas fa-plus"></i> Nuevo</button></div>`;
   } else if (screen==='reportes') {
     el.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
       <h1 style="font-size:18px;color:var(--text);flex:1">Reportes</h1>
       <div class="month-nav">
-        <button onclick="changeRepMonth(-1)">‹</button>
-        <span id="rep-month-lbl">${MESES[repMonth]} ${repYear}</span>
-        <button onclick="changeRepMonth(1)">›</button>
+        <button onclick="changeRepMonth(-1)">\u2039</button>
+        <span id="rep-month-lbl">${esc(MESES[repMonth])} ${repYear}</span>
+        <button onclick="changeRepMonth(1)">\u203a</button>
       </div></div>`;
   } else {
-    const labels = {registro:'Registrar sesión',plan:'Planificación semanal',ninos:'Niños activos'};
-    el.innerHTML = `<h1 style="font-size:18px;color:var(--text)">${labels[screen]||screen}</h1>`;
+    const labels = {registro:'Registrar sesi\u00f3n',plan:'Planificaci\u00f3n semanal',ninos:'Ni\u00f1os activos'};
+    el.innerHTML = `<h1 style="font-size:18px;color:var(--text)">${esc(labels[screen]||screen)}</h1>`;
   }
 }
 
@@ -887,28 +292,30 @@ function renderHoy() {
   const realizadas = sesDia.filter(s=>s.Tipo==='Normal'||s.Tipo==='Recuperacion').length;
   const canceladas = sesDia.filter(s=>s.Tipo==='Cancelada').length;
   const recuperaciones = sesDia.filter(s=>s.Tipo==='Recuperacion').length;
+  // C5: esc() on patient names in alerts
   const alertas = pacientes.filter(p=>p.Estado!=='inactivo'&&sesionesRestantes(p)<=5).map(p=>
-    `<div class="alert-card">⚠️ <strong>${p.Nombre.split(' ')[0]}</strong> le quedan solo ${sesionesRestantes(p)} sesiones</div>`
+    `<div class="alert-card">\u26a0\ufe0f <strong>${esc(p.Nombre.split(' ')[0])}</strong> le quedan solo ${sesionesRestantes(p)} sesiones</div>`
   ).join('');
   const diaLibreHoy = diasLibres.find(d=>d.Fecha===t);
   const diaLibreHTML = diaLibreHoy
     ? `<div style="background:#FFF3CD;border:0.5px solid #FAC775;border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:18px">${diaLibreHoy.Tipo==='Feriado'?'🎉':diaLibreHoy.Tipo==='Incapacidad'?'🤒':'🏖️'}</span>
+        <span style="font-size:18px">${diaLibreHoy.Tipo==='Feriado'?'\ud83c\udf89':diaLibreHoy.Tipo==='Incapacidad'?'\ud83e\udd12':'\ud83c\udfd6\ufe0f'}</span>
         <div>
-          <div style="font-size:13px;font-weight:500;color:#633806">${diaLibreHoy.Tipo}</div>
-          ${diaLibreHoy.Notas?`<div style="font-size:11px;color:#633806;margin-top:2px">${diaLibreHoy.Notas}</div>`:''}
+          <div style="font-size:13px;font-weight:500;color:#633806">${esc(diaLibreHoy.Tipo)}</div>
+          ${diaLibreHoy.Notas?`<div style="font-size:11px;color:#633806;margin-top:2px">${esc(diaLibreHoy.Notas)}</div>`:''}
         </div>
       </div>` : '';
   const sesHTML = sesDia.length ? sesDia.map(s=>{
     const pac=pacientes.find(p=>p.ID===s.PacienteID)||{};
     const nombre=pac.Nombre||'Paciente desconocido';
     const notasResumen=s.Notas?(s.Notas.length>60?s.Notas.substring(0,60)+'...':s.Notas):'';
-    return `<div class="session-item" onclick="abrirEditarSesion('${s.ID}')" style="cursor:pointer">
-      <span class="s-time">${s.HoraInicio}</span>
+    // C5: esc() on session data
+    return `<div class="session-item" onclick="abrirEditarSesion('${esc(s.ID)}')" style="cursor:pointer">
+      <span class="s-time">${esc(s.HoraInicio)}</span>
       <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
       <div class="s-info">
-        <div class="s-name">${nombre}${s.Tipo==='Recuperacion'?' 🔄':''}</div>
-        ${notasResumen?`<div class="s-sub">${notasResumen}</div>`:''}
+        <div class="s-name">${esc(nombre)}${s.Tipo==='Recuperacion'?' \ud83d\udd04':''}</div>
+        ${notasResumen?`<div class="s-sub">${esc(notasResumen)}</div>`:''}
       </div>
       ${chipHTML(s.Tipo)}
       <i class="fas fa-pen" style="font-size:11px;color:var(--lav-pale);margin-left:4px"></i>
@@ -922,14 +329,14 @@ function renderHoy() {
       <div class="stat-card"><div class="num">${canceladas}</div><div class="lbl">Canceladas</div></div>
       <div class="stat-card"><div class="num">${recuperaciones}</div><div class="lbl">Recuperaciones</div></div>
     </div>
-    ${diaLibreHTML}
-    ${alertas}
+    ${diaLibreHTML}${alertas}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div class="section-lbl" style="margin:0">Agenda del día</div>
-      <button onclick="abrirModalDiaLibre()" style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:20px;padding:5px 12px;font-size:11px;color:#633806;cursor:pointer;font-family:Georgia,serif">🏖️ Día libre</button>
+      <div class="section-lbl" style="margin:0">Agenda del d\u00eda</div>
+      <button onclick="abrirModalDiaLibre()" style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:20px;padding:5px 12px;font-size:11px;color:#633806;cursor:pointer;font-family:Georgia,serif">\ud83c\udfd6\ufe0f D\u00eda libre</button>
     </div>
     <div class="card">${sesHTML}</div>`;
 }
+
 function abrirEditarSesion(id) {
   const s=sesiones.find(x=>x.ID===id); if(!s) return;
   const pac=pacientes.find(x=>x.ID===s.PacienteID);
@@ -954,49 +361,50 @@ async function guardarEdicionSesion() {
     await apiPost({action:'editarSesion',data});
     const idx=sesiones.findIndex(x=>x.ID===id);
     if(idx>=0) sesiones[idx]={...sesiones[idx],...data};
-    closeOv('ov-edit-sesion'); showToast('✅ Sesión actualizada'); recargarDatos();
-  } catch(e) { showToast('⚠️ Error: '+e.message); }
+    closeOv('ov-edit-sesion'); showToast('\u2705 Sesi\u00f3n actualizada'); recargarDatos();
+  } catch(e) { showToast('\u26a0\ufe0f Error: '+e.message); }
 }
 async function eliminarSesion() {
   const id=document.getElementById('edit-ses-id').value;
-  showToast('Eliminando sesión...');
+  showToast('Eliminando sesi\u00f3n...');
   try {
     await apiPost({action:'eliminarSesion',id});
     sesiones=sesiones.filter(x=>x.ID!==id);
-    closeOv('ov-edit-sesion'); showToast('✅ Sesión eliminada'); recargarDatos();
-  } catch(e) { showToast('⚠️ Error: '+e.message); }
+    closeOv('ov-edit-sesion'); showToast('\u2705 Sesi\u00f3n eliminada'); recargarDatos();
+  } catch(e) { showToast('\u26a0\ufe0f Error: '+e.message); }
 }
 
 function abrirGestionAgencias() { renderAgenciasList(); openOv('ov-agencias'); }
 function renderAgenciasList() {
   const el=document.getElementById('agencias-list');
   if(!agencias.length){el.innerHTML='<div class="empty">No hay agencias registradas</div>';return;}
+  // C5: esc() on agency names
   el.innerHTML=agencias.map(a=>`<div class="patient-row" style="padding:10px 14px">
-    <div class="p-info"><div class="p-name">${a}</div></div>
-    <button onclick="eliminarAgencia('${a}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">🗑️</button>
+    <div class="p-info"><div class="p-name">${esc(a)}</div></div>
+    <button onclick="eliminarAgencia('${esc(a)}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">\ud83d\uddd1\ufe0f</button>
   </div>`).join('');
 }
 async function agregarAgencia() {
   const input=document.getElementById('nueva-agencia-input');
   const nombre=input.value.trim();
-  if(!nombre){showToast('⚠️ Escribe el nombre');return;}
-  if(agencias.includes(nombre)){showToast('⚠️ Ya existe');return;}
+  if(!nombre){showToast('\u26a0\ufe0f Escribe el nombre');return;}
+  if(agencias.includes(nombre)){showToast('\u26a0\ufe0f Ya existe');return;}
   showToast('Guardando...');
   try {
     await apiPost({action:'agregarAgencia',nombre});
     agencias.push(nombre); input.value='';
-    renderAgenciasList(); populateAgencias(); showToast('✅ Agencia agregada');
-  } catch(e) { showToast('⚠️ Error: '+e.message); }
+    renderAgenciasList(); populateAgencias(); showToast('\u2705 Agencia agregada');
+  } catch(e) { showToast('\u26a0\ufe0f Error: '+e.message); }
 }
 async function eliminarAgencia(nombre) {
   showToast('Eliminando...');
   try {
     await apiPost({action:'eliminarAgencia',nombre});
     agencias=agencias.filter(a=>a!==nombre);
-    renderAgenciasList(); populateAgencias(); showToast('✅ Agencia eliminada');
-  } catch(e) { showToast('⚠️ Error: '+e.message); }
+    renderAgenciasList(); populateAgencias(); showToast('\u2705 Agencia eliminada');
+  } catch(e) { showToast('\u26a0\ufe0f Error: '+e.message); }
 }
-async function recargarManual() { showToast('🔄 Recargando...'); await recargarDatos(); showToast('✅ Actualizado'); }
+async function recargarManual() { showToast('\ud83d\udd04 Recargando...'); await recargarDatos(); showToast('\u2705 Actualizado'); }
 
 function changeCalMonth(dir) {
   calMonth+=dir;
@@ -1018,7 +426,7 @@ function renderMes() {
     const isToday=isThisMonth&&d===todayD.getDate();
     const isSel=selDay===dateStr;
     const hasCan=daySes.some(s=>s.Tipo==='Cancelada')&&!daySes.some(s=>s.Tipo!=='Cancelada');
-    const diaLibre=diasLibres.find(d=>d.Fecha===dateStr);
+    const diaLibre=diasLibres.find(dl=>dl.Fecha===dateStr);
     let cls='cal-day';
     if(isToday) cls+=' today'; else if(isSel) cls+=' selected'; else if(diaLibre) cls+=' has-libre'; else if(hasCan) cls+=' has-cancel';
     const dots=daySes.slice(0,3).map(s=>`<div class="cal-dot" style="background:${isToday?'rgba(255,255,255,0.7)':dotColor(s.Tipo)}"></div>`).join('');
@@ -1028,31 +436,31 @@ function renderMes() {
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lav);margin-right:3px"></span>Hoy</span>
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:3px"></span>Sesiones</span>
     <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red-light);border:1px solid #E8A598;margin-right:3px"></span>Solo cancelaciones</span>
-    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber-light);border:1px solid #FAC775;margin-right:3px"></span>Día libre</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber-light);border:1px solid #FAC775;margin-right:3px"></span>D\u00eda libre</span>
   </div>`;
   if(selDay){
-    const daySes=sesionesDelDia(selDay);
-    const[y,m,d]=selDay.split('-');
-    const diasSem=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const daySes2=sesionesDelDia(selDay);
+    const[sy,sm,sd]=selDay.split('-');
+    const diasSem=['Domingo','Lunes','Martes','Mi\u00e9rcoles','Jueves','Viernes','S\u00e1bado'];
     const wday=diasSem[new Date(selDay).getDay()];
-    const diaLibreSel=diasLibres.find(d=>d.Fecha===selDay);
+    const diaLibreSel=diasLibres.find(dl=>dl.Fecha===selDay);
     const diaLibreSelHTML=diaLibreSel?`<div style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-      <span style="font-size:16px">${diaLibreSel.Tipo==='Feriado'?'🎉':diaLibreSel.Tipo==='Incapacidad'?'🤒':'🏖️'}</span>
-      <div><div style="font-size:12px;font-weight:500;color:#633806">${diaLibreSel.Tipo}</div>
-      ${diaLibreSel.Notas?`<div style="font-size:11px;color:#633806">${diaLibreSel.Notas}</div>`:''}</div>
+      <span style="font-size:16px">${diaLibreSel.Tipo==='Feriado'?'\ud83c\udf89':diaLibreSel.Tipo==='Incapacidad'?'\ud83e\udd12':'\ud83c\udfd6\ufe0f'}</span>
+      <div><div style="font-size:12px;font-weight:500;color:#633806">${esc(diaLibreSel.Tipo)}</div>
+      ${diaLibreSel.Notas?`<div style="font-size:11px;color:#633806">${esc(diaLibreSel.Notas)}</div>`:''}</div>
       </div>`:'';
-    const sesHTML=daySes.length?daySes.map(s=>{
+    const sesHTML2=daySes2.length?daySes2.map(s=>{
       const pac=pacientes.find(p=>p.ID===s.PacienteID)||{};
       return `<div class="session-item">
-        <span class="s-time">${s.HoraInicio}</span>
+        <span class="s-time">${esc(s.HoraInicio)}</span>
         <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
-        <div class="s-info"><div class="s-name">${pac.Nombre||'—'}${s.Tipo==='Recuperacion'?' 🔄':''}</div><div class="s-sub">${s.Lugar}</div></div>
+        <div class="s-info"><div class="s-name">${esc(pac.Nombre||'\u2014')}${s.Tipo==='Recuperacion'?' \ud83d\udd04':''}</div><div class="s-sub">${esc(s.Lugar||'')}</div></div>
         ${chipHTML(s.Tipo)}</div>`;
     }).join(''):'<div class="empty" style="padding:14px">Sin sesiones</div>';
     calHTML+=`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="font-size:13px;font-weight:500;color:var(--text)">${wday} ${d}/${m}</div>
-      <button onclick="abrirModalDiaLibre('${selDay}')" style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:20px;padding:4px 10px;font-size:11px;color:#633806;cursor:pointer;font-family:Georgia,serif">🏖️ Día libre</button>
-      </div>${diaLibreSelHTML}${sesHTML}</div>`;
+      <div style="font-size:13px;font-weight:500;color:var(--text)">${esc(wday)} ${esc(sd)}/${esc(sm)}</div>
+      <button onclick="abrirModalDiaLibre('${selDay}')" style="background:var(--amber-light);border:0.5px solid #FAC775;border-radius:20px;padding:4px 10px;font-size:11px;color:#633806;cursor:pointer;font-family:Georgia,serif">\ud83c\udfd6\ufe0f D\u00eda libre</button>
+      </div>${diaLibreSelHTML}${sesHTML2}</div>`;
   }
   document.getElementById('screen-mes').innerHTML=calHTML;
 }
@@ -1070,17 +478,18 @@ function renderNinos() {
       (filtroNinos==='cancel'&&hasCan);
     return matchSearch&&matchFilter;
   });
-  if(!list.length){document.getElementById('ninos-list').innerHTML='<div class="empty">No se encontraron niños</div>';return;}
+  if(!list.length){document.getElementById('ninos-list').innerHTML='<div class="empty">No se encontraron ni\u00f1os</div>';return;}
+  // C5: esc() on patient data
   document.getElementById('ninos-list').innerHTML=list.map(p=>{
     const rem=sesionesRestantes(p);
-    return `<div class="patient-row" onclick="abrirDetalleNino('${p.ID}')">
+    return `<div class="patient-row" onclick="abrirDetalleNino('${esc(p.ID)}')">
       <div style="width:36px;height:36px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <i class="fas fa-child" style="color:var(--lav);font-size:16px"></i>
       </div>
       <div class="p-info">
-        <div class="p-name">${p.Nombre}</div>
-        <div class="p-sub">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
-        <span class="dur-badge ${parseInt(p.DuracionMin)===30?'dur-30':'dur-60'}">${parseInt(p.DuracionMin)===30?'⏱ 30 min':'🕐 1 hora'}</span>
+        <div class="p-name">${esc(p.Nombre)}</div>
+        <div class="p-sub">${esc(edad(p.FechaNacimiento))} \u00b7 ${esc(p.LugarAtencion)}</div>
+        <span class="dur-badge ${parseInt(p.DuracionMin)===30?'dur-30':'dur-60'}">${parseInt(p.DuracionMin)===30?'\u23f1 30 min':'\ud83d\udd50 1 hora'}</span>
       </div>
       <div class="p-sessions"><div class="num">${rem}</div><div class="lbl">restantes</div></div>
       <i class="fas fa-chevron-right" style="color:var(--lav-pale);font-size:14px"></i>
@@ -1098,13 +507,14 @@ function abrirDetalleNino(id) {
   const rem=sesionesRestantes(p),total=parseInt(p.TotalSesiones)||1,done=total-rem;
   const pct=Math.round((done/total)*100),bCls=barClass(p);
   const sesPac=sesiones.filter(s=>s.PacienteID===id).sort((a,b)=>b.Fecha.localeCompare(a.Fecha)).slice(0,8);
+  // C5: textContent for title (already safe), esc() for body innerHTML
   document.getElementById('ov-nino-title').textContent=p.Nombre;
   document.getElementById('ov-nino-body').innerHTML=`
     <div style="width:56px;height:56px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
       <i class="fas fa-child" style="color:var(--lav);font-size:24px"></i>
     </div>
-    <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${p.Nombre}</div>
-    <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">${edad(p.FechaNacimiento)} · <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.LugarAtencion)}" target="_blank" style="color:var(--sub);text-decoration:none">${p.LugarAtencion} 📍</a></div>
+    <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${esc(p.Nombre)}</div>
+    <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px">${esc(edad(p.FechaNacimiento))} \u00b7 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.LugarAtencion)}" target="_blank" style="color:var(--sub);text-decoration:none">${esc(p.LugarAtencion)} \ud83d\udccd</a></div>
     <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:10px">
       <div><div class="n">${total}</div><div class="l">Asignadas</div></div>
       <div><div class="n">${done}</div><div class="l">Realizadas</div></div>
@@ -1114,21 +524,21 @@ function abrirDetalleNino(id) {
     <div style="font-size:11px;color:var(--sub);text-align:right;margin-bottom:12px">${pct}% completado</div>
     <div class="card">
       <div class="section-lbl" style="margin-top:0">Datos del paciente</div>
-      <div class="info-row"><span class="k">Contacto</span><span class="v">${p.Contacto||'—'}</span></div>
-      <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
+      <div class="info-row"><span class="k">Contacto</span><span class="v">${esc(p.Contacto||'\u2014')}</span></div>
+      <div class="info-row"><span class="k">Tel\u00e9fono</span><span class="v">${esc(p.Telefono||'\u2014')}</span></div>
       ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
-        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">📞 Llamar</a>
-        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">💬 WhatsApp</a>
+        <a href="tel:${esc(p.Telefono)}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">\ud83d\udcde Llamar</a>
+        <a href="https://wa.me/${esc(p.Telefono.replace(/[^0-9]/g,''))}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">\ud83d\udcac WhatsApp</a>
       </div>`:''}
-      <div class="info-row"><span class="k">Duración sesión</span><span class="v">${p.DuracionMin} min</span></div>
+      <div class="info-row"><span class="k">Duraci\u00f3n sesi\u00f3n</span><span class="v">${esc(p.DuracionMin)} min</span></div>
     </div>
     <div class="card" style="margin-top:8px">
       <div class="section-lbl" style="margin-top:0">Historial reciente</div>
       ${sesPac.length?sesPac.map(s=>`
         <div class="session-item">
-          <span class="s-time">${fmt(s.Fecha)}</span>
+          <span class="s-time">${esc(fmt(s.Fecha))}</span>
           <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
-          <div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>
+          <div class="s-info"><div class="s-name">${esc(s.HoraInicio)}\u2013${esc(s.HoraFin)}</div></div>
           ${chipHTML(s.Tipo)}</div>`).join(''):'<div class="empty" style="padding:10px">Sin sesiones registradas</div>'}
     </div>`;
   openOv('ov-nino');
@@ -1137,16 +547,17 @@ function abrirDetalleNino(id) {
 function renderPacientes() {
   const list=pacientes.filter(p=>p.Nombre.toLowerCase().includes(searchPacs.toLowerCase())&&p.Estado!=='inactivo');
   if(!list.length){document.getElementById('pacientes-list').innerHTML='<div class="empty">No se encontraron pacientes</div>';return;}
+  // C5: esc() on patient data
   document.getElementById('pacientes-list').innerHTML=list.map(p=>{
     const rem=sesionesRestantes(p);
-    return `<div class="patient-row" onclick="abrirDetallePaciente('${p.ID}')">
+    return `<div class="patient-row" onclick="abrirDetallePaciente('${esc(p.ID)}')">
       <div style="width:36px;height:36px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <i class="fas fa-child" style="color:var(--lav);font-size:16px"></i>
       </div>
       <div class="p-info">
-        <div class="p-name">${p.Nombre}</div>
-        <div class="p-sub">${edad(p.FechaNacimiento)} · ${p.LugarAtencion}</div>
-        <span class="dur-badge ${parseInt(p.DuracionMin)===30?'dur-30':'dur-60'}">${parseInt(p.DuracionMin)===30?'⏱ 30 min':'🕐 1 hora'}</span>
+        <div class="p-name">${esc(p.Nombre)}</div>
+        <div class="p-sub">${esc(edad(p.FechaNacimiento))} \u00b7 ${esc(p.LugarAtencion)}</div>
+        <span class="dur-badge ${parseInt(p.DuracionMin)===30?'dur-30':'dur-60'}">${parseInt(p.DuracionMin)===30?'\u23f1 30 min':'\ud83d\udd50 1 hora'}</span>
       </div>
       <div class="p-sessions"><div class="num">${rem}</div><div class="lbl">restantes</div></div>
       <i class="fas fa-chevron-right" style="color:var(--lav-pale);font-size:14px"></i>
@@ -1159,14 +570,15 @@ function abrirDetallePaciente(id) {
   const p=pacientes.find(x=>x.ID===id); if(!p) return;
   const rem=sesionesRestantes(p),total=parseInt(p.TotalSesiones)||1,done=total-rem;
   const pct=Math.round((done/total)*100),bCls=barClass(p);
+  // C5: textContent for title, esc() for body innerHTML
   document.getElementById('ov-pac-title').textContent=p.Nombre;
   document.getElementById('ov-pac-edit-btn').style.display='block';
   document.getElementById('ov-pac-body').innerHTML=`
     <div style="width:56px;height:56px;border-radius:50%;background:var(--lav-light);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
       <i class="fas fa-child" style="color:var(--lav);font-size:24px"></i>
     </div>
-    <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${p.Nombre}</div>
-    <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.LugarAtencion)}" target="_blank" style="color:var(--sub);text-decoration:none">${p.LugarAtencion} 📍</a></div>
+    <div style="text-align:center;font-size:18px;color:var(--text);margin-bottom:4px">${esc(p.Nombre)}</div>
+    <div style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:14px"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.LugarAtencion)}" target="_blank" style="color:var(--sub);text-decoration:none">${esc(p.LugarAtencion)} \ud83d\udccd</a></div>
     <div class="stats-3" style="background:var(--lav-light);border-radius:var(--radius);padding:12px;margin-bottom:10px">
       <div><div class="n">${total}</div><div class="l">Asignadas</div></div>
       <div><div class="n">${done}</div><div class="l">Realizadas</div></div>
@@ -1176,24 +588,24 @@ function abrirDetallePaciente(id) {
     <div style="font-size:11px;color:var(--sub);text-align:right;margin-bottom:12px">${pct}% completado</div>
     <div class="card">
       <div class="section-lbl" style="margin-top:0">Datos personales</div>
-      <div class="info-row"><span class="k">Fecha nac.</span><span class="v">${fmt(p.FechaNacimiento)}</span></div>
-      <div class="info-row"><span class="k">Edad</span><span class="v">${edad(p.FechaNacimiento)}</span></div>
-      <div class="info-row"><span class="k">Lugar</span><span class="v"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.LugarAtencion)}" target="_blank" style="color:var(--lav);text-decoration:none">${p.LugarAtencion} 📍</a></span></div>
-      <div class="info-row"><span class="k">Duración</span><span class="v">${p.DuracionMin} min</span></div>
-      <div class="info-row"><span class="k">Agencia</span><span class="v">${p.Agencia||'—'}</span></div>
-      <div class="info-row"><span class="k">Programa</span><span class="v">${p.Programa||'—'}</span></div>
-      <div class="info-row"><span class="k">Precio/hora</span><span class="v">$ ${parseFloat(p.Precio||0).toFixed(2)}</span></div>
+      <div class="info-row"><span class="k">Fecha nac.</span><span class="v">${esc(fmt(p.FechaNacimiento))}</span></div>
+      <div class="info-row"><span class="k">Edad</span><span class="v">${esc(edad(p.FechaNacimiento))}</span></div>
+      <div class="info-row"><span class="k">Lugar</span><span class="v"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.LugarAtencion)}" target="_blank" style="color:var(--lav);text-decoration:none">${esc(p.LugarAtencion)} \ud83d\udccd</a></span></div>
+      <div class="info-row"><span class="k">Duraci\u00f3n</span><span class="v">${esc(p.DuracionMin)} min</span></div>
+      <div class="info-row"><span class="k">Agencia</span><span class="v">${esc(p.Agencia||'\u2014')}</span></div>
+      <div class="info-row"><span class="k">Programa</span><span class="v">${esc(p.Programa||'\u2014')}</span></div>
+      <div class="info-row"><span class="k">Precio/hora</span><span class="v">$ ${esc(parseFloat(p.Precio||0).toFixed(2))}</span></div>
     </div>
     <div class="card" style="margin-top:8px">
       <div class="section-lbl" style="margin-top:0">Contacto</div>
-      <div class="info-row"><span class="k">Nombre</span><span class="v">${p.Contacto||'—'}</span></div>
-      <div class="info-row"><span class="k">Teléfono</span><span class="v">${p.Telefono||'—'}</span></div>
+      <div class="info-row"><span class="k">Nombre</span><span class="v">${esc(p.Contacto||'\u2014')}</span></div>
+      <div class="info-row"><span class="k">Tel\u00e9fono</span><span class="v">${esc(p.Telefono||'\u2014')}</span></div>
       ${p.Telefono?`<div style="display:flex;gap:8px;margin-top:8px">
-        <a href="tel:${p.Telefono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">📞 Llamar</a>
-        <a href="https://wa.me/${p.Telefono.replace(/[^0-9]/g,'')}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">💬 WhatsApp</a>
+        <a href="tel:${esc(p.Telefono)}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--mint-light);color:#0F6E56;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">\ud83d\udcde Llamar</a>
+        <a href="https://wa.me/${esc(p.Telefono.replace(/[^0-9]/g,''))}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E7F8EE;color:#128C7E;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500">\ud83d\udcac WhatsApp</a>
       </div>`:''}
     </div>
-    ${p.Observaciones?`<div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Observaciones</div><div style="font-size:13px;color:var(--text);line-height:1.5">${p.Observaciones}</div></div>`:''}`;
+    ${p.Observaciones?`<div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Observaciones</div><div style="font-size:13px;color:var(--text);line-height:1.5">${esc(p.Observaciones)}</div></div>`:''}`;
   openOv('ov-pac');
 }
 function abrirNuevoPaciente() {
@@ -1208,6 +620,7 @@ function abrirNuevoPaciente() {
 function abrirFormPaciente() {
   const p=pacientes.find(x=>x.ID===editingPacId); if(!p) return;
   document.getElementById('ov-form-pac-title').textContent='Editar paciente';
+  // C5: .value= is safe (no innerHTML)
   document.getElementById('fp-nombre').value=p.Nombre;
   document.getElementById('fp-dob').value=p.FechaNacimiento;
   document.getElementById('fp-lugar').value=p.LugarAtencion;
@@ -1228,7 +641,7 @@ function selectDur(val) {
 }
 async function guardarPaciente() {
   const nombre=document.getElementById('fp-nombre').value.trim();
-  if(!nombre){showToast('⚠️ El nombre es obligatorio');return;}
+  if(!nombre){showToast('\u26a0\ufe0f El nombre es obligatorio');return;}
   const data={Nombre:nombre,FechaNacimiento:document.getElementById('fp-dob').value,
     LugarAtencion:document.getElementById('fp-lugar').value,
     Contacto:document.getElementById('fp-contacto').value,
@@ -1252,8 +665,8 @@ async function guardarPaciente() {
     }
     populateSelects(); renderPacientes();
     closeOv('ov-form-pac'); closeOv('ov-pac');
-    showToast('✅ Paciente guardado'); recargarDatos();
-  } catch(e){showToast('⚠️ Error: '+e.message);}
+    showToast('\u2705 Paciente guardado'); recargarDatos();
+  } catch(e){showToast('\u26a0\ufe0f Error: '+e.message);}
 }
 async function desactivarPaciente() {
   if(!editingPacId) return;
@@ -1263,14 +676,14 @@ async function desactivarPaciente() {
     const p=pacientes.find(x=>x.ID===editingPacId);
     if(p) p.Estado='inactivo';
     populateSelects(); renderPacientes(); renderNinos();
-    closeOv('ov-form-pac'); closeOv('ov-pac'); showToast('✅ Paciente archivado');
-  } catch(e){showToast('⚠️ Error: '+e.message);}
+    closeOv('ov-form-pac'); closeOv('ov-pac'); showToast('\u2705 Paciente archivado');
+  } catch(e){showToast('\u26a0\ufe0f Error: '+e.message);}
 }
 
 function onRegPaciente() {
   const id=document.getElementById('reg-paciente').value;
   if(!id) return;
-  if(regPacientes.includes(id)){showToast('⚠️ Ya está en la lista');document.getElementById('reg-paciente').value='';return;}
+  if(regPacientes.includes(id)){showToast('\u26a0\ufe0f Ya est\u00e1 en la lista');document.getElementById('reg-paciente').value='';return;}
   regPacientes.push(id);
   document.getElementById('reg-paciente').value='';
   renderPacChips(); actualizarPreview();
@@ -1281,9 +694,10 @@ function onRegPaciente() {
 function renderPacChips() {
   const el=document.getElementById('reg-pac-chips');
   if(!regPacientes.length){el.innerHTML='';return;}
+  // C5: esc() on patient ID and name in chips
   el.innerHTML=regPacientes.map(id=>{
     const p=pacientes.find(x=>x.ID===id);
-    return `<div class="pac-chip" onclick="quitarPacChip('${id}')"><span>${p?p.Nombre:'?'}</span><span class="x">×</span></div>`;
+    return `<div class="pac-chip" onclick="quitarPacChip('${esc(id)}')"><span>${esc(p?p.Nombre:'?')}</span><span class="x">\u00d7</span></div>`;
   }).join('');
 }
 function quitarPacChip(id) {
@@ -1300,7 +714,8 @@ function actualizarPreview() {
   const p=pacientes.find(x=>x.ID===regPacientes[0]); if(!p) return;
   const rem=sesionesRestantes(p),total=parseInt(p.TotalSesiones)||1,done=total-rem;
   const pct=Math.round((done/total)*100);
-  document.getElementById('rp-name').textContent=regPacientes.length>1?`${p.Nombre} +${regPacientes.length-1} más`:p.Nombre;
+  // Already using textContent — safe
+  document.getElementById('rp-name').textContent=regPacientes.length>1?`${p.Nombre} +${regPacientes.length-1} m\u00e1s`:p.Nombre;
   document.getElementById('rp-lugar').textContent=p.LugarAtencion;
   document.getElementById('rp-dur').textContent=p.DuracionMin+' min';
   document.getElementById('rp-sessions').textContent=rem;
@@ -1331,7 +746,7 @@ function selectTipo(tipo) {
   document.getElementById('cancel-note').style.display=tipo==='cancel'?'block':'none';
 }
 function regGoStep(n) {
-  if(n===2&&!regPacientes.length){showToast('⚠️ Selecciona al menos un niño');return;}
+  if(n===2&&!regPacientes.length){showToast('\u26a0\ufe0f Selecciona al menos un ni\u00f1o');return;}
   regStep=n;
   ['reg-step1','reg-step2','reg-step3','reg-success'].forEach((id,i)=>{
     document.getElementById(id).style.display=i===n-1?'block':'none';
@@ -1347,12 +762,13 @@ function fillSummary() {
   const fecha=document.getElementById('reg-fecha').value;
   const ini=document.getElementById('reg-inicio').value;
   const fin=document.getElementById('reg-fin').value;
-  const tipoLabel=regTipo==='recovery'?'🔄 Recuperación':regTipo==='cancel'?'❌ Cancelada':'📋 Normal';
+  const tipoLabel=regTipo==='recovery'?'\ud83d\udd04 Recuperaci\u00f3n':regTipo==='cancel'?'\u274c Cancelada':'\ud83d\udccb Normal';
+  // All textContent — safe
   document.getElementById('sum-pac').textContent=nombres;
   document.getElementById('sum-tipo').textContent=tipoLabel;
   document.getElementById('sum-fecha').textContent=fmt(fecha);
-  document.getElementById('sum-hora').textContent=ini+' — '+fin;
-  document.getElementById('sum-lugar').textContent=p.LugarAtencion||'—';
+  document.getElementById('sum-hora').textContent=ini+' \u2014 '+fin;
+  document.getElementById('sum-lugar').textContent=p.LugarAtencion||'\u2014';
 }
 async function guardarSesion() {
   if(!regPacientes.length) return;
@@ -1361,7 +777,7 @@ async function guardarSesion() {
   const horaFin=document.getElementById('reg-fin').value;
   const notas=document.getElementById('reg-notas').value;
   const tipo=regTipo==='recovery'?'Recuperacion':regTipo==='cancel'?'Cancelada':'Normal';
-  showToast('Guardando sesión(es)...');
+  showToast('Guardando sesi\u00f3n(es)...');
   try {
     const promesas=regPacientes.map(pacId=>{
       const p=pacientes.find(x=>x.ID===pacId)||{};
@@ -1375,10 +791,11 @@ async function guardarSesion() {
     const exitos=resultados.filter(r=>r.success).length;
     if(exitos>0){
       const nombres=regPacientes.map(id=>{const p=pacientes.find(x=>x.ID===id);return p?p.Nombre.split(' ')[0]:'?';}).join(', ');
-      document.getElementById('reg-success-msg').textContent=`${exitos} sesión(es) guardadas para: ${nombres}.`;
+      // textContent — safe
+      document.getElementById('reg-success-msg').textContent=`${exitos} sesi\u00f3n(es) guardadas para: ${nombres}.`;
       regGoStep(4); recargarDatos();
-    } else { showToast('⚠️ Error al guardar'); }
-  } catch(e){showToast('⚠️ Error: '+e.message);}
+    } else { showToast('\u26a0\ufe0f Error al guardar'); }
+  } catch(e){showToast('\u26a0\ufe0f Error: '+e.message);}
 }
 function resetRegistro() {
   regPacientes=[];
@@ -1423,7 +840,7 @@ function getSemanasDelMes(year,month) {
     fin.setDate(fin.getDate()+6);
     const iniStr=ini.getFullYear()+'-'+String(ini.getMonth()+1).padStart(2,'0')+'-'+String(ini.getDate()).padStart(2,'0');
     const finDate=new Date(Math.min(fin,new Date(year,month+1,0)));
-    const label=ini.getDate()+' – '+finDate.getDate()+' de '+MESES[month];
+    const label=ini.getDate()+' \u2013 '+finDate.getDate()+' de '+MESES[month];
     semanas.push({inicio:iniStr,fin:finDate.getFullYear()+'-'+String(finDate.getMonth()+1).padStart(2,'0')+'-'+String(finDate.getDate()).padStart(2,'0'),label});
     d.setDate(d.getDate()+7);
   }
@@ -1442,26 +859,27 @@ function renderReporteSemanal() {
   const canceladas=todas.filter(s=>s.Tipo==='Cancelada');
   const recuperaciones=todas.filter(s=>s.Tipo==='Recuperacion');
   const horas=calcHoras(realizadas);
-  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const dias=['Dom','Lun','Mar','Mi\u00e9','Jue','Vie','S\u00e1b'];
   const porDia=[0,0,0,0,0,0,0];
   realizadas.forEach(s=>{porDia[new Date(s.Fecha+'T12:00:00').getDay()]++;});
+  // C5: esc() on patient names in session list
   const sesHTML=todas.length?todas.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)||a.HoraInicio.localeCompare(b.HoraInicio)).map(s=>{
     const p=pacientes.find(x=>x.ID===s.PacienteID);
-    const nombre=p?p.Nombre:(s.PacienteID?'Archivado':'—');
+    const nombre=p?p.Nombre:(s.PacienteID?'Archivado':'\u2014');
     return `<div class="session-item">
       <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
-      <div class="s-info"><div class="s-name">${nombre}${s.Tipo==='Recuperacion'?' 🔄':''}</div>
-      <div class="s-sub">${fmt(s.Fecha)} · ${s.HoraInicio}–${s.HoraFin}</div></div>
+      <div class="s-info"><div class="s-name">${esc(nombre)}${s.Tipo==='Recuperacion'?' \ud83d\udd04':''}</div>
+      <div class="s-sub">${esc(fmt(s.Fecha))} \u00b7 ${esc(s.HoraInicio)}\u2013${esc(s.HoraFin)}</div></div>
       ${chipHTML(s.Tipo)}</div>`;
   }).join(''):'<div class="empty">Sin sesiones esta semana</div>';
   el.innerHTML=`
     <div class="week-nav">
       <button onclick="changeRepWeek(1)" ${idx>=semanas.length-1?'disabled style="opacity:0.3"':''}>‹</button>
-      <span>${sem.label}</span>
+      <span>${esc(sem.label)}</span>
       <button onclick="changeRepWeek(-1)" ${idx<=0?'disabled style="opacity:0.3"':''}>›</button>
     </div>
     ${resumenCards(realizadas.length,canceladas.length,recuperaciones.length,horas)}
-    <div class="card"><div class="section-lbl" style="margin-top:0">Por día</div>
+    <div class="card"><div class="section-lbl" style="margin-top:0">Por d\u00eda</div>
       ${barChart(porDia.map((v,i)=>({val:v,lbl:dias[i]})),()=>'var(--lav)')}
     </div>
     <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Detalle</div>${sesHTML}</div>
@@ -1485,11 +903,12 @@ function renderReporteMensual() {
   const horas=calcHoras(realizadas);
   const porSemana=[0,0,0,0];
   realizadas.forEach(s=>{const d=new Date(s.Fecha+'T12:00:00').getDate();porSemana[Math.min(Math.floor((d-1)/7),3)]++;});
+  // C5: esc() on names
   const porPaciente=pacientes.filter(p=>p.Estado!=='inactivo').map(p=>{
     const cnt=realizadas.filter(s=>s.PacienteID===p.ID).length;
     return cnt>0?`<div class="session-item">
       <div class="s-dot" style="background:${colorFor(p.ID)}"></div>
-      <div class="s-info"><div class="s-name">${p.Nombre}</div><div class="s-sub">${p.Agencia||'Sin agencia'}</div></div>
+      <div class="s-info"><div class="s-name">${esc(p.Nombre)}</div><div class="s-sub">${esc(p.Agencia||'Sin agencia')}</div></div>
       <span style="font-size:12px;font-weight:500;color:var(--text)">${cnt} ses.</span></div>`:'';
   }).filter(Boolean).join('')||'<div class="empty">Sin sesiones</div>';
   el.innerHTML=`
@@ -1526,22 +945,23 @@ async function renderReporteIngresos() {
         porPacienteMes.push({nombre:p.Nombre,agencia,sesiones:sesMes.filter(s=>s.PacienteID===p.ID).length,pxs,total:totPacMes});
       }
     });
+    // C5: esc() on agency/patient names
     const agenciaHTML=Object.entries(porAgencia).map(([a,t])=>`
-      <div class="session-item"><div class="s-info"><div class="s-name">${a}</div></div>
-      <span style="font-size:13px;font-weight:500;color:var(--mint)">$ ${t.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
+      <div class="session-item"><div class="s-info"><div class="s-name">${esc(a)}</div></div>
+      <span style="font-size:13px;font-weight:500;color:var(--mint)">$ ${esc(t.toFixed(2))}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
     const pacienteHTML=porPacienteMes.map(p=>`
       <div class="session-item">
-        <div class="s-info"><div class="s-name">${p.nombre}</div><div class="s-sub">${p.agencia} · ${p.sesiones} ses. × $ ${p.pxs.toFixed(2)}</div></div>
-        <span style="font-size:13px;font-weight:500;color:var(--text)">$ ${p.total.toFixed(2)}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
+        <div class="s-info"><div class="s-name">${esc(p.nombre)}</div><div class="s-sub">${esc(p.agencia)} \u00b7 ${p.sesiones} ses. \u00d7 $ ${esc(p.pxs.toFixed(2))}</div></div>
+        <span style="font-size:13px;font-weight:500;color:var(--text)">$ ${esc(p.total.toFixed(2))}</span></div>`).join('')||'<div class="empty">Sin datos</div>';
     el.innerHTML=`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div class="stat-card"><div class="num" style="color:var(--mint)">$ ${totalSemana.toFixed(2)}</div><div class="lbl">Esta semana</div></div>
-        <div class="stat-card"><div class="num" style="color:var(--mint)">$ ${totalMes.toFixed(2)}</div><div class="lbl">Este mes</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--mint)">$ ${esc(totalSemana.toFixed(2))}</div><div class="lbl">Esta semana</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--mint)">$ ${esc(totalMes.toFixed(2))}</div><div class="lbl">Este mes</div></div>
       </div>
-      <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por agencia — ${MESES[m]} ${y}</div>${agenciaHTML}</div>
-      <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por paciente — ${MESES[m]} ${y}</div>${pacienteHTML}</div>
+      <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por agencia \u2014 ${esc(MESES[m])} ${y}</div>${agenciaHTML}</div>
+      <div class="card" style="margin-bottom:8px"><div class="section-lbl" style="margin-top:0">Por paciente \u2014 ${esc(MESES[m])} ${y}</div>${pacienteHTML}</div>
       <button class="btn-green" onclick="imprimirReporte('ingresos')"><i class="fas fa-file-pdf"></i> Exportar PDF de ingresos</button>`;
-  } catch(e){el.innerHTML='<div class="empty">Error: '+e.message+'</div>';}
+  } catch(e){el.innerHTML='<div class="empty">Error al calcular</div>';}
 }
 
 function renderReportePaciente() {
@@ -1570,29 +990,30 @@ function renderReportePaciente() {
       <div class="bar-bg" style="margin-bottom:4px"><div class="bar-fill ${bCls}" style="width:${pct}%"></div></div>
       <div style="font-size:11px;color:var(--sub);text-align:right;margin-bottom:12px">${pct}% completado</div>`;
   }
+  // C5: esc() on session data
   const mesHTML=sesMes.length?sesMes.map(s=>`
     <div class="session-item">
-      <span class="s-time">${s.HoraInicio}</span>
+      <span class="s-time">${esc(s.HoraInicio)}</span>
       <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
-      <div class="s-info"><div class="s-name">${fmt(s.Fecha)}</div></div>
+      <div class="s-info"><div class="s-name">${esc(fmt(s.Fecha))}</div></div>
       ${chipHTML(s.Tipo)}</div>`).join(''):'<div class="empty">Sin sesiones este mes</div>';
   const histHTML=todoHistorial.slice(0,20).map(s=>`
     <div class="session-item">
-      <span class="s-time">${fmt(s.Fecha)}</span>
+      <span class="s-time">${esc(fmt(s.Fecha))}</span>
       <div class="s-dot" style="background:${dotColor(s.Tipo)}"></div>
-      <div class="s-info"><div class="s-name">${s.HoraInicio}–${s.HoraFin}</div></div>
+      <div class="s-info"><div class="s-name">${esc(s.HoraInicio)}\u2013${esc(s.HoraFin)}</div></div>
       ${chipHTML(s.Tipo)}</div>`).join('')||'<div class="empty">Sin historial</div>';
   body.innerHTML=`
     ${progresoHTML}
     <div class="card" style="margin-bottom:8px">
-      <div class="section-lbl" style="margin-top:0">Sesiones en ${MESES[m]} ${y}</div>
+      <div class="section-lbl" style="margin-top:0">Sesiones en ${esc(MESES[m])} ${y}</div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <div class="stat-card" style="flex:1"><div class="num">${realizadasMes.length}</div><div class="lbl">Realizadas</div></div>
         <div class="stat-card" style="flex:1"><div class="num">${canceladasMes.length}</div><div class="lbl">Canceladas</div></div>
       </div>
       ${mesHTML}</div>
     <div class="card" style="margin-bottom:8px">
-      <div class="section-lbl" style="margin-top:0">Historial completo (últimas 20)</div>
+      <div class="section-lbl" style="margin-top:0">Historial completo (\u00faltimas 20)</div>
       ${histHTML}</div>
     <button class="btn-green" onclick="imprimirReporte('paciente')"><i class="fas fa-file-pdf"></i> Exportar PDF del paciente</button>`;
 }
@@ -1614,18 +1035,19 @@ function imprimirReporte(tipo) {
     const recuperaciones=todas.filter(s=>s.Tipo==='Recuperacion');
     const horas=calcHoras(realizadas);
     const periodo=esSemanal?sem.label:meses[repMonth]+' '+repYear;
+    // C5: esc() in PDF table rows
     const filas=todas.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)||a.HoraInicio.localeCompare(b.HoraInicio)).map(s=>{
       const pac=pacientes.find(x=>x.ID===s.PacienteID);
       const nombre=pac?pac.Nombre:'Archivado';
-      const tipoLabel=s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperación':'Cancelada';
-      return `<tr><td>${fmt(s.Fecha)}</td><td>${s.HoraInicio} – ${s.HoraFin}</td><td>${nombre}</td><td>${pac?(pac.Agencia||'—'):'—'}</td><td>${tipoLabel}</td><td>${s.Notas||''}</td></tr>`;
+      const tipoLabel=s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperaci\u00f3n':'Cancelada';
+      return `<tr><td>${esc(fmt(s.Fecha))}</td><td>${esc(s.HoraInicio)} \u2013 ${esc(s.HoraFin)}</td><td>${esc(nombre)}</td><td>${esc(pac?(pac.Agencia||'\u2014'):'\u2014')}</td><td>${esc(tipoLabel)}</td><td>${esc(s.Notas||'')}</td></tr>`;
     }).join('');
     htmlReporte=`<div class="resumen">
       <div class="stat-box"><div class="snum">${realizadas.length}</div><div class="slbl">Realizadas</div></div>
       <div class="stat-box"><div class="snum">${canceladas.length}</div><div class="slbl">Cancelaciones</div></div>
       <div class="stat-box"><div class="snum">${recuperaciones.length}</div><div class="slbl">Recuperaciones</div></div>
       <div class="stat-box"><div class="snum">${horas}h</div><div class="slbl">Horas trabajadas</div></div></div>
-      <h2>Detalle — ${periodo}</h2>
+      <h2>Detalle \u2014 ${esc(periodo)}</h2>
       <table><thead><tr><th>Fecha</th><th>Horario</th><th>Paciente</th><th>Agencia</th><th>Tipo</th><th>Notas</th></tr></thead>
       <tbody>${filas||'<tr><td colspan="6">Sin sesiones</td></tr>'}</tbody></table>`;
   } else if(tipo==='ingresos'){
@@ -1639,12 +1061,13 @@ function imprimirReporte(tipo) {
       const cnt=sesMes.filter(s=>s.PacienteID===p.ID).length;
       if(cnt>0){const total=cnt*pxs;totalMes+=total;
         if(!porAgencia[agencia]) porAgencia[agencia]=0; porAgencia[agencia]+=total;
-        filasPac.push(`<tr><td>${p.Nombre}</td><td>${agencia}</td><td>${cnt}</td><td>$ ${pxs.toFixed(2)}</td><td><strong>$ ${total.toFixed(2)}</strong></td></tr>`);}
+        // C5: esc() in PDF rows
+        filasPac.push(`<tr><td>${esc(p.Nombre)}</td><td>${esc(agencia)}</td><td>${cnt}</td><td>$ ${esc(pxs.toFixed(2))}</td><td><strong>$ ${esc(total.toFixed(2))}</strong></td></tr>`);}
     });
-    const filasAg=Object.entries(porAgencia).map(([a,t])=>`<tr><td>${a}</td><td><strong>$ ${t.toFixed(2)}</strong></td></tr>`).join('');
+    const filasAg=Object.entries(porAgencia).map(([a,t])=>`<tr><td>${esc(a)}</td><td><strong>$ ${esc(t.toFixed(2))}</strong></td></tr>`).join('');
     htmlReporte=`<div class="total-grande"><div>TOTAL DEL MES</div>
-      <div style="font-size:36px;color:#1D9E75;font-weight:bold">$ ${totalMes.toFixed(2)}</div>
-      <div>${meses[repMonth]} ${repYear}</div></div>
+      <div style="font-size:36px;color:#1D9E75;font-weight:bold">$ ${esc(totalMes.toFixed(2))}</div>
+      <div>${esc(meses[repMonth])} ${repYear}</div></div>
       <h2>Por agencia</h2>
       <table><thead><tr><th>Agencia</th><th>Total</th></tr></thead><tbody>${filasAg||'<tr><td colspan="2">Sin datos</td></tr>'}</tbody></table>
       <h2>Por paciente</h2>
@@ -1653,7 +1076,7 @@ function imprimirReporte(tipo) {
   } else if(tipo==='paciente'){
     const id=document.getElementById('rep-paciente').value;
     const p=pacientes.find(x=>x.ID===id);
-    if(!p){showToast('⚠️ Selecciona un paciente');return;}
+    if(!p){showToast('\u26a0\ufe0f Selecciona un paciente');return;}
     const ini=repYear+'-'+String(repMonth+1).padStart(2,'0')+'-01';
     const fin=repYear+'-'+String(repMonth+1).padStart(2,'0')+'-'+String(new Date(repYear,repMonth+1,0).getDate()).padStart(2,'0');
     const sesMes=sesiones.filter(s=>s.PacienteID===id&&s.Fecha>=ini&&s.Fecha<=fin);
@@ -1661,17 +1084,17 @@ function imprimirReporte(tipo) {
     const realizadasTotal=sesiones.filter(s=>s.PacienteID===id&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion')).length;
     const rem=Math.max(0,total-realizadasTotal);
     const filas=sesMes.sort((a,b)=>a.Fecha.localeCompare(b.Fecha)).map(s=>
-      `<tr><td>${fmt(s.Fecha)}</td><td>${s.HoraInicio} – ${s.HoraFin}</td><td>${s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperación':'Cancelada'}</td><td>${s.Notas||''}</td></tr>`).join('');
+      `<tr><td>${esc(fmt(s.Fecha))}</td><td>${esc(s.HoraInicio)} \u2013 ${esc(s.HoraFin)}</td><td>${esc(s.Tipo==='Normal'?'Realizada':s.Tipo==='Recuperacion'?'Recuperaci\u00f3n':'Cancelada')}</td><td>${esc(s.Notas||'')}</td></tr>`).join('');
     htmlReporte=`<div class="resumen">
       <div class="stat-box"><div class="snum">${total}</div><div class="slbl">Total asignadas</div></div>
       <div class="stat-box"><div class="snum">${realizadasTotal}</div><div class="slbl">Realizadas</div></div>
       <div class="stat-box"><div class="snum">${rem}</div><div class="slbl">Restantes</div></div></div>
-      <h2>Sesiones de ${meses[repMonth]} ${repYear}</h2>
+      <h2>Sesiones de ${esc(meses[repMonth])} ${repYear}</h2>
       <table><thead><tr><th>Fecha</th><th>Horario</th><th>Tipo</th><th>Notas</th></tr></thead>
       <tbody>${filas||'<tr><td colspan="4">Sin sesiones este mes</td></tr>'}</tbody></table>`;
   }
   const ventana=window.open('','_blank');
-  ventana.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo} — TerapistaApp</title>
+  ventana.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(titulo)} \u2014 TerapistaApp</title>
 <style>*{box-sizing:border-box}body{font-family:Georgia,serif;color:#3C3489;padding:24px;max-width:700px;margin:0 auto;font-size:13px}
 h1{font-size:22px;color:#534AB7;margin-bottom:2px}h2{font-size:14px;color:#534AB7;margin:16px 0 8px}
 .sub{font-size:11px;color:#7F77DD;margin-bottom:20px}.resumen{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
@@ -1683,7 +1106,7 @@ td{padding:7px 8px;border-bottom:1px solid #EEEDFE;font-size:12px}tr:last-child 
 .total-grande{text-align:center;background:#EEEDFE;border-radius:10px;padding:20px;margin-bottom:16px}
 @media print{body{padding:10px}@page{margin:1.5cm}}</style>
 </head><body>
-<h1>TerapistaApp — ${titulo}</h1>
+<h1>TerapistaApp \u2014 ${esc(titulo)}</h1>
 <div class="sub">Generado el ${new Date().toLocaleDateString('es-PA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
 ${htmlReporte}
 <script>setTimeout(()=>window.print(),500)<\/script>
@@ -1691,24 +1114,25 @@ ${htmlReporte}
   ventana.document.close();
 }
 
-const DIAS_PLAN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_PLAN=['\u004c\u0075\u006e\u0065\u0073','Martes','Mi\u00e9rcoles','Jueves','Viernes','S\u00e1bado'];
 
 function renderPlan() {
   const diasHTML=DIAS_PLAN.map((dia,idx)=>{
     const entradas=planData[idx]||[];
+    // C5: esc() on plan entry data
     const entradasHTML=entradas.length?entradas.map((e,ei)=>`
       <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--lav-light)">
         <div class="s-dot" style="background:${colorFor(e.pacId)};flex-shrink:0"></div>
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:500;color:var(--text)">${e.nombre}</div>
-          <div style="font-size:11px;color:var(--sub)">${e.hora||'Sin hora'}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text)">${esc(e.nombre)}</div>
+          <div style="font-size:11px;color:var(--sub)">${esc(e.hora||'Sin hora')}</div>
         </div>
         <button onclick="eliminarEntradaPlan(${idx},${ei})"
           style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:11px">x</button>
       </div>`).join(''):`<div style="font-size:11px;color:var(--lav-pale);padding:6px 0">Sin atenciones planificadas</div>`;
     return `<div class="card" style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="font-size:13px;font-weight:500;color:var(--text)">${dia}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text)">${esc(dia)}</div>
         <button onclick="abrirAddPlan(${idx})"
           style="background:var(--lav);color:white;border:none;border-radius:12px;padding:4px 10px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px">
           <i class="fas fa-plus"></i> Agregar
@@ -1721,13 +1145,14 @@ function renderPlan() {
 
 function abrirAddPlan(diaIdx) {
   const activos=pacientes.filter(p=>p.Estado!=='inactivo');
-  const pacOpts=[...activos].sort((a,b)=>(a.Nombre||'').localeCompare(b.Nombre||'')).map(p=>`<option value="${p.ID}">${p.Nombre}</option>`).join('');
+  // C5: esc() on patient IDs and names
+  const pacOpts=[...activos].sort((a,b)=>(a.Nombre||'').localeCompare(b.Nombre||'')).map(p=>`<option value="${esc(p.ID)}">${esc(p.Nombre)}</option>`).join('');
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
   ov.innerHTML=`<div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px">
     <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
-    <div style="font-size:15px;color:var(--text);margin-bottom:14px">Agregar a ${DIAS_PLAN[diaIdx]}</div>
-    <div class="field-lbl">Niño</div>
+    <div style="font-size:15px;color:var(--text);margin-bottom:14px">Agregar a ${esc(DIAS_PLAN[diaIdx])}</div>
+    <div class="field-lbl">Ni\u00f1o</div>
     <select id="plan-pac-sel" style="width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;color:var(--text);margin-bottom:10px">
       <option value="">— Selecciona —</option>${pacOpts}
     </select>
@@ -1741,40 +1166,34 @@ function abrirAddPlan(diaIdx) {
   </div>`;
   document.getElementById('app').appendChild(ov);
 }
-
 function confirmarAddPlan(diaIdx,overlay) {
   const sel=document.getElementById('plan-pac-sel');
   const hora=document.getElementById('plan-hora-inp').value;
-  if(!sel.value){showToast('⚠️ Selecciona un niño');return;}
+  if(!sel.value){showToast('\u26a0\ufe0f Selecciona un ni\u00f1o');return;}
   const pac=pacientes.find(p=>p.ID===sel.value); if(!pac) return;
   if(!planData[diaIdx]) planData[diaIdx]=[];
   planData[diaIdx].push({pacId:pac.ID,nombre:pac.Nombre,hora,lugar:pac.LugarAtencion});
   planData[diaIdx].sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
   overlay.remove();
   renderPlan();
-  showToast('✅ Agregado a '+DIAS_PLAN[diaIdx]);
+  showToast('\u2705 Agregado a '+DIAS_PLAN[diaIdx]);
 }
-
 function eliminarEntradaPlan(diaIdx,entradaIdx) {
   if(planData[diaIdx]){ planData[diaIdx].splice(entradaIdx,1); renderPlan(); }
 }
-
 async function guardarPlan() {
-  showToast('Guardando planificación...');
+  showToast('Guardando planificaci\u00f3n...');
   try {
-    const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva)
-      ? terapistaActiva
-      : currentUser.email;
+    const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) ? terapistaActiva : currentUser.email;
     const r = await apiGet({ action:'guardarPlanificacion', data:JSON.stringify(planData), email: emailTerapista });
     if (r && r.success) {
-      showToast('✅ Planificación guardada');
+      showToast('\u2705 Planificaci\u00f3n guardada');
       await sincronizarCalendario();
     } else {
-      showToast('⚠️ Error: ' + (r && r.error || 'sin respuesta'));
+      showToast('\u26a0\ufe0f Error: ' + (r && r.error || 'sin respuesta'));
     }
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
+  } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
 }
-
 function limpiarPlan() { planData={}; renderPlan(); guardarPlan(); }
 
 function openOv(id){document.getElementById(id).classList.add('show');}
@@ -1794,9 +1213,7 @@ async function recargarDatos() {
     if(rAg.success)   agencias=rAg.data||[];
     if(rPlan.success) planData=rPlan.data||{};
     if(rConf2&&rConf2.success) tiposConfig=rConf2.data||[];
-    populateSelects();
-    populateAgencias();
-    populateProgramas();
+    populateSelects(); populateAgencias(); populateProgramas();
     updateHeader(currentScreen);
     if(currentScreen==='hoy') renderHoy();
     else if(currentScreen==='mes') renderMes();
@@ -1804,48 +1221,40 @@ async function recargarDatos() {
     else if(currentScreen==='pacientes') renderPacientes();
     else if(currentScreen==='reportes') renderReportes();
     else if(currentScreen==='plan') renderPlan();
-  } catch(e){console.log('Recarga silenciosa falló:',e.message);}
+  } catch(e){console.log('Recarga silenciosa fall\u00f3:',e.message);}
 }
 
-  function abrirModalDiaLibre(fechaPreseleccionada) {
+function abrirModalDiaLibre(fechaPreseleccionada) {
   const ov = document.createElement('div');
   ov.id = 'ov-dia-libre';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
   ov.innerHTML = `
     <div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px 16px 40px">
       <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
-      <div style="font-size:16px;color:var(--text);margin-bottom:14px;font-family:Georgia,serif">🏖️ Marcar día(s) libre(s)</div>
+      <div style="font-size:16px;color:var(--text);margin-bottom:14px;font-family:Georgia,serif">\ud83c\udfd6\ufe0f Marcar d\u00eda(s) libre(s)</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div>
-          <div class="field-lbl">Desde</div>
-          <input type="date" id="dl-fecha" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px" />
-        </div>
-        <div>
-          <div class="field-lbl">Hasta <span style="font-size:10px;color:var(--lav-pale)">(opcional)</span></div>
-          <input type="date" id="dl-fecha-fin" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px" />
-        </div>
+        <div><div class="field-lbl">Desde</div>
+          <input type="date" id="dl-fecha" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px" /></div>
+        <div><div class="field-lbl">Hasta <span style="font-size:10px;color:var(--lav-pale)">(opcional)</span></div>
+          <input type="date" id="dl-fecha-fin" value="${fechaPreseleccionada||today()}" style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px" /></div>
       </div>
       <div class="field-lbl">Tipo</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
         <div id="dl-opt-libre" onclick="selectDLTipo('Libre')" style="padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--lav);background:var(--lav-light);text-align:center;cursor:pointer">
-          <div style="font-size:18px">🏖️</div><div style="font-size:11px;color:var(--text);font-weight:500">Libre</div>
-        </div>
+          <div style="font-size:18px">\ud83c\udfd6\ufe0f</div><div style="font-size:11px;color:var(--text);font-weight:500">Libre</div></div>
         <div id="dl-opt-feriado" onclick="selectDLTipo('Feriado')" style="padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer">
-          <div style="font-size:18px">🎉</div><div style="font-size:11px;color:var(--text);font-weight:500">Feriado</div>
-        </div>
+          <div style="font-size:18px">\ud83c\udf89</div><div style="font-size:11px;color:var(--text);font-weight:500">Feriado</div></div>
         <div id="dl-opt-incapacidad" onclick="selectDLTipo('Incapacidad')" style="padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:white;text-align:center;cursor:pointer">
-          <div style="font-size:18px">🤒</div><div style="font-size:11px;color:var(--text);font-weight:500">Incapacidad</div>
-        </div>
+          <div style="font-size:18px">\ud83e\udd12</div><div style="font-size:11px;color:var(--text);font-weight:500">Incapacidad</div></div>
       </div>
       <div class="field-lbl">Notas / Motivo</div>
-      <textarea id="dl-notas" placeholder="Ej: Feriado nacional, gripe, cita médica..." style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;resize:none;height:80px;margin-bottom:12px"></textarea>
-      <button onclick="guardarDiaLibre()" style="width:100%;padding:13px;border-radius:var(--radius);background:var(--lav);color:white;font-size:14px;border:none;cursor:pointer;font-family:Georgia,serif">💾 Guardar</button>
+      <textarea id="dl-notas" placeholder="Ej: Feriado nacional, gripe, cita m\u00e9dica..." style="width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border);font-family:Georgia,serif;font-size:13px;resize:none;height:80px;margin-bottom:12px"></textarea>
+      <button onclick="guardarDiaLibre()" style="width:100%;padding:13px;border-radius:var(--radius);background:var(--lav);color:white;font-size:14px;border:none;cursor:pointer;font-family:Georgia,serif">\ud83d\udcbe Guardar</button>
       <button onclick="document.getElementById('ov-dia-libre').remove()" style="width:100%;padding:11px;background:none;border:none;color:var(--sub);font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:6px">Cancelar</button>
     </div>`;
   document.getElementById('app').appendChild(ov);
   window._dlTipo = 'Libre';
 }
-
 function selectDLTipo(tipo) {
   window._dlTipo = tipo;
   ['Libre','Feriado','Incapacidad'].forEach(t => {
@@ -1855,16 +1264,13 @@ function selectDLTipo(tipo) {
     el.style.background = t===tipo ? 'var(--lav-light)' : 'white';
   });
 }
-
 async function guardarDiaLibre() {
   const fechaInicio = document.getElementById('dl-fecha').value;
   const fechaFin    = document.getElementById('dl-fecha-fin').value || fechaInicio;
   const notas = document.getElementById('dl-notas').value;
   const tipo  = window._dlTipo || 'Libre';
-  if (!fechaInicio) { showToast('⚠️ Selecciona una fecha'); return; }
-  if (fechaFin < fechaInicio) { showToast('⚠️ La fecha fin no puede ser anterior al inicio'); return; }
-
-  // Generar todas las fechas del rango
+  if (!fechaInicio) { showToast('\u26a0\ufe0f Selecciona una fecha'); return; }
+  if (fechaFin < fechaInicio) { showToast('\u26a0\ufe0f La fecha fin no puede ser anterior al inicio'); return; }
   const fechas = [];
   let current = new Date(fechaInicio + 'T12:00:00');
   const end    = new Date(fechaFin    + 'T12:00:00');
@@ -1875,49 +1281,42 @@ async function guardarDiaLibre() {
     fechas.push(`${y}-${m}-${d}`);
     current.setDate(current.getDate() + 1);
   }
-
-  showToast(`Guardando ${fechas.length} día(s)...`);
+  showToast(`Guardando ${fechas.length} d\u00eda(s)...`);
   try {
     const resultados = [];
-for (const fecha of fechas) {
-  const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas, TerapistaEmail: currentUser.email });
-  resultados.push(r);
-}
-const exitos = resultados.filter(r => r.success);
+    for (const fecha of fechas) {
+      const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas, TerapistaEmail: currentUser.email });
+      resultados.push(r);
+    }
+    const exitos = resultados.filter(r => r.success);
     exitos.forEach((r, i) => {
       diasLibres.push({ ID: r.id, Fecha: fechas[i], Tipo: tipo, Notas: notas });
     });
     document.getElementById('ov-dia-libre').remove();
-    showToast(`✅ ${exitos.length} día(s) guardado(s)`);
-    renderHoy();
-    renderMes();
-  } catch(e) {
-    showToast('⚠️ Error: ' + e.message);
-  }
+    showToast(`\u2705 ${exitos.length} d\u00eda(s) guardado(s)`);
+    renderHoy(); renderMes();
+  } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
 }
 
-  // ── AUTENTICACIÓN ──
+// ── AUTENTICACIÓN — C1 + C6 ──
 let currentUser = null;
 
 function checkAuth() {
-  const saved = localStorage.getItem('terapista_user');
+  // C6: sessionStorage instead of localStorage
+  const saved = sessionStorage.getItem('terapista_user');
   const esMobil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  
   if (saved) {
     currentUser = JSON.parse(saved);
     if (esMobil) {
-      // En móvil siempre pide autenticación
-      const bioRegistrado = localStorage.getItem('terapista_bio');
+      const bioRegistrado = sessionStorage.getItem('terapista_bio');
       if (bioRegistrado && window.PublicKeyCredential) {
-        showLogin(); // Muestra pantalla con botón biométrico
+        showLogin();
       } else {
-        // No hay bio registrado, pide Google
-        localStorage.removeItem('terapista_user');
+        sessionStorage.removeItem('terapista_user');
         currentUser = null;
         showLogin();
       }
     } else {
-      // En desktop entra directo
       showApp();
       checkBiometricoDisponible();
     }
@@ -1937,7 +1336,7 @@ function showApp() {
   document.getElementById('app').style.display = 'flex';
   if (currentUser) {
     const el = document.getElementById('sidebar-username');
-    if (el) el.textContent = currentUser.name;
+    if (el) el.textContent = currentUser.name; // textContent — safe
     if (currentUser.rol === 'admin') {
       initAdmin();
     } else {
@@ -1949,19 +1348,22 @@ function showApp() {
 function loginConGoogle() {
   google.accounts.oauth2.initTokenClient({
     client_id: '797891683379-jffbs16mg21v587g22vaev4f9u0c0kh7.apps.googleusercontent.com',
-    scope: 'profile email https://www.googleapis.com/auth/calendar.events',
+    scope: 'profile email openid https://www.googleapis.com/auth/calendar.events', // C1: added openid
     callback: async (response) => {
       if (response.access_token) {
-        window._calendarToken = response.access_token;
+        _calendarToken = response.access_token; // A1: module var, not window
+        _idToken = response.id_token || null;    // C1: capture idToken
+
         const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: 'Bearer ' + response.access_token }
         });
         const user = await res.json();
 
-        // Verificar rol
+        // C1: backend will verify idToken — pass it via apiGet
         const rUsuario = await apiGet({ action: 'getUsuario', email: user.email });
         if (!rUsuario.success) {
-          alert('⚠️ Tu cuenta no está autorizada para acceder a esta app.');
+          alert('\u26a0\ufe0f Tu cuenta no est\u00e1 autorizada para acceder a esta app.');
+          _idToken = null;
           return;
         }
 
@@ -1971,23 +1373,26 @@ function loginConGoogle() {
           picture: user.picture,
           rol: rUsuario.data.rol
         };
-        localStorage.setItem('terapista_user', JSON.stringify(currentUser));
+        sessionStorage.setItem('terapista_user', JSON.stringify(currentUser)); // C6
         showApp();
-        init();
         ofrecerBiometrico();
       }
     }
   }).requestAccessToken();
 }
+
 function logout() {
-  localStorage.removeItem('terapista_user');
-  localStorage.removeItem('terapista_bio');
+  // C6: sessionStorage
+  sessionStorage.removeItem('terapista_user');
+  sessionStorage.removeItem('terapista_bio');
+  _idToken = null;
+  _calendarToken = null;
   currentUser = null;
   showLogin();
 }
 
 async function checkBiometricoDisponible() {
-  const bioRegistrado = localStorage.getItem('terapista_bio');
+  const bioRegistrado = sessionStorage.getItem('terapista_bio'); // C6
   if (bioRegistrado && window.PublicKeyCredential) {
     document.getElementById('bio-btn').style.display = 'flex';
   }
@@ -1995,17 +1400,17 @@ async function checkBiometricoDisponible() {
 
 async function ofrecerBiometrico() {
   if (!window.PublicKeyCredential) return;
-  const yaRegistrado = localStorage.getItem('terapista_bio');
+  const yaRegistrado = sessionStorage.getItem('terapista_bio'); // C6
   if (yaRegistrado) return;
   setTimeout(() => {
     const ov = document.createElement('div');
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(83,74,183,0.4);z-index:500;display:flex;align-items:flex-end;justify-content:center';
     ov.innerHTML = `
       <div style="background:white;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:24px 20px 40px;text-align:center">
-        <div style="font-size:48px;margin-bottom:12px">🔐</div>
-        <div style="font-size:18px;color:var(--text);margin-bottom:8px;font-family:Georgia,serif">¿Activar acceso biométrico?</div>
-        <div style="font-size:13px;color:var(--sub);margin-bottom:24px">Usa tu huella o Face ID para entrar más rápido la próxima vez</div>
-        <button onclick="registrarBiometrico(this.closest('[style*=fixed]'))" style="width:100%;padding:13px;background:var(--lav);color:white;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-bottom:8px">🔐 Activar biométrico</button>
+        <div style="font-size:48px;margin-bottom:12px">\ud83d\udd10</div>
+        <div style="font-size:18px;color:var(--text);margin-bottom:8px;font-family:Georgia,serif">\u00bfActivar acceso biom\u00e9trico?</div>
+        <div style="font-size:13px;color:var(--sub);margin-bottom:24px">Usa tu huella o Face ID para entrar m\u00e1s r\u00e1pido la pr\u00f3xima vez</div>
+        <button onclick="registrarBiometrico(this.closest('[style*=fixed]'))" style="width:100%;padding:13px;background:var(--lav);color:white;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-bottom:8px">\ud83d\udd10 Activar biom\u00e9trico</button>
         <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;padding:11px;background:none;border:none;color:var(--sub);font-size:13px;cursor:pointer;font-family:Georgia,serif">Ahora no</button>
       </div>`;
     document.body.appendChild(ov);
@@ -2027,19 +1432,19 @@ async function registrarBiometrico(overlay) {
       }
     });
     if (credential) {
-      localStorage.setItem('terapista_bio', JSON.stringify({ id: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))) }));
+      sessionStorage.setItem('terapista_bio', JSON.stringify({ id: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))) })); // C6
       overlay.remove();
-      showToast('✅ Biométrico activado');
+      showToast('\u2705 Biom\u00e9trico activado');
     }
   } catch(e) {
     overlay.remove();
-    showToast('⚠️ No se pudo activar: ' + e.message);
+    showToast('\u26a0\ufe0f No se pudo activar: ' + e.message);
   }
 }
 
 async function loginConBiometrico() {
   try {
-    const bioData = JSON.parse(localStorage.getItem('terapista_bio'));
+    const bioData = JSON.parse(sessionStorage.getItem('terapista_bio')); // C6
     const challenge = new Uint8Array(32);
     crypto.getRandomValues(challenge);
     const assertion = await navigator.credentials.get({
@@ -2051,21 +1456,23 @@ async function loginConBiometrico() {
       }
     });
     if (assertion) {
+      // C2: verify session still valid before granting access
+      const savedUser = JSON.parse(sessionStorage.getItem('terapista_user') || '{}');
+      if (!savedUser.email) { showToast('\u26a0\ufe0f Sesi\u00f3n inv\u00e1lida, inicia sesi\u00f3n nuevamente'); showLogin(); return; }
+      currentUser = savedUser;
       showApp();
-      init();
     }
   } catch(e) {
-    showToast('⚠️ Error biométrico: ' + e.message);
+    showToast('\u26a0\ufe0f Error biom\u00e9trico: ' + e.message);
   }
 }
 
-  function initMapsAutocomplete() {
+function initMapsAutocomplete() {
   const input = document.getElementById('fp-lugar');
   if (!input || !window.google) return;
   const autocomplete = new google.maps.places.Autocomplete(input, {
-  // sin componentRestrictions — todos los países
-  types: ["address"],
-});
+    types: ["address"],
+  });
   autocomplete.addListener('place_changed', function() {
     const place = autocomplete.getPlace();
     if (place && place.formatted_address) {
@@ -2082,7 +1489,7 @@ window.addEventListener('load', function() {
     }
   }, 500);
 });
-  
+
 document.getElementById('reg-fecha').value=today();
 checkAuth();
 
@@ -2092,13 +1499,13 @@ if('serviceWorker' in navigator){
   });
 }
 
-  // ── GOOGLE CALENDAR SYNC ──
+// ── GOOGLE CALENDAR SYNC ──
 const CAL_API = 'https://www.googleapis.com/calendar/v3';
 
 function getFechaFinEscolar() {
   const hoy = new Date();
   const anio = hoy.getMonth() >= 6 ? hoy.getFullYear() + 1 : hoy.getFullYear();
-  return new Date(anio, 5, 30, 23, 59, 59); // 30 de junio
+  return new Date(anio, 5, 30, 23, 59, 59);
 }
 
 async function borrarEventosFuturos(accessToken) {
@@ -2106,7 +1513,6 @@ async function borrarEventosFuturos(accessToken) {
   const fin = getFechaFinEscolar().toISOString();
   let pageToken = null;
   const idsABorrar = [];
-
   do {
     let url = `${CAL_API}/calendars/primary/events?timeMin=${hoy}&timeMax=${fin}&privateExtendedProperty=source%3DTerapistaApp&maxResults=250`;
     if (pageToken) url += `&pageToken=${pageToken}`;
@@ -2115,7 +1521,6 @@ async function borrarEventosFuturos(accessToken) {
     (data.items || []).forEach(e => idsABorrar.push(e.id));
     pageToken = data.nextPageToken || null;
   } while (pageToken);
-
   for (const id of idsABorrar) {
     await fetch(`${CAL_API}/calendars/primary/events/${id}`, {
       method: 'DELETE',
@@ -2128,58 +1533,41 @@ async function borrarEventosFuturos(accessToken) {
 async function crearEventosDesdePlan(accessToken) {
   const hoy = new Date();
   const finEscolar = getFechaFinEscolar();
-  const DIAS_SEMANA = [1, 2, 3, 4, 5, 6]; // Lun=1 ... Sab=6
+  const DIAS_SEMANA = [1, 2, 3, 4, 5, 6];
   const creados = [];
-  console.log('planData:', JSON.stringify(planData));
-  console.log('pacientes:', pacientes.length);
-
-  // Para cada entrada del plan, proyectar cada semana desde hoy hasta fin escolar
   for (const [diaIdx, entradas] of Object.entries(planData)) {
-    const diaSemana = DIAS_SEMANA[parseInt(diaIdx)]; // 0=Lunes→1, etc.
+    const diaSemana = DIAS_SEMANA[parseInt(diaIdx)];
     if (!entradas || !entradas.length) continue;
-
     for (const entrada of entradas) {
       if (!entrada.hora) continue;
       const [hh, mm] = entrada.hora.split(':').map(Number);
-
-      // Encontrar el próximo día de esa semana desde hoy
       let fechaBase = new Date(hoy);
-      const diaActual = fechaBase.getDay() === 0 ? 7 : fechaBase.getDay(); // Dom=7
+      const diaActual = fechaBase.getDay() === 0 ? 7 : fechaBase.getDay();
       let diff = diaSemana - diaActual;
       if (diff < 0) diff += 7;
       if (diff === 0 && (hoy.getHours() > hh || (hoy.getHours() === hh && hoy.getMinutes() >= mm))) diff = 7;
       fechaBase.setDate(fechaBase.getDate() + diff);
-
-      // Proyectar semana a semana
       let fechaEvento = new Date(fechaBase);
       while (fechaEvento <= finEscolar) {
         const inicio = new Date(fechaEvento);
         inicio.setHours(hh, mm, 0, 0);
-
-        // Calcular duración desde el paciente
         const pac = pacientes.find(p => p.ID === entrada.pacId);
         const durMin = pac ? (parseInt(pac.DuracionMin) || 30) : 30;
         const fin = new Date(inicio.getTime() + durMin * 60000);
-
         const evento = {
-          summary: `🧒 ${entrada.nombre}`,
+          summary: `\ud83d\udc76 ${entrada.nombre}`,
           location: entrada.lugar || '',
-          description: `Sesión de terapia del habla\nLugar: ${entrada.lugar || '—'}`,
+          description: `Sesi\u00f3n de terapia del habla\nLugar: ${entrada.lugar || '\u2014'}`,
           start: { dateTime: inicio.toISOString(), timeZone: 'America/Panama' },
           end:   { dateTime: fin.toISOString(),   timeZone: 'America/Panama' },
           extendedProperties: { private: { source: 'TerapistaApp' } },
           colorId: '1'
         };
-
         await fetch(`${CAL_API}/calendars/primary/events`, {
           method: 'POST',
-          headers: {
-            Authorization: 'Bearer ' + accessToken,
-            'Content-Type': 'application/json'
-          },
+          headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
           body: JSON.stringify(evento)
         });
-
         creados.push(entrada.nombre);
         fechaEvento.setDate(fechaEvento.getDate() + 7);
       }
@@ -2189,42 +1577,37 @@ async function crearEventosDesdePlan(accessToken) {
 }
 
 async function sincronizarCalendario() {
-  if (!currentUser) { showToast('⚠️ Debes estar autenticado'); return; }
-  if (!window._calendarToken) { showToast('⚠️ Vuelve a iniciar sesión para sincronizar'); return; }
-  showToast('🗓️ Sincronizando calendario...');
+  if (!currentUser) { showToast('\u26a0\ufe0f Debes estar autenticado'); return; }
+  if (!_calendarToken) { showToast('\u26a0\ufe0f Vuelve a iniciar sesi\u00f3n para sincronizar'); return; } // A1: module var
+  showToast('\ud83d\udcc5 Sincronizando calendario...');
   try {
-    const borrados = await borrarEventosFuturos(window._calendarToken);
-    const creados  = await crearEventosDesdePlan(window._calendarToken);
-    showToast(`✅ Calendario actualizado — ${creados} eventos creados`);
+    const borrados = await borrarEventosFuturos(_calendarToken);
+    const creados  = await crearEventosDesdePlan(_calendarToken);
+    showToast(`\u2705 Calendario actualizado \u2014 ${creados} eventos creados`);
   } catch(e) {
-    showToast('⚠️ Error: ' + e.message);
+    showToast('\u26a0\ufe0f Error: ' + e.message);
   }
 }
 
-  // ── ADMIN ──
+// ── ADMIN ──
 let terapistaActiva = null;
 
 async function initAdmin() {
   const r = await apiGet({ action: 'getTerapistas' });
-  if (!r.success || !r.data.length) { showToast('⚠️ No hay terapistas registradas'); return; }
-  
-  const opts = r.data.map(t => `<option value="${t.email}">${t.nombre || t.email}</option>`).join('');
-  
+  if (!r.success || !r.data.length) { showToast('\u26a0\ufe0f No hay terapistas registradas'); return; }
+  // C5: esc() on terapista emails and names
+  const opts = r.data.map(t => `<option value="${esc(t.email)}">${esc(t.nombre || t.email)}</option>`).join('');
   const selector = document.createElement('div');
   selector.id = 'admin-bar';
   selector.style.cssText = 'background:var(--lav);color:white;padding:8px 16px;display:flex;align-items:center;gap:10px;font-size:13px;flex-shrink:0';
   selector.innerHTML = `
-    <span>👁️ Viendo como:</span>
+    <span>\ud83d\udc41\ufe0f Viendo como:</span>
     <select id="admin-terapista-sel" style="flex:1;padding:6px 10px;border-radius:8px;border:none;font-family:Georgia,serif;font-size:13px;color:var(--text)">
       ${opts}
     </select>
     <button onclick="cambiarTerapista()" style="background:white;color:var(--lav);border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-weight:500">Ver</button>
   `;
-  
-  // Insertar antes del contenido principal
   document.querySelector('.desktop-main').prepend(selector);
-  
-  // Cargar la primera terapista por defecto
   terapistaActiva = r.data[0].email;
   await init();
 }
@@ -2232,7 +1615,7 @@ async function initAdmin() {
 async function cambiarTerapista() {
   const sel = document.getElementById('admin-terapista-sel');
   terapistaActiva = sel.value;
-  showToast('🔄 Cargando datos de ' + sel.options[sel.selectedIndex].text);
+  showToast('\ud83d\udd04 Cargando datos...');
   await init();
 }
 </script>
