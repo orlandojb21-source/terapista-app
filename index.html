@@ -525,9 +525,23 @@ function apiPost(body) {
   if (body.nombre)   flat.nombre = body.nombre;
   if (body.data_str) flat.data = body.data_str;
   if (_idToken) flat.idToken = _idToken; // C1
-  const url = new URL(API_URL);
-  Object.entries(flat).forEach(([k,v]) => url.searchParams.set(k, String(v)));
-  return fetch(url.toString()).then(r => r.json());
+  // POST with JSON body — avoids URL length limit and CORS redirect
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(flat)
+  }).then(r => r.json());
+}
+
+// All reads now go via POST to avoid Apps Script redirect on long tokens
+function apiRead(params) {
+  const flat = { ...params };
+  if (_idToken) flat.idToken = _idToken;
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(flat)
+  }).then(r => r.json());
 }
 
 async function init() {
@@ -536,12 +550,12 @@ async function init() {
   const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) ? terapistaActiva : currentUser.email;
   try {
     const [rPac, rSes, rAg, rPlan, rConf2, rDL] = await Promise.all([
-      apiGet({ action:'getPacientes', email: emailTerapista }),
-      apiGet({ action:'getSesiones', email: emailTerapista }),
-      apiGet({ action:'getAgencias' }),
-      apiGet({ action:'getPlanificacion', email: emailTerapista }),
-      apiGet({ action:'getConfig2' }),
-      apiGet({ action:'getDiasLibres', email: emailTerapista })
+      apiRead({ action:'getPacientes', email: emailTerapista }),
+      apiRead({ action:'getSesiones', email: emailTerapista }),
+      apiRead({ action:'getAgencias' }),
+      apiRead({ action:'getPlanificacion', email: emailTerapista }),
+      apiRead({ action:'getConfig2' }),
+      apiRead({ action:'getDiasLibres', email: emailTerapista })
     ]);
     if (rPac.success)  pacientes   = rPac.data  || [];
     if (rSes.success)  sesiones    = rSes.data  || [];
@@ -696,7 +710,7 @@ async function agregarPrograma() {
   if (tiposConfig.includes(nombre)) { showToast('\u26a0\ufe0f Ya existe'); return; }
   showToast('Guardando...');
   try {
-    await apiGet({ action: 'agregarPrograma', nombre });
+    await apiPost({ action:'agregarPrograma', nombre });
     tiposConfig.push(nombre); input.value = '';
     renderProgramasList(); populateProgramas(); showToast('\u2705 Programa agregado');
   } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
@@ -704,7 +718,7 @@ async function agregarPrograma() {
 async function eliminarPrograma(nombre) {
   showToast('Eliminando...');
   try {
-    await apiGet({ action: 'eliminarPrograma', nombre });
+    await apiPost({ action:'eliminarPrograma', nombre });
     tiposConfig = tiposConfig.filter(t => t !== nombre);
     renderProgramasList(); populateProgramas(); showToast('\u2705 Programa eliminado');
   } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
@@ -1670,7 +1684,7 @@ async function guardarPlan() {
   showToast('Guardando planificaci\u00f3n...');
   try {
     const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) ? terapistaActiva : currentUser.email;
-    const r = await apiGet({ action:'guardarPlanificacion', data:JSON.stringify(planData), email: emailTerapista });
+    const r = await apiPost({ action:'guardarPlanificacion', data_str:JSON.stringify(planData), email: emailTerapista });
     if (r && r.success) {
       showToast('\u2705 Planificaci\u00f3n guardada');
       await sincronizarCalendario();
@@ -1691,11 +1705,11 @@ async function recargarDatos() {
       ? terapistaActiva
       : (currentUser ? currentUser.email : '');
     const [rPac,rSes,rAg,rPlan,rConf2]=await Promise.all([
-      apiGet({action:'getPacientes', email: emailTerapista}),
-      apiGet({action:'getSesiones', email: emailTerapista}),
-      apiGet({action:'getAgencias'}),
-      apiGet({action:'getPlanificacion', email: emailTerapista}),
-      apiGet({action:'getConfig2'})
+      apiRead({action:'getPacientes', email: emailTerapista}),
+      apiRead({action:'getSesiones', email: emailTerapista}),
+      apiRead({action:'getAgencias'}),
+      apiRead({action:'getPlanificacion', email: emailTerapista}),
+      apiRead({action:'getConfig2'})
     ]);
     if(rPac.success)  pacientes=rPac.data||[];
     if(rSes.success)  sesiones=rSes.data||[];
@@ -1774,7 +1788,7 @@ async function guardarDiaLibre() {
   try {
     const resultados = [];
     for (const fecha of fechas) {
-      const r = await apiGet({ action:'agregarDiaLibre', Fecha:fecha, Tipo:tipo, Notas:notas, TerapistaEmail: currentUser.email });
+      const r = await apiPost({ action:'agregarDiaLibre', data:{Fecha:fecha, Tipo:tipo, Notas:notas, TerapistaEmail: currentUser.email} });
       resultados.push(r);
     }
     const exitos = resultados.filter(r => r.success);
@@ -1852,7 +1866,7 @@ function loginConGoogle() {
         const user = await res.json();
 
         // C1: backend will verify the access_token via tokeninfo
-        const rUsuario = await apiGet({ action: 'getUsuario', email: user.email });
+        const rUsuario = await apiRead({ action: 'getUsuario', email: user.email });
         if (!rUsuario.success) {
           alert('\u26a0\ufe0f Tu cuenta no est\u00e1 autorizada para acceder a esta app.');
           _idToken = null;
@@ -2089,7 +2103,7 @@ async function sincronizarCalendario() {
 let terapistaActiva = null;
 
 async function initAdmin() {
-  const r = await apiGet({ action: 'getTerapistas' });
+  const r = await apiRead({ action: 'getTerapistas' });
   if (!r.success || !r.data.length) { showToast('\u26a0\ufe0f No hay terapistas registradas'); return; }
   // C5: esc() on terapista emails and names
   const opts = r.data.map(t => `<option value="${esc(t.email)}">${esc(t.nombre || t.email)}</option>`).join('');
