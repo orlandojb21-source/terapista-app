@@ -476,7 +476,7 @@ textarea{resize:none;height:75px;line-height:1.5}
     <button class="nav-item active" onclick="navTo('hoy')"><i class="fas fa-calendar-day"></i><span>Hoy</span></button>
     <button class="nav-item" onclick="navTo('plan')"><i class="fas fa-tasks"></i><span>Semana</span></button>
     <button class="nav-item" onclick="navTo('mes')"><i class="fas fa-calendar-alt"></i><span>Mes</span></button>
-    <button class="nav-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Ni&ntilde;os</span></button>
+    <button class="nav-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Historial del Paciente</span></button>
     <button class="nav-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
     <button class="nav-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
   </nav>
@@ -512,11 +512,28 @@ function esc(str) {
 let _idToken = null;
 let _calendarToken = null; // A1 fix: was window._calendarToken
 
+// Devuelve el email sobre el que se debe leer/escribir: el terapista que el
+// admin está "viendo como", o el propio email si no es admin / no hay selección.
+function emailActivo() {
+  if (currentUser && currentUser.rol === 'admin' && terapistaActiva) return terapistaActiva;
+  return currentUser ? currentUser.email : '';
+}
+
+// Si el backend responde "No autorizado" con una sesión activa en el cliente,
+// la sesión expiró o fue revocada — cerramos sesión limpiamente.
+function manejarRespuestaAuth(data) {
+  if (data && data.success === false && data.error === 'No autorizado' && currentUser) {
+    showToast('\u26a0\ufe0f Tu sesi\u00f3n expir\u00f3, inicia sesi\u00f3n nuevamente');
+    logout();
+  }
+  return data;
+}
+
 function apiGet(params) {
   const url = new URL(API_URL);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
   if (_idToken) url.searchParams.set('idToken', _idToken); // C1
-  return fetch(url.toString()).then(r => r.json());
+  return fetch(url.toString()).then(r => r.json()).then(manejarRespuestaAuth);
 }
 function apiPost(body) {
   const flat = { action: body.action };
@@ -524,13 +541,14 @@ function apiPost(body) {
   if (body.id)       flat.id = body.id;
   if (body.nombre)   flat.nombre = body.nombre;
   if (body.data_str) flat.data = body.data_str;
+  if (body.email)    flat.email = body.email; // "viendo como" (solo admin)
   if (_idToken) flat.idToken = _idToken; // C1
   // POST with JSON body — avoids URL length limit and CORS redirect
   return fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(flat)
-  }).then(r => r.json());
+  }).then(r => r.json()).then(manejarRespuestaAuth);
 }
 
 // All reads now go via POST to avoid Apps Script redirect on long tokens
@@ -541,13 +559,13 @@ function apiRead(params) {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(flat)
-  }).then(r => r.json());
+  }).then(r => r.json()).then(manejarRespuestaAuth);
 }
 
 async function init() {
   document.getElementById('screen-hoy').innerHTML = '<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Cargando datos...</p></div>';
   updateHeader('hoy');
-  const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) ? terapistaActiva : currentUser.email;
+  const emailTerapista = emailActivo();
   try {
     const [rPac, rSes, rAg, rPlan, rConf2, rDL] = await Promise.all([
       apiRead({ action:'getPacientes', email: emailTerapista }),
@@ -780,7 +798,7 @@ function updateHeader(screen) {
         <button onclick="changeRepMonth(1)">\u203a</button>
       </div></div>`;
   } else {
-    const labels = {registro:'Registrar sesi\u00f3n',plan:'Planificaci\u00f3n semanal',ninos:'Ni\u00f1os activos'};
+    const labels = {registro:'Registrar sesi\u00f3n',plan:'Planificaci\u00f3n semanal',ninos:'Historial del Paciente'};
     el.innerHTML = `<h1 style="font-size:18px;color:var(--text)">${esc(labels[screen]||screen)}</h1>`;
   }
 }
@@ -857,7 +875,7 @@ async function guardarEdicionSesion() {
     Notas:document.getElementById('edit-ses-notas').value};
   showToast('Guardando cambios...');
   try {
-    await apiPost({action:'editarSesion',data});
+    await apiPost({action:'editarSesion',data,email:emailActivo()});
     const idx=sesiones.findIndex(x=>x.ID===id);
     if(idx>=0) sesiones[idx]={...sesiones[idx],...data};
     closeOv('ov-edit-sesion'); showToast('\u2705 Sesi\u00f3n actualizada'); recargarDatos();
@@ -867,7 +885,7 @@ async function eliminarSesion() {
   const id=document.getElementById('edit-ses-id').value;
   showToast('Eliminando sesi\u00f3n...');
   try {
-    await apiPost({action:'eliminarSesion',id});
+    await apiPost({action:'eliminarSesion',id,email:emailActivo()});
     sesiones=sesiones.filter(x=>x.ID!==id);
     closeOv('ov-edit-sesion'); showToast('\u2705 Sesi\u00f3n eliminada'); recargarDatos();
   } catch(e) { showToast('\u26a0\ufe0f Error: '+e.message); }
@@ -1149,17 +1167,16 @@ async function guardarPaciente() {
     DuracionMin:selectedDur,Observaciones:document.getElementById('fp-obs').value,
     Agencia:document.getElementById('fp-agencia').value,
     Programa:document.getElementById('fp-tipo').value,
-    Precio:document.getElementById('fp-precio').value,
-    TerapistaEmail: currentUser.email};
+    Precio:document.getElementById('fp-precio').value};
   showToast('Guardando...');
   try {
     if(editingPacId){
       data.ID=editingPacId;
-      await apiPost({action:'editarPaciente',data});
+      await apiPost({action:'editarPaciente',data,email:emailActivo()});
       const idx=pacientes.findIndex(x=>x.ID===editingPacId);
       if(idx>=0) pacientes[idx]={...pacientes[idx],...data};
     } else {
-      const r=await apiPost({action:'agregarPaciente',data});
+      const r=await apiPost({action:'agregarPaciente',data,email:emailActivo()});
       if(r.success){data.ID=r.id;pacientes.push(data);}
     }
     populateSelects(); renderPacientes();
@@ -1171,7 +1188,7 @@ async function desactivarPaciente() {
   if(!editingPacId) return;
   showToast('Archivando paciente...');
   try {
-    await apiPost({action:'desactivarPaciente',id:editingPacId});
+    await apiPost({action:'desactivarPaciente',id:editingPacId,email:emailActivo()});
     const p=pacientes.find(x=>x.ID===editingPacId);
     if(p) p.Estado='inactivo';
     populateSelects(); renderPacientes(); renderNinos();
@@ -1282,9 +1299,8 @@ async function guardarSesion() {
       const p=pacientes.find(x=>x.ID===pacId)||{};
       return apiPost({action:'registrarSesion',data:{
         PacienteID:pacId, Fecha:fecha, HoraInicio:horaIni, HoraFin:horaFin,
-        Lugar:p.LugarAtencion||'', Tipo:tipo, Notas:notas,
-        TerapistaEmail: currentUser.email
-      }});
+        Lugar:p.LugarAtencion||'', Tipo:tipo, Notas:notas
+      }, email:emailActivo()});
     });
     const resultados=await Promise.all(promesas);
     const exitos=resultados.filter(r=>r.success).length;
@@ -1683,7 +1699,7 @@ function eliminarEntradaPlan(diaIdx,entradaIdx) {
 async function guardarPlan() {
   showToast('Guardando planificaci\u00f3n...');
   try {
-    const emailTerapista = (currentUser.rol === 'admin' && terapistaActiva) ? terapistaActiva : currentUser.email;
+    const emailTerapista = emailActivo();
     const r = await apiPost({ action:'guardarPlanificacion', data_str:JSON.stringify(planData), email: emailTerapista });
     if (r && r.success) {
       showToast('\u2705 Planificaci\u00f3n guardada');
@@ -1700,10 +1716,7 @@ function closeOv(id){document.getElementById(id).classList.remove('show');}
 
 async function recargarDatos() {
   try {
-    // C3: pass terapistaActiva email so admin sees correct terapista's data
-    const emailTerapista = (currentUser && currentUser.rol === 'admin' && terapistaActiva)
-      ? terapistaActiva
-      : (currentUser ? currentUser.email : '');
+    const emailTerapista = emailActivo();
     const [rPac,rSes,rAg,rPlan,rConf2]=await Promise.all([
       apiRead({action:'getPacientes', email: emailTerapista}),
       apiRead({action:'getSesiones', email: emailTerapista}),
@@ -1788,7 +1801,7 @@ async function guardarDiaLibre() {
   try {
     const resultados = [];
     for (const fecha of fechas) {
-      const r = await apiPost({ action:'agregarDiaLibre', data:{Fecha:fecha, Tipo:tipo, Notas:notas, TerapistaEmail: currentUser.email} });
+      const r = await apiPost({ action:'agregarDiaLibre', data:{Fecha:fecha, Tipo:tipo, Notas:notas}, email: emailActivo() });
       resultados.push(r);
     }
     const exitos = resultados.filter(r => r.success);
@@ -1801,31 +1814,37 @@ async function guardarDiaLibre() {
   } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
 }
 
-// ── AUTENTICACIÓN — C1 + C6 ──
+// ── AUTENTICACIÓN — sesión persistente con token propio + biométrico solo en móvil ──
 let currentUser = null;
 
+function esMobile() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }
+
 function checkAuth() {
-  // C6: sessionStorage instead of localStorage
-  const saved = sessionStorage.getItem('terapista_user');
-  const esMobil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (saved) {
-    currentUser = JSON.parse(saved);
-    if (esMobil) {
-      const bioRegistrado = sessionStorage.getItem('terapista_bio');
-      if (bioRegistrado && window.PublicKeyCredential) {
-        showLogin();
-      } else {
-        sessionStorage.removeItem('terapista_user');
-        currentUser = null;
-        showLogin();
-      }
-    } else {
-      showApp();
-      checkBiometricoDisponible();
-    }
-  } else {
+  const savedRaw = localStorage.getItem('terapista_session');
+  if (!savedRaw) { currentUser = null; _idToken = null; showLogin(); return; }
+
+  let saved;
+  try { saved = JSON.parse(savedRaw); } catch(e) { saved = null; }
+  if (!saved || !saved.token || !saved.user) {
+    localStorage.removeItem('terapista_session');
+    currentUser = null; _idToken = null;
     showLogin();
+    return;
   }
+
+  currentUser = saved.user;
+  _idToken = saved.token;
+
+  const bioRegistrado = esMobile() && localStorage.getItem('terapista_bio');
+  if (bioRegistrado && window.PublicKeyCredential) {
+    // En móvil, con biométrico ya activado: pedir huella/Face ID antes de entrar.
+    showLogin();
+    return;
+  }
+
+  // Desktop, o móvil sin biométrico activado aún: entra directo con la sesión guardada.
+  showApp();
+  if (esMobile()) checkBiometricoDisponible();
 }
 
 function showLogin() {
@@ -1855,9 +1874,9 @@ function loginConGoogle() {
     callback: async (response) => {
       if (response.access_token) {
         _calendarToken = response.access_token; // A1: module var, not window
-        // C1: use access_token as the verifiable credential.
-        // initTokenClient does not return id_token reliably; we send the
-        // access_token and the backend verifies it via Google tokeninfo.
+        // Usamos el access_token de Google solo para esta primera verificación;
+        // el backend lo valida y a cambio emite un token de sesión propio de
+        // larga duración que reemplaza a este access_token de aquí en adelante.
         _idToken = response.access_token;
 
         const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -1865,7 +1884,6 @@ function loginConGoogle() {
         });
         const user = await res.json();
 
-        // C1: backend will verify the access_token via tokeninfo
         const rUsuario = await apiRead({ action: 'getUsuario', email: user.email });
         if (!rUsuario.success) {
           alert('\u26a0\ufe0f Tu cuenta no est\u00e1 autorizada para acceder a esta app.');
@@ -1879,7 +1897,12 @@ function loginConGoogle() {
           picture: user.picture,
           rol: rUsuario.data.rol
         };
-        sessionStorage.setItem('terapista_user', JSON.stringify(currentUser)); // C6
+
+        // El backend devolvió un sessionToken propio junto con los datos del
+        // usuario — lo usamos de ahora en adelante en vez del access_token.
+        _idToken = rUsuario.sessionToken || _idToken;
+        localStorage.setItem('terapista_session', JSON.stringify({ token: _idToken, user: currentUser }));
+
         showApp();
         ofrecerBiometrico();
       }
@@ -1888,9 +1911,8 @@ function loginConGoogle() {
 }
 
 function logout() {
-  // C6: sessionStorage
-  sessionStorage.removeItem('terapista_user');
-  sessionStorage.removeItem('terapista_bio');
+  localStorage.removeItem('terapista_session');
+  localStorage.removeItem('terapista_bio');
   _idToken = null;
   _calendarToken = null;
   currentUser = null;
@@ -1898,15 +1920,15 @@ function logout() {
 }
 
 async function checkBiometricoDisponible() {
-  const bioRegistrado = sessionStorage.getItem('terapista_bio'); // C6
-  if (bioRegistrado && window.PublicKeyCredential) {
-    document.getElementById('bio-btn').style.display = 'flex';
-  }
+  const btn = document.getElementById('bio-btn');
+  if (!btn) return;
+  const bioRegistrado = esMobile() && localStorage.getItem('terapista_bio');
+  btn.style.display = (bioRegistrado && window.PublicKeyCredential) ? 'flex' : 'none';
 }
 
 async function ofrecerBiometrico() {
-  if (!window.PublicKeyCredential) return;
-  const yaRegistrado = sessionStorage.getItem('terapista_bio'); // C6
+  if (!esMobile() || !window.PublicKeyCredential) return;
+  const yaRegistrado = localStorage.getItem('terapista_bio');
   if (yaRegistrado) return;
   setTimeout(() => {
     const ov = document.createElement('div');
@@ -1938,7 +1960,7 @@ async function registrarBiometrico(overlay) {
       }
     });
     if (credential) {
-      sessionStorage.setItem('terapista_bio', JSON.stringify({ id: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))) })); // C6
+      localStorage.setItem('terapista_bio', JSON.stringify({ id: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))) }));
       overlay.remove();
       showToast('\u2705 Biom\u00e9trico activado');
     }
@@ -1950,7 +1972,7 @@ async function registrarBiometrico(overlay) {
 
 async function loginConBiometrico() {
   try {
-    const bioData = JSON.parse(sessionStorage.getItem('terapista_bio')); // C6
+    const bioData = JSON.parse(localStorage.getItem('terapista_bio'));
     const challenge = new Uint8Array(32);
     crypto.getRandomValues(challenge);
     const assertion = await navigator.credentials.get({
@@ -1962,10 +1984,17 @@ async function loginConBiometrico() {
       }
     });
     if (assertion) {
-      // C2: verify session still valid before granting access
-      const savedUser = JSON.parse(sessionStorage.getItem('terapista_user') || '{}');
-      if (!savedUser.email) { showToast('\u26a0\ufe0f Sesi\u00f3n inv\u00e1lida, inicia sesi\u00f3n nuevamente'); showLogin(); return; }
-      currentUser = savedUser;
+      // El biométrico solo confirma presencia local — la sesión real (token
+      // firmado por el backend) ya está guardada de un login previo con Google.
+      const savedRaw = localStorage.getItem('terapista_session');
+      const saved = savedRaw ? JSON.parse(savedRaw) : null;
+      if (!saved || !saved.token || !saved.user) {
+        showToast('\u26a0\ufe0f Sesi\u00f3n inv\u00e1lida, inicia sesi\u00f3n nuevamente');
+        logout();
+        return;
+      }
+      currentUser = saved.user;
+      _idToken = saved.token;
       showApp();
     }
   } catch(e) {
@@ -2088,7 +2117,7 @@ async function crearEventosDesdePlan(accessToken) {
 
 async function sincronizarCalendario() {
   if (!currentUser) { showToast('\u26a0\ufe0f Debes estar autenticado'); return; }
-  if (!_calendarToken) { showToast('\u26a0\ufe0f Vuelve a iniciar sesi\u00f3n para sincronizar'); return; } // A1: module var
+  if (!_calendarToken) { showToast('\u26a0\ufe0f Vuelve a iniciar sesi\u00f3n con Google para sincronizar el calendario'); return; }
   showToast('\ud83d\udcc5 Sincronizando calendario...');
   try {
     const borrados = await borrarEventosFuturos(_calendarToken);
