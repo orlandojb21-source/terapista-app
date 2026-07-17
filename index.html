@@ -254,7 +254,6 @@ textarea{resize:none;height:75px;line-height:1.5}
       <button class="sidebar-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Historial del Paciente</span></button>
       <button class="sidebar-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
       <button class="sidebar-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
-      <button class="sidebar-item" onclick="navTo('balance')"><i class="fas fa-scale-balanced"></i><span>Balance</span></button>
     </div>
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -370,25 +369,6 @@ textarea{resize:none;height:75px;line-height:1.5}
           <div id="rep-paciente-body"></div>
         </div>
       </div>
-      <div class="screen" id="screen-balance">
-        <div class="tabs">
-          <div class="tab active" id="bal-tab-mensual" onclick="setBalancePeriodo('mensual')">&#128197; Mensual</div>
-          <div class="tab" id="bal-tab-anual" onclick="setBalancePeriodo('anual')">&#128467; Anual</div>
-        </div>
-        <div class="card-grid" style="grid-template-columns:1fr 1fr 1fr">
-          <div class="stat-card"><div class="num" style="color:var(--mint)" id="bal-num-ingresos">$0</div><div class="lbl">Ingresos</div></div>
-          <div class="stat-card"><div class="num" style="color:var(--pink)" id="bal-num-egresos">$0</div><div class="lbl">Egresos</div></div>
-          <div class="stat-card"><div class="num" id="bal-num-ganancia">$0</div><div class="lbl">Ganancia</div></div>
-        </div>
-        <div class="filter-row">
-          <div class="filter-chip active" onclick="setBalanceTipo('todo',this)">Todo</div>
-          <div class="filter-chip" onclick="setBalanceTipo('ingresos',this)">Ingresos</div>
-          <div class="filter-chip" onclick="setBalanceTipo('egresos',this)">Egresos</div>
-          <div class="filter-chip" onclick="setBalanceTipo('ganancias',this)">Ganancias</div>
-        </div>
-        <div id="balance-detalle"></div>
-        <button class="btn-add" style="margin-top:10px" onclick="abrirNuevoEgreso()"><i class="fas fa-plus"></i> Agregar gasto</button>
-      </div>
     </div>
   </div>
 
@@ -490,36 +470,6 @@ textarea{resize:none;height:75px;line-height:1.5}
       <div id="programas-list"></div>
     </div>
   </div>
-  <div class="overlay" id="ov-categorias-gasto">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-categorias-gasto')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title">Categor&iacute;as de gasto</span>
-    </div>
-    <div class="overlay-body">
-      <div class="field-lbl">Nueva categor&iacute;a</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="nueva-categoria-gasto-input" placeholder="Ej: Transporte" style="flex:1" />
-        <button onclick="agregarCategoriaGastoUI()" style="background:var(--lav);color:white;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-family:Georgia,serif">+ Agregar</button>
-      </div>
-      <div class="section-lbl" style="margin-top:14px">Categor&iacute;as registradas</div>
-      <div id="categorias-gasto-list"></div>
-    </div>
-  </div>
-  <div class="overlay" id="ov-form-egreso">
-    <div class="overlay-header">
-      <button class="back-btn" onclick="closeOv('ov-form-egreso')"><i class="fas fa-chevron-left"></i></button>
-      <span class="overlay-title" id="ov-form-egreso-title">Nuevo gasto</span>
-    </div>
-    <div class="overlay-body">
-      <input type="hidden" id="eg-id" />
-      <div class="field-lbl">Fecha</div><input type="date" id="eg-fecha" />
-      <div class="field-lbl">Categor&iacute;a</div><select id="eg-categoria"></select>
-      <div class="field-lbl">Descripci&oacute;n</div><input type="text" id="eg-descripcion" placeholder="Ej: Gasolina, materiales..." />
-      <div class="field-lbl">Monto ($)</div><input type="number" id="eg-monto" placeholder="Ej: 25.00" min="0" step="0.01" />
-      <button class="btn-primary" onclick="guardarEgreso()">&#128190; Guardar gasto</button>
-      <button class="btn-danger" id="eg-delete-btn" style="display:none" onclick="eliminarEgresoUI()">&#128465; Eliminar gasto</button>
-    </div>
-  </div>
 
   <nav class="bottom-nav">
     <button class="nav-item" onclick="navTo('registro')"><i class="fas fa-clipboard-list"></i><span>Registro</span></button>
@@ -529,7 +479,6 @@ textarea{resize:none;height:75px;line-height:1.5}
     <button class="nav-item" onclick="navTo('ninos')"><i class="fas fa-child"></i><span>Historial del Paciente</span></button>
     <button class="nav-item" onclick="navTo('pacientes')"><i class="fas fa-database"></i><span>Pacientes</span></button>
     <button class="nav-item" onclick="navTo('reportes')"><i class="fas fa-chart-bar"></i><span>Reportes</span></button>
-    <button class="nav-item" onclick="navTo('balance')"><i class="fas fa-scale-balanced"></i><span>Balance</span></button>
   </nav>
   <div class="toast" id="toast"></div>
 </div>
@@ -549,10 +498,6 @@ let regStep = 1, regTipo = 'normal';
 let regPacientes = [];
 let filtroNinos = 'todos', searchNinos = '', searchPacs = '';
 let diasLibres = [];
-let egresos = [], categoriasGasto = [];
-let balanceTipo = 'todo', balancePeriodo = 'mensual';
-let balMonth = new Date().getMonth(), balYear = new Date().getFullYear();
-let editingEgresoId = null;
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -622,15 +567,13 @@ async function init() {
   updateHeader('hoy');
   const emailTerapista = emailActivo();
   try {
-    const [rPac, rSes, rAg, rPlan, rConf2, rDL, rEg, rCatEg] = await Promise.all([
+    const [rPac, rSes, rAg, rPlan, rConf2, rDL] = await Promise.all([
       apiRead({ action:'getPacientes', email: emailTerapista }),
       apiRead({ action:'getSesiones', email: emailTerapista }),
       apiRead({ action:'getAgencias' }),
       apiRead({ action:'getPlanificacion', email: emailTerapista }),
       apiRead({ action:'getConfig2' }),
-      apiRead({ action:'getDiasLibres', email: emailTerapista }),
-      apiRead({ action:'getEgresos', email: emailTerapista }),
-      apiRead({ action:'getCategoriasGasto' })
+      apiRead({ action:'getDiasLibres', email: emailTerapista })
     ]);
     if (rPac.success)  pacientes   = rPac.data  || [];
     if (rSes.success)  sesiones    = rSes.data  || [];
@@ -638,9 +581,7 @@ async function init() {
     if (rPlan.success) planData    = rPlan.data  || {};
     if (rConf2 && rConf2.success) tiposConfig = rConf2.data || [];
     if (rDL && rDL.success) diasLibres = rDL.data || [];
-    if (rEg && rEg.success) egresos = rEg.data || [];
-    if (rCatEg && rCatEg.success) categoriasGasto = rCatEg.data || [];
-    populateSelects(); populateAgencias(); populateProgramas(); populateCategoriasGasto();
+    populateSelects(); populateAgencias(); populateProgramas();
     showToast('\u2705 Datos cargados');
   } catch(e) {
     showToast('\u26a0\ufe0f Error: ' + e.message);
@@ -801,8 +742,8 @@ async function eliminarPrograma(nombre) {
   } catch(e) { showToast('\u26a0\ufe0f Error: ' + e.message); }
 }
 
-const SCREENS = {hoy:'screen-hoy',registro:'screen-registro',plan:'screen-plan',mes:'screen-mes',ninos:'screen-ninos',pacientes:'screen-pacientes',reportes:'screen-reportes',balance:'screen-balance'};
-const NAV_ORDER = ['registro','hoy','plan','mes','ninos','pacientes','reportes','balance'];
+const SCREENS = {hoy:'screen-hoy',registro:'screen-registro',plan:'screen-plan',mes:'screen-mes',ninos:'screen-ninos',pacientes:'screen-pacientes',reportes:'screen-reportes'};
+const NAV_ORDER = ['registro','hoy','plan','mes','ninos','pacientes','reportes'];
 
 function navTo(screen) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -817,7 +758,6 @@ function navTo(screen) {
   else if (screen==='ninos')     renderNinos();
   else if (screen==='pacientes') renderPacientes();
   else if (screen==='reportes')  renderReportes();
-  else if (screen==='balance')   renderBalance();
   recargarDatos();
 }
 
@@ -856,15 +796,6 @@ function updateHeader(screen) {
         <button onclick="changeRepMonth(-1)">\u2039</button>
         <span id="rep-month-lbl">${esc(MESES[repMonth])} ${repYear}</span>
         <button onclick="changeRepMonth(1)">\u203a</button>
-      </div></div>`;
-  } else if (screen==='balance') {
-    const lbl = balancePeriodo==='mensual' ? `${esc(MESES[balMonth])} ${balYear}` : `${balYear}`;
-    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
-      <h1 style="font-size:18px;color:var(--text);flex:1">Balance</h1>
-      <div class="month-nav">
-        <button onclick="changeBalancePeriodo(-1)">\u2039</button>
-        <span id="bal-period-lbl">${lbl}</span>
-        <button onclick="changeBalancePeriodo(1)">\u203a</button>
       </div></div>`;
   } else {
     const labels = {registro:'Registrar sesi\u00f3n',plan:'Planificaci\u00f3n semanal',ninos:'Historial del Paciente'};
@@ -1504,30 +1435,6 @@ function renderReporteMensual() {
     <button class="btn-green" onclick="imprimirReporte('mensual')"><i class="fas fa-file-pdf"></i> Exportar PDF mensual</button>`;
 }
 
-function precioPorSesion(pac) {
-  const precio = parseFloat(pac.Precio) || 0;
-  const dur = parseInt(pac.DuracionMin) || 60;
-  return dur === 30 ? precio / 2 : precio;
-}
-function calcularIngresosEnRango(ini, fin) {
-  const ses = sesiones.filter(s => s.Fecha >= ini && s.Fecha <= fin && (s.Tipo === 'Normal' || s.Tipo === 'Recuperacion'));
-  let total = 0;
-  const porAgencia = {}, porPaciente = [];
-  pacientes.forEach(p => {
-    const pxs = precioPorSesion(p);
-    const agencia = p.Agencia || 'Sin agencia';
-    const sesPac = ses.filter(s => s.PacienteID === p.ID);
-    const totPac = sesPac.length * pxs;
-    total += totPac;
-    if (totPac > 0) {
-      if (!porAgencia[agencia]) porAgencia[agencia] = 0;
-      porAgencia[agencia] += totPac;
-      porPaciente.push({ nombre: p.Nombre, agencia, sesiones: sesPac.length, pxs, total: totPac });
-    }
-  });
-  return { total, porAgencia, porPaciente };
-}
-
 async function renderReporteIngresos() {
   const el=document.getElementById('reporte-ingresos');
   el.innerHTML='<div class="loading"><div class="spinner"></div><p style="font-size:13px;color:var(--sub)">Calculando...</p></div>';
@@ -1537,8 +1444,22 @@ async function renderReporteIngresos() {
     const fin=y+'-'+String(m+1).padStart(2,'0')+'-'+String(new Date(y,m+1,0).getDate()).padStart(2,'0');
     const semanas=getSemanasDelMes(y,m);
     const sem=semanas[Math.min(repWeekOffset,semanas.length-1)];
-    const totalSemana = calcularIngresosEnRango(sem.inicio, sem.fin).total;
-    const { total: totalMes, porAgencia, porPaciente: porPacienteMes } = calcularIngresosEnRango(ini, fin);
+    const sesSem=sesiones.filter(s=>s.Fecha>=sem.inicio&&s.Fecha<=sem.fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+    const sesMes=sesiones.filter(s=>s.Fecha>=ini&&s.Fecha<=fin&&(s.Tipo==='Normal'||s.Tipo==='Recuperacion'));
+    let totalSemana=0,totalMes=0;
+    const porAgencia={},porPacienteMes=[];
+    pacientes.forEach(p=>{
+      const precio=parseFloat(p.Precio)||0,dur=parseInt(p.DuracionMin)||60;
+      const agencia=p.Agencia||'Sin agencia',pxs=dur===30?precio/2:precio;
+      totalSemana+=sesSem.filter(s=>s.PacienteID===p.ID).length*pxs;
+      const totPacMes=sesMes.filter(s=>s.PacienteID===p.ID).length*pxs;
+      totalMes+=totPacMes;
+      if(totPacMes>0){
+        if(!porAgencia[agencia]) porAgencia[agencia]=0;
+        porAgencia[agencia]+=totPacMes;
+        porPacienteMes.push({nombre:p.Nombre,agencia,sesiones:sesMes.filter(s=>s.PacienteID===p.ID).length,pxs,total:totPacMes});
+      }
+    });
     // C5: esc() on agency/patient names
     const agenciaHTML=Object.entries(porAgencia).map(([a,t])=>`
       <div class="session-item"><div class="s-info"><div class="s-name">${esc(a)}</div></div>
@@ -1708,196 +1629,6 @@ ${htmlReporte}
   ventana.document.close();
 }
 
-// == BALANCE - ingresos, egresos y ganancias ==
-
-function rangoBalance() {
-  if (balancePeriodo === 'anual') {
-    return { ini: balYear+'-01-01', fin: balYear+'-12-31' };
-  }
-  const ini = balYear+'-'+String(balMonth+1).padStart(2,'0')+'-01';
-  const fin = balYear+'-'+String(balMonth+1).padStart(2,'0')+'-'+String(new Date(balYear,balMonth+1,0).getDate()).padStart(2,'0');
-  return { ini, fin };
-}
-
-function setBalancePeriodo(periodo) {
-  balancePeriodo = periodo;
-  document.getElementById('bal-tab-mensual').classList.toggle('active', periodo==='mensual');
-  document.getElementById('bal-tab-anual').classList.toggle('active', periodo==='anual');
-  updateHeader('balance');
-  renderBalance();
-}
-function changeBalancePeriodo(dir) {
-  if (balancePeriodo === 'anual') { balYear += dir; }
-  else {
-    balMonth += dir;
-    if (balMonth < 0) { balMonth = 11; balYear--; }
-    if (balMonth > 11) { balMonth = 0; balYear++; }
-  }
-  updateHeader('balance');
-  renderBalance();
-}
-function setBalanceTipo(tipo, el) {
-  balanceTipo = tipo;
-  document.querySelectorAll('#screen-balance .filter-chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');
-  renderBalance();
-}
-
-function renderBalance() {
-  const { ini, fin } = rangoBalance();
-  const { total: totalIngresos, porPaciente } = calcularIngresosEnRango(ini, fin);
-  const egresosRango = egresos.filter(e => e.Fecha >= ini && e.Fecha <= fin)
-    .sort((a,b) => b.Fecha.localeCompare(a.Fecha));
-  const totalEgresos = egresosRango.reduce((sum,e) => sum + (parseFloat(e.Monto)||0), 0);
-  const ganancia = totalIngresos - totalEgresos;
-
-  document.getElementById('bal-num-ingresos').textContent = '$'+totalIngresos.toFixed(2);
-  document.getElementById('bal-num-egresos').textContent = '$'+totalEgresos.toFixed(2);
-  const ganEl = document.getElementById('bal-num-ganancia');
-  ganEl.textContent = '$'+ganancia.toFixed(2);
-  ganEl.style.color = ganancia >= 0 ? 'var(--mint)' : 'var(--pink)';
-
-  // C5: esc() en todos los datos que vienen de la hoja
-  const ingresosHTML = porPaciente.length ? porPaciente.map(p=>`
-    <div class="session-item">
-      <div class="s-info"><div class="s-name">${esc(p.nombre)}</div><div class="s-sub">${esc(p.agencia)} - ${p.sesiones} ses. x $ ${esc(p.pxs.toFixed(2))}</div></div>
-      <span style="font-size:13px;font-weight:500;color:var(--mint)">$ ${esc(p.total.toFixed(2))}</span></div>`).join('') : '<div class="empty">Sin ingresos en este periodo</div>';
-
-  const egresosHTML = egresosRango.length ? egresosRango.map(e=>`
-    <div class="session-item" onclick="abrirEditarEgreso('${esc(e.ID)}')" style="cursor:pointer">
-      <span class="s-time">${esc(fmt(e.Fecha))}</span>
-      <div class="s-dot" style="background:var(--pink)"></div>
-      <div class="s-info"><div class="s-name">${esc(e.Categoria||'Sin categoria')}</div><div class="s-sub">${esc(e.Descripcion||'')}</div></div>
-      <span style="font-size:13px;font-weight:500;color:var(--red)">$ ${esc((parseFloat(e.Monto)||0).toFixed(2))}</span>
-      <i class="fas fa-pen" style="font-size:11px;color:var(--lav-pale);margin-left:4px"></i></div>`).join('') : '<div class="empty">Sin gastos registrados en este periodo</div>';
-
-  const gananciasHTML = `<div class="card">
-    <div class="section-lbl" style="margin-top:0">Ingresos vs. egresos</div>
-    ${barChart([{val:Math.round(totalIngresos),lbl:'Ingresos'},{val:Math.round(totalEgresos),lbl:'Egresos'}], d => d.lbl==='Ingresos' ? 'var(--mint)' : 'var(--pink)')}
-  </div>`;
-
-  const el = document.getElementById('balance-detalle');
-  if (balanceTipo === 'ingresos') {
-    el.innerHTML = `<div class="card"><div class="section-lbl" style="margin-top:0">Ingresos por paciente</div>${ingresosHTML}</div>`;
-  } else if (balanceTipo === 'egresos') {
-    el.innerHTML = `<div class="card"><div class="section-lbl" style="margin-top:0">Gastos registrados</div>${egresosHTML}</div>`;
-  } else if (balanceTipo === 'ganancias') {
-    el.innerHTML = gananciasHTML;
-  } else {
-    el.innerHTML = `${gananciasHTML}
-      <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Ingresos por paciente</div>${ingresosHTML}</div>
-      <div class="card" style="margin-top:8px"><div class="section-lbl" style="margin-top:0">Gastos registrados</div>${egresosHTML}</div>`;
-  }
-}
-
-// == Categorias de gasto (lista administrable, igual que agencias/programas) ==
-function populateCategoriasGasto() {
-  const sel = document.getElementById('eg-categoria');
-  if (!sel) return;
-  const current = sel.value;
-  sel.innerHTML = '<option value="">-- Selecciona una categoria --</option>';
-  categoriasGasto.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    if (c===current) opt.selected=true;
-    sel.appendChild(opt);
-  });
-  const opt = document.createElement('option');
-  opt.value='__gestionar__'; opt.textContent='⚙️ Gestionar categorias...';
-  sel.appendChild(opt);
-  sel.onchange = function() {
-    if (this.value==='__gestionar__') { this.value=current; abrirGestionCategoriasGasto(); }
-  };
-}
-function abrirGestionCategoriasGasto() { renderCategoriasGastoList(); openOv('ov-categorias-gasto'); }
-function renderCategoriasGastoList() {
-  const el = document.getElementById('categorias-gasto-list');
-  if (!categoriasGasto.length) { el.innerHTML = '<div class="empty">No hay categorias registradas</div>'; return; }
-  el.innerHTML = categoriasGasto.map(c => `<div class="patient-row" style="padding:10px 14px">
-    <div class="p-info"><div class="p-name">${esc(c)}</div></div>
-    <button onclick="eliminarCategoriaGastoUI('${esc(c)}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px">🗑️</button>
-  </div>`).join('');
-}
-async function agregarCategoriaGastoUI() {
-  const input = document.getElementById('nueva-categoria-gasto-input');
-  const nombre = input.value.trim();
-  if (!nombre) { showToast('⚠️ Escribe el nombre'); return; }
-  if (categoriasGasto.includes(nombre)) { showToast('⚠️ Ya existe'); return; }
-  showToast('Guardando...');
-  try {
-    await apiPost({ action:'agregarCategoriaGasto', nombre });
-    categoriasGasto.push(nombre); input.value = '';
-    renderCategoriasGastoList(); populateCategoriasGasto(); showToast('✅ Categoria agregada');
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
-}
-async function eliminarCategoriaGastoUI(nombre) {
-  showToast('Eliminando...');
-  try {
-    await apiPost({ action:'eliminarCategoriaGasto', nombre });
-    categoriasGasto = categoriasGasto.filter(c => c !== nombre);
-    renderCategoriasGastoList(); populateCategoriasGasto(); showToast('✅ Categoria eliminada');
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
-}
-
-// == Formulario de gasto ==
-function abrirNuevoEgreso() {
-  editingEgresoId = null;
-  document.getElementById('ov-form-egreso-title').textContent = 'Nuevo gasto';
-  document.getElementById('eg-id').value = '';
-  document.getElementById('eg-fecha').value = today();
-  document.getElementById('eg-categoria').value = '';
-  document.getElementById('eg-descripcion').value = '';
-  document.getElementById('eg-monto').value = '';
-  document.getElementById('eg-delete-btn').style.display = 'none';
-  openOv('ov-form-egreso');
-}
-function abrirEditarEgreso(id) {
-  const e = egresos.find(x => x.ID === id); if (!e) return;
-  editingEgresoId = id;
-  document.getElementById('ov-form-egreso-title').textContent = 'Editar gasto';
-  document.getElementById('eg-id').value = id;
-  document.getElementById('eg-fecha').value = e.Fecha;
-  document.getElementById('eg-categoria').value = e.Categoria || '';
-  document.getElementById('eg-descripcion').value = e.Descripcion || '';
-  document.getElementById('eg-monto').value = e.Monto;
-  document.getElementById('eg-delete-btn').style.display = 'block';
-  openOv('ov-form-egreso');
-}
-async function guardarEgreso() {
-  const data = {
-    Fecha: document.getElementById('eg-fecha').value,
-    Categoria: document.getElementById('eg-categoria').value,
-    Descripcion: document.getElementById('eg-descripcion').value,
-    Monto: document.getElementById('eg-monto').value
-  };
-  if (!data.Fecha) { showToast('⚠️ Selecciona una fecha'); return; }
-  if (!data.Monto || parseFloat(data.Monto) <= 0) { showToast('⚠️ Ingresa un monto valido'); return; }
-  showToast('Guardando...');
-  try {
-    if (editingEgresoId) {
-      data.ID = editingEgresoId;
-      await apiPost({ action:'editarEgreso', data, email: emailActivo() });
-      const idx = egresos.findIndex(x => x.ID === editingEgresoId);
-      if (idx >= 0) egresos[idx] = { ...egresos[idx], ...data };
-    } else {
-      const r = await apiPost({ action:'agregarEgreso', data, email: emailActivo() });
-      if (r.success) { data.ID = r.id; egresos.push(data); }
-    }
-    closeOv('ov-form-egreso');
-    showToast('✅ Gasto guardado'); renderBalance(); recargarDatos();
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
-}
-async function eliminarEgresoUI() {
-  if (!editingEgresoId) return;
-  showToast('Eliminando gasto...');
-  try {
-    await apiPost({ action:'eliminarEgreso', id: editingEgresoId, email: emailActivo() });
-    egresos = egresos.filter(x => x.ID !== editingEgresoId);
-    closeOv('ov-form-egreso');
-    showToast('✅ Gasto eliminado'); renderBalance(); recargarDatos();
-  } catch(e) { showToast('⚠️ Error: ' + e.message); }
-}
-
 const DIAS_PLAN=['\u004c\u0075\u006e\u0065\u0073','Martes','Mi\u00e9rcoles','Jueves','Viernes','S\u00e1bado'];
 
 function renderPlan() {
@@ -1986,23 +1717,19 @@ function closeOv(id){document.getElementById(id).classList.remove('show');}
 async function recargarDatos() {
   try {
     const emailTerapista = emailActivo();
-    const [rPac,rSes,rAg,rPlan,rConf2,rEg,rCatEg]=await Promise.all([
+    const [rPac,rSes,rAg,rPlan,rConf2]=await Promise.all([
       apiRead({action:'getPacientes', email: emailTerapista}),
       apiRead({action:'getSesiones', email: emailTerapista}),
       apiRead({action:'getAgencias'}),
       apiRead({action:'getPlanificacion', email: emailTerapista}),
-      apiRead({action:'getConfig2'}),
-      apiRead({action:'getEgresos', email: emailTerapista}),
-      apiRead({action:'getCategoriasGasto'})
+      apiRead({action:'getConfig2'})
     ]);
     if(rPac.success)  pacientes=rPac.data||[];
     if(rSes.success)  sesiones=rSes.data||[];
     if(rAg.success)   agencias=rAg.data||[];
     if(rPlan.success) planData=rPlan.data||{};
     if(rConf2&&rConf2.success) tiposConfig=rConf2.data||[];
-    if(rEg&&rEg.success) egresos=rEg.data||[];
-    if(rCatEg&&rCatEg.success) categoriasGasto=rCatEg.data||[];
-    populateSelects(); populateAgencias(); populateProgramas(); populateCategoriasGasto();
+    populateSelects(); populateAgencias(); populateProgramas();
     updateHeader(currentScreen);
     if(currentScreen==='hoy') renderHoy();
     else if(currentScreen==='mes') renderMes();
@@ -2010,7 +1737,6 @@ async function recargarDatos() {
     else if(currentScreen==='pacientes') renderPacientes();
     else if(currentScreen==='reportes') renderReportes();
     else if(currentScreen==='plan') renderPlan();
-    else if(currentScreen==='balance') renderBalance();
   } catch(e){console.log('Recarga silenciosa fall\u00f3:',e.message);}
 }
 
