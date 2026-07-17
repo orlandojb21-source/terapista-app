@@ -1,4 +1,4 @@
-var CACHE_NAME = 'terapista-app-v9';
+var CACHE_NAME = 'terapista-app-v10';
 var urlsToCache = ['/', '/index.html'];
 
 self.addEventListener('install', function(event) {
@@ -26,6 +26,9 @@ self.addEventListener('activate', function(event) {
         keys.filter(function(k) { return k !== CACHE_NAME; })
             .map(function(k) { return caches.delete(k); })
       );
+    }).then(function() {
+      // Toma control de las pestañas ya abiertas sin esperar a que se cierren.
+      return self.clients.claim();
     })
   );
 });
